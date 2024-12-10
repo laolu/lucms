@@ -22,10 +22,26 @@ async function bootstrap() {
     .setTitle('LuCMS API')
     .setDescription('The LuCMS API documentation')
     .setVersion('1.0')
+    .addTag('认证', '用户认证相关接口')
+    .addTag('用户', '用户管理相关接口')
+    .addTag('内容', '内容管理相关接口')
+    .addTag('广告', '广告管理相关接口')
+    .addTag('系统', '系统配置相关接口')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      docExpansion: 'none',
+      filter: true,
+      showRequestDuration: true,
+      syntaxHighlight: {
+        activate: true,
+        theme: 'monokai',
+      },
+    },
+  });
 
   // 启用 CORS
   app.enableCors();
