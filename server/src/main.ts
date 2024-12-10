@@ -1,44 +1,38 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { ValidationPipe } from './pipes/validation.pipe';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import * as express from 'express';
-import { join } from 'path';
-import * as fs from 'fs';
+import { TransformInterceptor } from './interceptors/transform.interceptor';
 
 async function bootstrap() {
-  // 确保日志目录存在
-  const logDir = join(__dirname, '..', 'logs');
-  if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir);
-  }
-
   const app = await NestFactory.create(AppModule);
-  
-  // 使用 Winston 日志服务
-  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
-  
+
+  // 全局验证管道
+  app.useGlobalPipes(new ValidationPipe());
+
+  // 全局异常过滤器
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  // 全局响应转换拦截器
+  app.useGlobalInterceptors(new TransformInterceptor());
+
+  // 配置 Swagger 文档
+  const config = new DocumentBuilder()
+    .setTitle('LuCMS API')
+    .setDescription('The LuCMS API documentation')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document);
+
   // 启用 CORS
   app.enableCors();
-  
-  // 启用全局验证管道
-  app.useGlobalPipes(new ValidationPipe());
-  
-  // 启用全局异常过滤器
-  app.useGlobalFilters(new HttpExceptionFilter());
-  
-  // 配置静态文件服务
-  const uploadDir = join(__dirname, '..', 'uploads');
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-  }
-  app.use('/uploads', express.static(uploadDir));
-  
-  // 配置全局前缀
-  app.setGlobalPrefix('api');
-  
-  await app.listen(3000);
-  console.log('Application is running on: http://localhost:3000');
+
+  const port = process.env.APP_PORT || 3000;
+  await app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
+  console.log(`Swagger documentation is available at: http://localhost:${port}/docs`);
 }
 bootstrap(); 
