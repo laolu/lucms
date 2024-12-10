@@ -2,20 +2,474 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 12%;
+ 
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 12%;
+ 
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+ 
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 12%;
+ 
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+ 
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 12%;
+ 
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 0 0% 92%;
+    --input: 0 0% 92%;
+    --ring: 221 83% 53%;
+ 
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 0 0% 98%;
+ 
+    --card: 223 47% 11%;
+    --card-foreground: 0 0% 98%;
+ 
+    --popover: 223 47% 11%;
+    --popover-foreground: 0 0% 98%;
+ 
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 98%;
+ 
+    --secondary: 222 47% 15%;
+    --secondary-foreground: 0 0% 98%;
+ 
+    --muted: 222 47% 15%;
+    --muted-foreground: 215 20.2% 65.1%;
+ 
+    --accent: 222 47% 15%;
+    --accent-foreground: 0 0% 98%;
+ 
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+ 
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+    --ring: 224.3 76.3% 48%;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Common Styles */
+.container {
+  @apply max-w-[1200px] mx-auto px-4;
+}
+
+/* Sub Banner Styles */
+.sub-banner-cell {
+  @apply block cursor-pointer;
+}
+
+.sub-banner-cell img {
+  @apply transition-all duration-500 ease-out;
+}
+
+.sub-banner-cell:hover img {
+  transform: scale(1.05);
+}
+
+/* Keyword Card Styles */
+.keyword-card {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-6 mb-20;
+}
+
+.keyword-card-cell {
+  @apply p-6 bg-card rounded-lg border border-border/50 hover:border-primary/20 hover:shadow-[0_0_20px_rgba(0,118,255,0.1)] transition-all duration-300;
+}
+
+.cg-keyword-tag {
+  @apply inline-flex px-3 py-1.5 text-sm rounded-full cursor-pointer transition-colors mb-3 mr-3;
+  background: rgba(28,31,35,.03);
+  color: #1c1f23;
+}
+
+.cg-keyword-tag:hover {
+  background: rgba(28,31,35,.06);
+}
+
+.dark .cg-keyword-tag {
+  background: rgba(255,255,255,.1);
+  color: #fff;
+}
+
+.dark .cg-keyword-tag:hover {
+  background: rgba(255,255,255,.15);
+}
+
+.keyword-tags-wrap {
+  @apply flex flex-wrap;
+}
+
+/* Course Section Styles */
+.course-section {
+  @apply mb-24;
+}
+
+.course-card {
+  @apply bg-card rounded-lg overflow-hidden border border-border/50 hover:border-primary/20 hover:shadow-[0_0_20px_rgba(0,118,255,0.1)] transition-all duration-300 hover:-translate-y-1;
+}
+
+.course-card-top {
+  @apply relative;
+}
+
+.course-card-poster {
+  @apply block relative aspect-[16/9] overflow-hidden;
+}
+
+.course-card-software {
+  @apply absolute bottom-0 left-0 p-3 flex items-center gap-2 z-10;
+}
+
+.software-icon {
+  @apply block p-1 bg-white/90 rounded;
+}
+
+.course-card-software-bg {
+  @apply absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/40 to-transparent;
+}
+
+.course-card-content {
+  @apply p-4;
+}
+
+.course-card-title {
+  @apply block text-lg font-medium mb-4 line-clamp-2 hover:text-primary transition-colors duration-300 min-h-[56px];
+}
+
+.course-card-meta {
+  @apply flex items-center justify-between mb-4;
+}
+
+.course-card-author {
+  @apply flex items-center gap-2;
+}
+
+.author-avatar {
+  @apply block w-8 h-8 rounded-full overflow-hidden;
+}
+
+.author-name {
+  @apply text-sm text-muted-foreground hover:text-primary transition-colors;
+}
+
+.course-card-price {
+  @apply flex items-center gap-1;
+}
+
+.course-card-price .current {
+  @apply text-lg font-semibold text-primary;
+}
+
+.course-card-price .original {
+  @apply text-sm text-muted-foreground line-through;
+}
+
+.course-card-divider {
+  @apply h-px bg-border/50 mb-3;
+}
+
+.course-card-footer {
+  @apply flex items-center justify-between;
+}
+
+.course-card-status,
+.course-card-level {
+  @apply flex items-center gap-2 text-sm;
+}
+
+.status-dot,
+.level-dot {
+  @apply w-1.5 h-1.5 rounded-full;
+}
+
+.course-card-status .status-dot {
+  @apply bg-current;
+}
+
+.course-card-level .level-dot {
+  @apply bg-current;
+}
+
+.course-card-students {
+  @apply flex items-center gap-1 text-sm text-muted-foreground;
+}
+
+/* Section Title Styles */
+.section-title {
+  @apply flex items-center justify-between mb-6;
+}
+
+.section-title h2 {
+  @apply text-xl font-medium;
+}
+
+.section-title h2::before {
+  content: "";
+  @apply block w-1 h-6 bg-primary rounded-full;
+}
+
+.section-title a {
+  @apply text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1;
+}
+
+/* Grid Layout */
+.course-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6;
+}
+
+/* Recommended Courses */
+.recommended-course-card {
+  @apply flex gap-4 p-4 bg-card rounded-lg border border-border/50 hover:border-primary/20 hover:shadow-[0_0_20px_rgba(0,118,255,0.1)] transition-all duration-300;
+}
+
+.recommended-course-image {
+  @apply relative w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-muted;
+}
+
+.recommended-course-image img {
+  @apply transition-all duration-500 ease-out;
+}
+
+.recommended-course-card:hover .recommended-course-image img {
+  transform: scale(1.08);
+}
+
+.recommended-course-content {
+  @apply flex-1 min-w-0 flex flex-col justify-between py-1;
+}
+
+.recommended-course-title {
+  @apply text-base font-medium line-clamp-2 hover:text-primary transition-colors duration-300;
+}
+
+.recommended-course-meta {
+  @apply flex items-center justify-between text-sm mt-2;
+}
+
+.recommended-course-author {
+  @apply text-muted-foreground;
+}
+
+.recommended-course-price {
+  @apply text-primary font-semibold;
+}
+
+/* Carousel Styles */
+.carousel-content {
+  @apply relative h-[400px] md:h-[500px];
+}
+
+.carousel-item {
+  @apply relative h-full;
+}
+
+.carousel-image {
+  @apply absolute inset-0;
+}
+
+.carousel-image img {
+  @apply object-cover transition-transform duration-700 ease-out;
+}
+
+.carousel-overlay {
+  @apply absolute inset-0 bg-gradient-to-r from-black/60 to-transparent;
+}
+
+.carousel-content-wrap {
+  @apply container h-full flex items-center;
+}
+
+.carousel-text {
+  @apply max-w-lg space-y-4;
+}
+
+.carousel-title {
+  @apply text-3xl md:text-4xl font-bold text-white;
+}
+
+.carousel-description {
+  @apply text-lg text-white/90;
+}
+
+.carousel-button {
+  @apply mt-4;
+}
+
+.carousel-nav {
+  @apply absolute top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white border-0;
+}
+
+.carousel-prev {
+  @apply left-4;
+}
+
+.carousel-next {
+  @apply right-4;
+}
+
+/* 好课推荐样式 */
+.recommended-section {
+  @apply container mx-auto py-8 mb-14;
+}
+
+.recommended-carousel {
+  @apply relative h-[352px];
+}
+
+.recommended-slide {
+  @apply h-full grid grid-cols-1 lg:grid-cols-12 gap-4;
+}
+
+.recommended-course-big {
+  @apply lg:col-span-8 bg-white rounded-xl overflow-hidden;
+}
+
+.recommended-course-big-poster {
+  @apply relative block h-48 overflow-hidden;
+}
+
+.recommended-course-big-content {
+  @apply p-4;
+}
+
+.recommended-course-big-title {
+  @apply text-lg font-medium line-clamp-2 hover:text-primary mb-4;
+}
+
+.recommended-course-big-desc {
+  @apply text-sm text-gray-600 line-clamp-2 mb-5 h-10;
+}
+
+.recommended-course-big-meta {
+  @apply flex items-center justify-between mb-[60px];
+}
+
+.software-icon {
+  @apply relative inline-block rounded-full overflow-hidden bg-gray-100;
+}
+
+.software-icon img {
+  @apply w-7 h-7 p-1;
+}
+
+.software-icon.small img {
+  @apply w-5 h-5 p-0.5;
+}
+
+.course-level-tag {
+  @apply flex items-center gap-1 text-sm;
+}
+
+.level-dot {
+  @apply w-1.5 h-1.5 rounded-full;
+}
+
+.course-level-tag.text-red-500 .level-dot {
+  @apply bg-red-500;
+}
+
+.course-level-tag.text-green-500 .level-dot {
+  @apply bg-green-500;
+}
+
+.course-level-tag.text-purple-500 .level-dot {
+  @apply bg-purple-500;
+}
+
+.recommended-course-big-footer {
+  @apply flex items-center justify-between;
+}
+
+.recommended-course-big-price {
+  @apply flex items-baseline gap-2;
+}
+
+.recommended-course-big-price .current {
+  @apply text-2xl font-medium text-primary;
+}
+
+.recommended-course-big-price .original {
+  @apply text-sm line-through text-gray-400;
+}
+
+.recommended-course-big-stats {
+  @apply flex items-center text-sm text-gray-500 gap-2;
+}
+
+.recommended-list {
+  @apply lg:col-span-4 flex flex-col gap-4;
+}
+
+.recommended-course-small {
+  @apply flex gap-4 bg-white rounded-lg p-4 h-[104px];
+}
+
+.recommended-course-small-poster {
+  @apply relative block w-[144px] h-[72px] rounded-lg overflow-hidden flex-shrink-0;
+}
+
+.recommended-course-small-content {
+  @apply flex-1 min-w-0;
+}
+
+.recommended-course-small-title {
+  @apply text-sm font-medium line-clamp-2 hover:text-primary mb-2;
+}
+
+.recommended-course-small-meta {
+  @apply flex items-center justify-between;
+}
+
+.recommended-course-small-software {
+  @apply flex items-center gap-1;
+}
+
+.recommended-course-small-price {
+  @apply flex items-baseline gap-1;
+}
+
+.recommended-course-small-price .current {
+  @apply text-sm font-medium text-primary;
+}
+
+.recommended-course-small-price .original {
+  @apply text-xs line-through text-gray-400;
+}
+
+.carousel-nav {
+  @apply absolute top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:bg-white transition-colors duration-200 z-10;
+}
+
+.carousel-nav.left-4 {
+  @apply -left-5;
+}
+
+.carousel-nav.right-4 {
+  @apply -right-5;
 }
