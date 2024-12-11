@@ -102,7 +102,7 @@ function CourseCard({
         <div className={styles.divider} />
         
         <div className={styles.footer}>
-          <div className="flex items-center gap-6">
+          <div className="flex gap-6 items-center">
             <div className={cn(
               styles.status,
               status.type === "red" ? "text-red-500" : "text-green-500"
@@ -166,7 +166,7 @@ const coursesData = [
     image: "/demo/course2-2.png",
     author: {
       name: "法常",
-      avatar: "/avatar2.jpg",
+      avatar: "/demo/avatar1.png",
       link: "/teacher/40644"
     },
     price: {

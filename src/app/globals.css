@@ -77,7 +77,8 @@
 
 /* Common Styles */
 .container {
-  @apply max-w-[1200px] mx-auto px-4;
+  @apply px-4 mx-auto;
+  max-width: 1200px;
 }
 
 /* Sub Banner Styles */
@@ -95,7 +96,7 @@
 
 /* Keyword Card Styles */
 .keyword-card {
-  @apply grid grid-cols-1 md:grid-cols-3 gap-6 mb-20;
+  @apply grid grid-cols-1 gap-6 mb-20 md:grid-cols-3;
 }
 
 .keyword-card-cell {
@@ -103,7 +104,7 @@
 }
 
 .cg-keyword-tag {
-  @apply inline-flex px-3 py-1.5 text-sm rounded-full cursor-pointer transition-colors mb-3 mr-3;
+  @apply inline-flex px-3 py-1.5 mr-3 mb-3 text-sm rounded-full transition-colors cursor-pointer;
   background: rgba(28,31,35,.03);
   color: #1c1f23;
 }
@@ -127,7 +128,7 @@
 
 /* Grid Layout */
 .course-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6;
+  @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6;
 }
 
 /* Recommended Courses */
@@ -136,7 +137,7 @@
 }
 
 .recommended-course-image {
-  @apply relative w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-muted;
+  @apply overflow-hidden relative flex-shrink-0 w-28 h-28 rounded-lg bg-muted;
 }
 
 .recommended-course-image img {
@@ -148,15 +149,15 @@
 }
 
 .recommended-course-content {
-  @apply flex-1 min-w-0 flex flex-col justify-between py-1;
+  @apply flex flex-col flex-1 justify-between py-1 min-w-0;
 }
 
 .recommended-course-title {
-  @apply text-base font-medium line-clamp-2 hover:text-primary transition-colors duration-300;
+  @apply text-base font-medium transition-colors duration-300 line-clamp-2 hover:text-primary;
 }
 
 .recommended-course-meta {
-  @apply flex items-center justify-between text-sm mt-2;
+  @apply flex justify-between items-center mt-2 text-sm;
 }
 
 .recommended-course-author {
@@ -164,7 +165,7 @@
 }
 
 .recommended-course-price {
-  @apply text-primary font-semibold;
+  @apply font-semibold text-primary;
 }
 
 /* Carousel Styles */
@@ -185,19 +186,19 @@
 }
 
 .carousel-overlay {
-  @apply absolute inset-0 bg-gradient-to-r from-black/60 to-transparent;
+  @apply absolute inset-0 bg-gradient-to-r to-transparent from-black/60;
 }
 
 .carousel-content-wrap {
-  @apply container h-full flex items-center;
+  @apply container flex items-center h-full;
 }
 
 .carousel-text {
-  @apply max-w-lg space-y-4;
+  @apply space-y-4 max-w-lg;
 }
 
 .carousel-title {
-  @apply text-3xl md:text-4xl font-bold text-white;
+  @apply text-3xl font-bold text-white md:text-4xl;
 }
 
 .carousel-description {
@@ -209,7 +210,7 @@
 }
 
 .carousel-nav {
-  @apply absolute top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white border-0;
+  @apply absolute top-1/2 text-white border-0 -translate-y-1/2 bg-white/10 hover:bg-white/20;
 }
 
 .carousel-prev {
@@ -222,7 +223,7 @@
 
 /* 好课推荐样式 */
 .recommended-section {
-  @apply container mx-auto py-8 mb-14;
+  @apply container py-8 mx-auto mb-14;
 }
 
 .recommended-carousel {
@@ -230,15 +231,15 @@
 }
 
 .recommended-slide {
-  @apply h-full grid grid-cols-1 lg:grid-cols-12 gap-4;
+  @apply grid grid-cols-1 gap-4 h-full lg:grid-cols-12;
 }
 
 .recommended-course-big {
-  @apply lg:col-span-8 bg-white rounded-xl overflow-hidden;
+  @apply overflow-hidden bg-white rounded-xl lg:col-span-8;
 }
 
 .recommended-course-big-poster {
-  @apply relative block h-48 overflow-hidden;
+  @apply block overflow-hidden relative h-48;
 }
 
 .recommended-course-big-content {
@@ -246,11 +247,11 @@
 }
 
 .recommended-course-big-title {
-  @apply text-lg font-medium line-clamp-2 hover:text-primary mb-4;
+  @apply mb-4 text-lg font-medium line-clamp-2 hover:text-primary;
 }
 
 .recommended-course-big-desc {
-  @apply text-sm text-gray-600 line-clamp-2 mb-5 h-10;
+  @apply mb-5 h-10 text-sm text-gray-600 line-clamp-2;
 }
 
 .recommended-course-big-meta {
@@ -258,19 +259,19 @@
 }
 
 .software-icon {
-  @apply relative inline-block rounded-full overflow-hidden bg-gray-100;
+  @apply inline-block overflow-hidden relative bg-gray-100 rounded-full;
 }
 
 .software-icon img {
-  @apply w-7 h-7 p-1;
+  @apply p-1 w-7 h-7;
 }
 
 .software-icon.small img {
-  @apply w-5 h-5 p-0.5;
+  @apply p-0.5 w-5 h-5;
 }
 
 .course-level-tag {
-  @apply flex items-center gap-1 text-sm;
+  @apply flex gap-1 items-center text-sm;
 }
 
 .level-dot {
@@ -290,11 +291,11 @@
 }
 
 .recommended-course-big-footer {
-  @apply flex items-center justify-between;
+  @apply flex justify-between items-center;
 }
 
 .recommended-course-big-price {
-  @apply flex items-baseline gap-2;
+  @apply flex gap-2 items-baseline;
 }
 
 .recommended-course-big-price .current {
@@ -302,15 +303,15 @@
 }
 
 .recommended-course-big-price .original {
-  @apply text-sm line-through text-gray-400;
+  @apply text-sm text-gray-400 line-through;
 }
 
 .recommended-course-big-stats {
-  @apply flex items-center text-sm text-gray-500 gap-2;
+  @apply flex gap-2 items-center text-sm text-gray-500;
 }
 
 .recommended-list {
-  @apply lg:col-span-4 flex flex-col gap-4;
+  @apply flex flex-col gap-4 lg:col-span-4;
 }
 
 .recommended-course-small {
@@ -326,19 +327,19 @@
 }
 
 .recommended-course-small-title {
-  @apply text-sm font-medium line-clamp-2 hover:text-primary mb-2;
+  @apply mb-2 text-sm font-medium line-clamp-2 hover:text-primary;
 }
 
 .recommended-course-small-meta {
-  @apply flex items-center justify-between;
+  @apply flex justify-between items-center;
 }
 
 .recommended-course-small-software {
-  @apply flex items-center gap-1;
+  @apply flex gap-1 items-center;
 }
 
 .recommended-course-small-price {
-  @apply flex items-baseline gap-1;
+  @apply flex gap-1 items-baseline;
 }
 
 .recommended-course-small-price .current {
@@ -346,11 +347,11 @@
 }
 
 .recommended-course-small-price .original {
-  @apply text-xs line-through text-gray-400;
+  @apply text-xs text-gray-400 line-through;
 }
 
 .carousel-nav {
-  @apply absolute top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:bg-white transition-colors duration-200 z-10;
+  @apply flex absolute top-1/2 z-10 justify-center items-center w-10 h-10 rounded-full shadow-md transition-colors duration-200 -translate-y-1/2 bg-white/90 hover:bg-white;
 }
 
 .carousel-nav.left-4 {

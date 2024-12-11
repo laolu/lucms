@@ -1,8 +1,9 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import styles from './sub-banner.module.css'
+import * as React from "react"
+import Image from "next/image"
+import Link from "next/link"
+import styles from "./sub-banner.module.css"
 
-const items = [
+const subBannerItems = [
   {
     id: 1,
     image: "/demo/sub-banner1.png",
@@ -25,15 +26,15 @@ const items = [
     id: 4,
     image: "/demo/sub-banner4.png",
     link: "/course/4",
-    alt: "场景设计"
+    alt: "特效制作"
   }
 ]
 
 export function SubBanner() {
   return (
-    <div className={styles.subBannerContainer}>
-      {items.map(item => (
-        <Link 
+    <div className={styles.subBanner}>
+      {subBannerItems.map((item) => (
+        <Link
           key={item.id}
           href={item.link}
           className={styles.subBannerCell}
@@ -46,7 +47,7 @@ export function SubBanner() {
               priority
               quality={85}
               className={styles.image}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
         </Link>

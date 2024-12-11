@@ -1,16 +1,13 @@
-.subBannerContainer {
+.subBanner {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
   width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 32px;
-  padding: 0;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .subBannerCell {
-  width: 23.333%;
-  flex-shrink: 0;
   position: relative;
   transition: all 0.3s ease;
   overflow: hidden;
@@ -18,21 +15,21 @@
   cursor: pointer;
   border-radius: 12px;
   border: 8px solid #fff;
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.06);
-  background-color: var(--color-bg-white-wrap, #fff);
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
 }
 
 .subBannerCell:hover {
   transform: translateY(-6px);
-  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.08);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 }
 
 .imageWrapper {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 8px;
   overflow: hidden;
+  border-radius: 4px;
 }
 
 .image {
@@ -41,5 +38,8 @@
   height: 100% !important;
   position: relative !important;
   transition: transform 0.3s ease;
-  border-radius: 8px;
+}
+
+.subBannerCell:hover .image {
+  transform: scale(1.05);
 } 
