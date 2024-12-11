@@ -10,28 +10,35 @@ import { KeywordCard } from "@/components/keyword-card"
 import { CourseSection } from "@/components/course-section"
 import { RecommendedCourses } from "@/components/recommended-courses"
 
+const subBannerItems = [
+  {
+    id: 1,
+    href: '/course/2493',
+    imgSrc: '/banner1.jpg',
+    alt: '课程1'
+  },
+  // ... 其他项目
+]
+
 export default function Home() {
   return (
     <main>
-      <section className="mb-8">
-        <HomeCarousel />
-      </section>
+      <HomeCarousel />
       
-      <section className="container">
+      <div className="container py-8">
         <SubBanner />
-      </section>
-
-      <section className="container">
         <KeywordCard />
-      </section>
-
-      <section className="container">
-        <CourseSection />
-      </section>
+      </div>
 
       <section className="container">
         <RecommendedCourses />
       </section>
+      
+      <section className="container">
+        <CourseSection />
+      </section>
+
+
       
       {/* 热门资源 */}
       <section className="container">
@@ -41,9 +48,9 @@ export default function Home() {
             <Link href="/list">查看更多</Link>
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((item) => (
-            <Card key={item} className="group overflow-hidden">
+            <Card key={item} className="overflow-hidden group">
               <Link href={`/resource/${item}`}>
                 <div className="aspect-[16/9] relative overflow-hidden">
                   <Image
@@ -52,12 +59,12 @@ export default function Home() {
                     fill
                     className="object-cover transition-transform group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute inset-0 flex items-center justify-center transition-opacity opacity-0 bg-black/60 group-hover:opacity-100">
                     <Button variant="secondary">查看详情</Button>
                   </div>
                 </div>
                 <CardHeader>
-                  <CardTitle className="line-clamp-2 text-base">
+                  <CardTitle className="text-base line-clamp-2">
                     3D模型资源标题 {item}
                   </CardTitle>
                 </CardHeader>
@@ -69,15 +76,15 @@ export default function Home() {
                 <CardFooter className="text-sm text-muted-foreground">
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1">
-                      <Eye className="h-4 w-4" />
+                      <Eye className="w-4 h-4" />
                       1.2k
                     </span>
                     <span className="flex items-center gap-1">
-                      <ThumbsUp className="h-4 w-4" />
+                      <ThumbsUp className="w-4 h-4" />
                       368
                     </span>
                     <span className="flex items-center gap-1">
-                      <MessageSquare className="h-4 w-4" />
+                      <MessageSquare className="w-4 h-4" />
                       46
                     </span>
                   </div>
@@ -96,9 +103,9 @@ export default function Home() {
             <Link href="/list">查看更多</Link>
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {[5, 6, 7, 8].map((item) => (
-            <Card key={item} className="group overflow-hidden">
+            <Card key={item} className="overflow-hidden group">
               <Link href={`/resource/${item}`}>
                 <div className="aspect-[16/9] relative overflow-hidden">
                   <Image
@@ -107,12 +114,12 @@ export default function Home() {
                     fill
                     className="object-cover transition-transform group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute inset-0 flex items-center justify-center transition-opacity opacity-0 bg-black/60 group-hover:opacity-100">
                     <Button variant="secondary">查看详情</Button>
                   </div>
                 </div>
                 <CardHeader>
-                  <CardTitle className="line-clamp-2 text-base">
+                  <CardTitle className="text-base line-clamp-2">
                     3D模型资源标题 {item}
                   </CardTitle>
                 </CardHeader>
@@ -124,15 +131,15 @@ export default function Home() {
                 <CardFooter className="text-sm text-muted-foreground">
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1">
-                      <Eye className="h-4 w-4" />
+                      <Eye className="w-4 h-4" />
                       892
                     </span>
                     <span className="flex items-center gap-1">
-                      <ThumbsUp className="h-4 w-4" />
+                      <ThumbsUp className="w-4 h-4" />
                       245
                     </span>
                     <span className="flex items-center gap-1">
-                      <MessageSquare className="h-4 w-4" />
+                      <MessageSquare className="w-4 h-4" />
                       32
                     </span>
                   </div>
@@ -151,11 +158,11 @@ export default function Home() {
             <Link href="/tutorials">查看更多</Link>
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((item) => (
             <Card key={item} className="group">
               <Link href={`/tutorial/${item}`}>
-                <div className="aspect-video relative overflow-hidden">
+                <div className="relative overflow-hidden aspect-video">
                   <Image
                     src={`/tutorial${item}.jpg`}
                     alt="教程封面"
@@ -164,10 +171,10 @@ export default function Home() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
                     <div className="absolute bottom-4 left-4 right-4">
-                      <h3 className="text-white font-bold mb-2">
+                      <h3 className="mb-2 font-bold text-white">
                         Blender 基础教程 {item}
                       </h3>
-                      <p className="text-white/80 text-sm line-clamp-2">
+                      <p className="text-sm text-white/80 line-clamp-2">
                         学习 Blender 的基础操作和建模技巧，适合初学者...
                       </p>
                     </div>
@@ -187,7 +194,7 @@ export default function Home() {
             <Link href="/community">查看更多</Link>
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {[1, 2].map((item) => (
             <Card key={item}>
               <CardHeader>
@@ -209,7 +216,7 @@ export default function Home() {
                 <p className="line-clamp-3">
                   这是一段社区动态内容，分享了一些创作经验和心得...
                 </p>
-                <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 mt-4">
                   <Image
                     src={`/community${item}-1.jpg`}
                     alt="社区图片"
@@ -229,11 +236,11 @@ export default function Home() {
               <CardFooter className="text-sm text-muted-foreground">
                 <div className="flex items-center gap-4">
                   <span className="flex items-center gap-1">
-                    <ThumbsUp className="h-4 w-4" />
+                    <ThumbsUp className="w-4 h-4" />
                     128
                   </span>
                   <span className="flex items-center gap-1">
-                    <MessageSquare className="h-4 w-4" />
+                    <MessageSquare className="w-4 h-4" />
                     36
                   </span>
                 </div>

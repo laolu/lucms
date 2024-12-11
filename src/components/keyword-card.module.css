@@ -1,0 +1,104 @@
+.keywordCard {
+  width: 100%;
+  padding: 32px 0;
+  border-radius: 12px;
+  background: var(--color-bg-white-wrap, #fff);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 80px;
+}
+
+.keywordCardCell {
+  padding: 0 16px 0 40px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: hidden;
+  flex-shrink: 0;
+  width: 33.33%;
+}
+
+.keywordCardCell:after {
+  content: "";
+  position: absolute;
+  width: 1px;
+  top: 4px;
+  bottom: 4px;
+  right: 0;
+  background: var(--color-border-hr, #eceef2);
+}
+
+.keywordCardCell:last-child:after {
+  width: 0;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.iconWrap {
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1c1f23;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #1c1f23;
+}
+
+.keywordTagsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  max-height: 76px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.keywordTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  margin: 0 12px 12px 0;
+  border-radius: 100px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(28, 31, 35, 0.03);
+  color: #1c1f23;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.keywordTag:hover {
+  background: rgba(28, 31, 35, 0.06);
+}
+
+/* 暗色主题支持 */
+:global(.dark) .iconWrap {
+  color: #fff;
+}
+
+:global(.dark) .title {
+  color: #fff;
+}
+
+:global(.dark) .keywordTag {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+:global(.dark) .keywordTag:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+:global(.dark) .keywordCardCell:after {
+  background: rgba(255, 255, 255, 0.1);
+} 

@@ -3,6 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, User } from "lucide-react"
 import { cn } from "@/lib/utils"
+import styles from "./course-section.module.css"
 
 interface SoftwareIcon {
   name: string
@@ -46,9 +47,9 @@ function CourseCard({
   link 
 }: CourseCardProps) {
   return (
-    <div className="course-card">
-      <div className="course-card-top">
-        <Link href={link} className="course-card-poster">
+    <div className={styles.courseCard}>
+      <div className={styles.cardTop}>
+        <Link href={link} className={styles.poster}>
           <Image
             src={image}
             alt={title}
@@ -56,71 +57,70 @@ function CourseCard({
             className="object-cover"
           />
         </Link>
-        <div className="course-card-software">
+        <div className={styles.software}>
           {software.map((item, index) => (
-            <span key={index} className="software-icon">
+            <span key={index} className={styles.softwareIcon}>
               <Image
                 src={item.icon}
                 alt={item.name}
                 width={24}
                 height={24}
-                className="w-6 h-6"
               />
             </span>
           ))}
         </div>
-        <div className="course-card-software-bg" />
+        <div className={styles.softwareBg} />
       </div>
       
-      <div className="course-card-content">
-        <Link href={link} className="course-card-title">
+      <div className={styles.content}>
+        <Link href={link} className={styles.title}>
           {title}
         </Link>
         
-        <div className="course-card-meta">
-          <Link href={author.link} className="course-card-author">
-            <span className="author-avatar">
+        <div className={styles.meta}>
+          <Link href={author.link} className={styles.author}>
+            <span className={styles.authorAvatar}>
               <Image
                 src={author.avatar}
                 alt={author.name}
-                width={32}
-                height={32}
+                width={24}
+                height={24}
                 className="rounded-full"
               />
             </span>
-            <span className="author-name">{author.name}</span>
+            <span className={styles.authorName}>{author.name}</span>
           </Link>
           
-          <div className="course-card-price">
-            <span className="current">¥{price.current}</span>
+          <div className={styles.price}>
+            <span className={styles.currentPrice}>¥{price.current}</span>
             {price.original && (
-              <span className="original">¥{price.original}</span>
+              <span className={styles.originalPrice}>¥{price.original}</span>
             )}
           </div>
         </div>
         
-        <div className="course-card-divider" />
+        <div className={styles.divider} />
         
-        <div className="course-card-footer">
+        <div className={styles.footer}>
           <div className="flex items-center gap-6">
             <div className={cn(
-              "course-card-status",
+              styles.status,
               status.type === "red" ? "text-red-500" : "text-green-500"
             )}>
-              <span className="status-dot" />
+              <span className={styles.statusDot} />
               <span>{status.text}</span>
             </div>
             
             <div className={cn(
-              "course-card-level",
+              styles.level,
               level.type === "red" ? "text-red-500" : "text-green-500"
             )}>
-              <span className="level-dot" />
+              <span className={styles.levelDot} />
               <span>{level.text}</span>
             </div>
           </div>
           
-          <div className="course-card-students">
+          <div className={styles.students}>
             <User className="w-4 h-4" />
             <span>{students}</span>
           </div>
@@ -134,10 +134,10 @@ const coursesData = [
   {
     id: 1,
     title: "Unreal Engine 5 虚幻PCG程序化生成实战高级进阶班第三期",
-    image: "/course1.jpg",
+    image: "/demo/course1-1.png",
     author: {
       name: "黑鸟云端-戴利勋",
-      avatar: "/avatar1.jpg",
+      avatar: "/demo/avatar1.png",
       link: "/teacher/82481"
     },
     price: {
@@ -146,16 +146,16 @@ const coursesData = [
     software: [
       {
         name: "Unreal Engine",
-        icon: "/software/ue.png"
+        icon: "/demo/icons/ue.png"
       }
     ],
     status: {
       text: "火热报名中",
-      type: "red"
+      type: "red" as const
     },
     level: {
       text: "中级课程",
-      type: "green"
+      type: "green" as const
     },
     students: 509,
     link: "/course/1"
@@ -163,7 +163,7 @@ const coursesData = [
   {
     id: 2,
     title: "法常次世代与影视角色提高班第五期",
-    image: "/course2.jpg",
+    image: "/demo/course2-2.png",
     author: {
       name: "法常",
       avatar: "/avatar2.jpg",
@@ -176,24 +176,24 @@ const coursesData = [
     software: [
       {
         name: "Zbrush",
-        icon: "/software/zbrush.png"
+        icon: "/demo/icons/zbrush.png"
       },
       {
         name: "Unreal Engine",
-        icon: "/software/ue.png"
+        icon: "/demo/icons/ue.png"
       },
       {
         name: "Substance Painter",
-        icon: "/software/sp.png"
+        icon: "/demo/icons/sp.png"
       }
     ],
     status: {
       text: "火热报名中",
-      type: "red"
+      type: "red" as const
     },
     level: {
       text: "高级课程",
-      type: "red"
+      type: "red" as const
     },
     students: 2138,
     link: "/course/2"
@@ -202,14 +202,17 @@ const coursesData = [
 
 export function CourseSection() {
   return (
-    <section className="course-section">
-      <div className="section-title">
+    <section className={styles.courseSection}>
+      <div className={styles.sectionTitle}>
+        <div className={styles.titleHr} />
         <h2>在线课堂</h2>
+        <div className={styles.titleHr} />
+        <div className={styles.titleBg}>CLASSROOM</div>
         <Link href="/courses">
           查看更多 <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className={styles.courseGrid}>
         {coursesData.map((course) => (
           <CourseCard key={course.id} {...course} />
         ))}

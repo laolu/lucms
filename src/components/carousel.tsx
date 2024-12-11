@@ -15,21 +15,21 @@ import { Button } from "@/components/ui/button"
 const slides = [
   {
     id: 1,
-    image: "/banner1.jpg",
+    image: "/demo/banner1.png",
     title: "精品3D模型资源",
     description: "高质量的3D模型素材，助力您的创作",
     link: "/list",
   },
   {
     id: 2,
-    image: "/banner2.jpg",
+    image: "/demo/banner2.png",
     title: "专业教程系列",
     description: "从入门到精通的完整学习路径",
     link: "/tutorials",
   },
   {
     id: 3,
-    image: "/banner3.jpg",
+    image: "/demo/banner3.png",
     title: "活跃的创作社区",
     description: "分享创作，交流经验",
     link: "/community",

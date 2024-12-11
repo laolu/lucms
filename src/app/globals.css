@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 12%;
+    --background: 220 20% 95%;
+    --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
     --card-foreground: 0 0% 12%;
@@ -123,119 +123,6 @@
 
 .keyword-tags-wrap {
   @apply flex flex-wrap;
-}
-
-/* Course Section Styles */
-.course-section {
-  @apply mb-24;
-}
-
-.course-card {
-  @apply bg-card rounded-lg overflow-hidden border border-border/50 hover:border-primary/20 hover:shadow-[0_0_20px_rgba(0,118,255,0.1)] transition-all duration-300 hover:-translate-y-1;
-}
-
-.course-card-top {
-  @apply relative;
-}
-
-.course-card-poster {
-  @apply block relative aspect-[16/9] overflow-hidden;
-}
-
-.course-card-software {
-  @apply absolute bottom-0 left-0 p-3 flex items-center gap-2 z-10;
-}
-
-.software-icon {
-  @apply block p-1 bg-white/90 rounded;
-}
-
-.course-card-software-bg {
-  @apply absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/40 to-transparent;
-}
-
-.course-card-content {
-  @apply p-4;
-}
-
-.course-card-title {
-  @apply block text-lg font-medium mb-4 line-clamp-2 hover:text-primary transition-colors duration-300 min-h-[56px];
-}
-
-.course-card-meta {
-  @apply flex items-center justify-between mb-4;
-}
-
-.course-card-author {
-  @apply flex items-center gap-2;
-}
-
-.author-avatar {
-  @apply block w-8 h-8 rounded-full overflow-hidden;
-}
-
-.author-name {
-  @apply text-sm text-muted-foreground hover:text-primary transition-colors;
-}
-
-.course-card-price {
-  @apply flex items-center gap-1;
-}
-
-.course-card-price .current {
-  @apply text-lg font-semibold text-primary;
-}
-
-.course-card-price .original {
-  @apply text-sm text-muted-foreground line-through;
-}
-
-.course-card-divider {
-  @apply h-px bg-border/50 mb-3;
-}
-
-.course-card-footer {
-  @apply flex items-center justify-between;
-}
-
-.course-card-status,
-.course-card-level {
-  @apply flex items-center gap-2 text-sm;
-}
-
-.status-dot,
-.level-dot {
-  @apply w-1.5 h-1.5 rounded-full;
-}
-
-.course-card-status .status-dot {
-  @apply bg-current;
-}
-
-.course-card-level .level-dot {
-  @apply bg-current;
-}
-
-.course-card-students {
-  @apply flex items-center gap-1 text-sm text-muted-foreground;
-}
-
-/* Section Title Styles */
-.section-title {
-  @apply flex items-center justify-between mb-6;
-}
-
-.section-title h2 {
-  @apply text-xl font-medium;
-}
-
-.section-title h2::before {
-  content: "";
-  @apply block w-1 h-6 bg-primary rounded-full;
-}
-
-.section-title a {
-  @apply text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1;
 }
 
 /* Grid Layout */
