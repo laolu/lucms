@@ -14,7 +14,11 @@ import { Button } from "@/components/ui/button"
 import Autoplay from "embla-carousel-autoplay"
 import styles from "./carousel.module.css"
 
-const slides = [
+interface HomeCarouselProps {
+  images?: string[]
+}
+
+const defaultSlides = [
   {
     id: 1,
     image: "/demo/banner1.png",
@@ -38,7 +42,7 @@ const slides = [
   },
 ]
 
-export function HomeCarousel() {
+export function HomeCarousel({ images }: HomeCarouselProps) {
   const plugin = React.useRef(
     Autoplay({ 
       delay: 3000, 
@@ -47,6 +51,14 @@ export function HomeCarousel() {
       rootNode: (emblaRoot) => emblaRoot.parentElement,
     })
   )
+
+  const slides = images ? images.map((image, index) => ({
+    id: index + 1,
+    image,
+    title: "",
+    description: "",
+    link: "#"
+  })) : defaultSlides
 
   return (
     <div className={styles.carousel}>
@@ -64,22 +76,24 @@ export function HomeCarousel() {
               <div className={styles.carouselImage}>
                 <Image
                   src={slide.image}
-                  alt={slide.title}
+                  alt={slide.title || "Banner"}
                   fill
                   priority
                   className="object-cover"
                 />
               </div>
               <div className={styles.carouselOverlay} />
-              <div className={styles.carouselContentWrap}>
-                <div className={styles.carouselText}>
-                  <h2 className={styles.carouselTitle}>{slide.title}</h2>
-                  <p className={styles.carouselDescription}>{slide.description}</p>
-                  <Button asChild className={styles.carouselButton}>
-                    <Link href={slide.link}>立即查看</Link>
-                  </Button>
+              {slide.title && (
+                <div className={styles.carouselContentWrap}>
+                  <div className={styles.carouselText}>
+                    <h2 className={styles.carouselTitle}>{slide.title}</h2>
+                    <p className={styles.carouselDescription}>{slide.description}</p>
+                    <Button asChild className={styles.carouselButton}>
+                      <Link href={slide.link}>立即查看</Link>
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </CarouselItem>
           ))}
         </CarouselContent>

@@ -1,55 +1,215 @@
 "use client"
 
+import * as React from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { ChevronRight } from "lucide-react"
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+import styles from "./nav.module.css"
 
-const navItems = [
-  {
-    title: "首页",
-    href: "/",
-  },
-  {
-    title: "资源",
-    href: "/list",
-  },
-  {
-    title: "博客",
-    href: "/blog",
-  },
-  {
-    title: "教程",
-    href: "/tutorials",
-  },
-  {
-    title: "社区",
-    href: "/community",
-  },
-  {
-    title: "关于",
-    href: "/about",
-  },
+const industries = [
+  { id: 'game', name: '游戏美术', active: true },
+  { id: 'animation', name: '电影动画' },
+  { id: 'engine', name: '游戏引擎' },
+  { id: 'concept', name: '概念设计' },
+  { id: 'video', name: '影视后期' },
+  { id: 'architecture', name: '环艺建筑' },
+  { id: 'graphic', name: '平面设计' },
+  { id: 'photo', name: '摄影摄像' },
 ]
 
-export function MainNav() {
-  const pathname = usePathname()
+const skills = [
+  { id: 'modeling', name: '建模雕刻' },
+  { id: 'texturing', name: '贴图绘制' },
+  { id: 'material', name: '材质纹理' },
+  { id: 'vfx', name: '游戏特效' },
+  { id: 'animation', name: '游戏动画' },
+  { id: 'scene', name: '游戏场景' },
+  { id: 'character', name: '游戏角色' },
+  { id: 'lighting', name: '布光设置' },
+]
 
+const software = [
+  { id: 'ue', name: 'Unreal Engine', icon: '/demo/icons/ue.png' },
+  { id: 'maya', name: 'Maya', icon: '/demo/icons/maya.png' },
+  { id: 'zbrush', name: 'Zbrush', icon: '/demo/icons/zbrush.png' },
+  { id: 'unity', name: 'Unity3D', icon: '/demo/icons/unity.png' },
+  { id: 'sp', name: 'SP', icon: '/demo/icons/sp.png' },
+  { id: 'sd', name: 'SD', icon: '/demo/icons/sd.png' },
+  { id: 'marmoset', name: 'Marmoset', icon: '/demo/icons/marmoset.png' },
+]
+
+const learningPaths = [
+  [
+    '建模能力从入门到精通',
+    '贴图能力从入门到精通',
+    '虚幻引擎快速入门掌握',
+    'zbrush雕刻能力提升',
+  ],
+  [
+    '影视角色制作全流程',
+    '动漫手办制作全流程',
+    '游戏角色制作全流程',
+    '技术美术能力专项学习',
+  ],
+  [
+    '虚幻引擎进阶能力学习',
+    '动画绑定技术专享学习',
+    'Unity3d项目开发实践',
+    '建筑景观专项学习',
+  ],
+]
+
+const banners = {
+  small: [
+    '/demo/nav-banner-1.jpg',
+    '/demo/nav-banner-2.jpg',
+    '/demo/nav-banner-3.jpg',
+  ],
+  long: '/demo/nav-banner-long.jpg',
+}
+
+const NavigationMenuSimpleLink = React.forwardRef<
+  React.ElementRef<typeof NavigationMenuLink>,
+  React.ComponentPropsWithoutRef<typeof NavigationMenuLink>
+>(({ className, children, ...props }, ref) => (
+  <NavigationMenuLink
+    ref={ref}
+    className={cn(
+      "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
+      className
+    )}
+    {...props}
+  >
+    {children}
+  </NavigationMenuLink>
+))
+NavigationMenuSimpleLink.displayName = "NavigationMenuSimpleLink"
+
+export function MainNav() {
   return (
-    <nav className="flex items-center space-x-6 text-sm font-medium">
-      {navItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={cn(
-            "transition-colors hover:text-foreground/80",
-            pathname === item.href
-              ? "text-foreground"
-              : "text-foreground/60"
-          )}
-        >
-          {item.title}
-        </Link>
-      ))}
-    </nav>
+    <NavigationMenu>
+      <NavigationMenuList>
+        <NavigationMenuItem>
+          <Link href="/" legacyBehavior passHref>
+            <NavigationMenuSimpleLink>首页</NavigationMenuSimpleLink>
+          </Link>
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <Link href="/list" legacyBehavior passHref>
+            <NavigationMenuSimpleLink>列表</NavigationMenuSimpleLink>
+          </Link>
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <NavigationMenuTrigger>资源</NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <div className={styles.navContent}>
+              <div className={styles.filterSection}>
+                <div className={styles.filterColumn}>
+                  <div className={styles.filterTitle}>行业</div>
+                  <div className={styles.filterCells}>
+                    {industries.map(industry => (
+                      <div
+                        key={industry.id}
+                        className={cn(styles.filterCell, {
+                          [styles.active]: industry.active
+                        })}
+                      >
+                        <span>{industry.name}</span>
+                        <ChevronRight className={cn("h-4 w-4", styles.filterCellArrow)} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.filterColumn}>
+                  <div className={styles.filterTitle}>技能</div>
+                  <div className={styles.filterCells}>
+                    {skills.map(skill => (
+                      <div key={skill.id} className={styles.filterCell}>
+                        <span>{skill.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.filterColumn}>
+                  <div className={styles.filterTitle}>软件</div>
+                  <div className={styles.filterCells}>
+                    {software.map(sw => (
+                      <div key={sw.id} className={styles.filterCell}>
+                        <Image
+                          src={sw.icon}
+                          alt={sw.name}
+                          width={20}
+                          height={20}
+                          className={styles.filterCellIcon}
+                        />
+                        <span>{sw.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.textColumns}>
+                {learningPaths.map((column, i) => (
+                  <div key={i} className={styles.textColumn}>
+                    {column.map((text, j) => (
+                      <div key={j} className={styles.textCell}>
+                        {text}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              <div className={styles.bannerSection}>
+                <div className={styles.smallBanners}>
+                  {banners.small.map((banner, i) => (
+                    <div key={i} className={styles.smallBanner}>
+                      <Image
+                        src={banner}
+                        alt="Banner"
+                        width={160}
+                        height={80}
+                        className={styles.bannerImage}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className={styles.longBanner}>
+                  <Image
+                    src={banners.long}
+                    alt="Banner"
+                    width={459}
+                    height={80}
+                    className={styles.bannerImage}
+                  />
+                </div>
+              </div>
+            </div>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <Link href="/about" legacyBehavior passHref>
+            <NavigationMenuSimpleLink>关于</NavigationMenuSimpleLink>
+          </Link>
+        </NavigationMenuItem>
+      </NavigationMenuList>
+    </NavigationMenu>
   )
 } 

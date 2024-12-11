@@ -1,9 +1,22 @@
+'use client'
 import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { User, ArrowRight } from "lucide-react"
+import { User, ArrowRight, Laptop, Film, Gamepad2, Box, Video, Camera, PenTool, Building2, Palette } from "lucide-react"
 import { cn } from "@/lib/utils"
 import styles from "./course-list.module.css"
+
+const categories = [
+  { id: 'all', name: '全部', icon: <Box className="w-5 h-5" /> },
+  { id: 'animation', name: '电影动画', icon: <Film className="w-5 h-5" /> },
+  { id: 'game', name: '游戏美术', icon: <Gamepad2 className="w-5 h-5" /> },
+  { id: 'engine', name: '游戏引擎', icon: <Laptop className="w-5 h-5" /> },
+  { id: 'video', name: '影视后期', icon: <Video className="w-5 h-5" /> },
+  { id: 'photo', name: '摄像摄影', icon: <Camera className="w-5 h-5" /> },
+  { id: 'concept', name: '概念设计', icon: <PenTool className="w-5 h-5" /> },
+  { id: 'architecture', name: '环艺建筑', icon: <Building2 className="w-5 h-5" /> },
+  { id: 'graphic', name: '平面设计', icon: <Palette className="w-5 h-5" /> },
+]
 
 interface CourseListProps {
   title: string
@@ -35,6 +48,8 @@ interface CourseListProps {
 }
 
 export function CourseList({ title, titleBg, courses }: CourseListProps) {
+  const [activeCategory, setActiveCategory] = React.useState('all')
+
   return (
     <section className={styles.courseList}>
       <div className={styles.sectionTitle}>
@@ -46,6 +61,21 @@ export function CourseList({ title, titleBg, courses }: CourseListProps) {
           <span>查看更多</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
+      </div>
+
+      <div className={styles.categoryBar}>
+        {categories.map(category => (
+          <button
+            key={category.id}
+            className={cn(styles.categoryCell, {
+              [styles.active]: activeCategory === category.id
+            })}
+            onClick={() => setActiveCategory(category.id)}
+          >
+            <span className={styles.categoryIcon}>{category.icon}</span>
+            <span>{category.name}</span>
+          </button>
+        ))}
       </div>
       
       <div className={styles.grid}>
