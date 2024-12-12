@@ -13,7 +13,6 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import styles from "./nav.module.css"
 
@@ -79,41 +78,39 @@ const banners = {
   long: '/demo/nav-banner-long.jpg',
 }
 
-const NavigationMenuSimpleLink = React.forwardRef<
-  React.ElementRef<typeof NavigationMenuLink>,
-  React.ComponentPropsWithoutRef<typeof NavigationMenuLink>
->(({ className, children, ...props }, ref) => (
-  <NavigationMenuLink
-    ref={ref}
-    className={cn(
-      "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
-      className
-    )}
-    {...props}
-  >
-    {children}
-  </NavigationMenuLink>
-))
-NavigationMenuSimpleLink.displayName = "NavigationMenuSimpleLink"
-
 export function MainNav() {
+  const pathname = usePathname()
+  const menuLinkStyle = "inline-flex items-center justify-center h-[70px] px-6 text-base font-medium transition-colors hover:text-primary data-[active=true]:text-primary"
+
   return (
-    <NavigationMenu>
-      <NavigationMenuList>
+    <NavigationMenu className="mx-0">
+      <NavigationMenuList className="gap-0">
         <NavigationMenuItem>
           <Link href="/" legacyBehavior passHref>
-            <NavigationMenuSimpleLink>首页</NavigationMenuSimpleLink>
+            <NavigationMenuLink 
+              className={menuLinkStyle}
+              data-active={pathname === "/"}
+            >
+              首页
+            </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>
 
         <NavigationMenuItem>
           <Link href="/list" legacyBehavior passHref>
-            <NavigationMenuSimpleLink>列表</NavigationMenuSimpleLink>
+            <NavigationMenuLink 
+              className={menuLinkStyle}
+              data-active={pathname === "/list"}
+            >
+              列表
+            </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <NavigationMenuTrigger>资源</NavigationMenuTrigger>
+          <NavigationMenuTrigger className={cn(menuLinkStyle, "bg-transparent hover:bg-transparent data-[state=open]:bg-transparent")}>
+            资源
+          </NavigationMenuTrigger>
           <NavigationMenuContent>
             <div className={styles.navContent}>
               <div className={styles.filterSection}>
@@ -206,7 +203,12 @@ export function MainNav() {
 
         <NavigationMenuItem>
           <Link href="/about" legacyBehavior passHref>
-            <NavigationMenuSimpleLink>关于</NavigationMenuSimpleLink>
+            <NavigationMenuLink 
+              className={menuLinkStyle}
+              data-active={pathname === "/about"}
+            >
+              关于
+            </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>
       </NavigationMenuList>
