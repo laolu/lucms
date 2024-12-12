@@ -3,22 +3,16 @@
 import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Menu, Search, User } from "lucide-react"
+import { Menu, Search, User, ChevronDown } from "lucide-react"
 import { MainNav } from "@/components/nav"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
-import { getCurrentUser, logout } from "@/lib/auth"
-import type { User as UserType } from "@/lib/auth"
+import { useAuth } from "@/contexts/auth-context"
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,28 +20,27 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
 
 export function Header() {
-  const [searchOpen, setSearchOpen] = React.useState(false)
-  const [user, setUser] = React.useState<UserType | null>(null)
-
-  React.useEffect(() => {
-    // 检查登录状态
-    const currentUser = getCurrentUser()
-    setUser(currentUser)
-  }, [])
+  const { user, setUser } = useAuth()
 
   const handleLogout = () => {
-    logout()
     setUser(null)
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    window.location.href = '/auth/login'
   }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex items-center h-16">
+      <div className="container flex h-16 items-center">
         {/* PC端 Logo + 导航 */}
-        <div className="hidden items-center md:flex md:flex-1">
+        <div className="hidden md:flex md:flex-1 items-center">
           <Link href="/" className="flex items-center">
             <Image
               src="/logo.png"
@@ -63,68 +56,30 @@ export function Header() {
         </div>
 
         {/* PC端右侧功能区 */}
-        <div className="hidden items-center space-x-4 md:flex">
-          <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="hover:bg-transparent">
-                <Search className="w-5 h-5" />
-                <span className="sr-only">搜索</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] p-0">
-              <div className="p-4 border-b">
-                <div className="flex gap-2 items-center">
-                  <Search className="w-5 h-5 text-muted-foreground" />
-                  <Input
-                    placeholder="搜索课程、文章、教程..."
-                    className="text-base border-0 focus-visible:ring-0"
-                  />
-                </div>
-              </div>
-              <div className="p-4">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="mb-2 text-sm font-medium">热门搜索</h4>
-                    <div className="flex flex-wrap gap-2">
-                      <Button variant="outline" size="sm">Unreal Engine</Button>
-                      <Button variant="outline" size="sm">Maya</Button>
-                      <Button variant="outline" size="sm">建模</Button>
-                      <Button variant="outline" size="sm">动画</Button>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="mb-2 text-sm font-medium">最近搜索</h4>
-                    <div className="flex flex-wrap gap-2">
-                      <Button variant="ghost" size="sm" className="text-muted-foreground">
-                        <Search className="mr-2 w-4 h-4" />
-                        角色建模
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-muted-foreground">
-                        <Search className="mr-2 w-4 h-4" />
-                        材质贴图
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+        <div className="hidden md:flex items-center space-x-4">
+          <Button variant="ghost" size="icon" className="hover:bg-transparent">
+            <Search className="h-5 w-5" />
+            <span className="sr-only">搜索</span>
+          </Button>
 
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Image
-                    src={user.avatar}
-                    alt={user.name}
-                    width={32}
-                    height={32}
-                    className="rounded-full"
-                  />
+                <Button variant="ghost" className="relative flex items-center space-x-2 hover:bg-transparent">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback>{user.name[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium">{user.name}</span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback>{user.name[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
                   <div className="flex flex-col space-y-1 leading-none">
                     <p className="font-medium">{user.name}</p>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
@@ -146,7 +101,7 @@ export function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="cursor-pointer"
-                  onSelect={handleLogout}
+                  onClick={handleLogout}
                 >
                   退出登录
                 </DropdownMenuItem>
@@ -177,9 +132,9 @@ export function Header() {
           <SheetTrigger asChild>
             <Button
               variant="ghost"
-              className="px-0 mr-2 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
+              className="px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="h-6 w-6" />
               <span className="sr-only">切换菜单</span>
             </Button>
           </SheetTrigger>
@@ -201,13 +156,10 @@ export function Header() {
               {user ? (
                 <>
                   <div className="flex items-center gap-4 mb-4">
-                    <Image
-                      src={user.avatar}
-                      alt={user.name}
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                    />
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user.avatar} alt={user.name} />
+                      <AvatarFallback>{user.name[0].toUpperCase()}</AvatarFallback>
+                    </Avatar>
                     <div>
                       <p className="font-medium">{user.name}</p>
                       <p className="text-xs text-muted-foreground">{user.email}</p>
