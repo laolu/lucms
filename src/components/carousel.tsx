@@ -10,13 +10,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { Button } from "@/components/ui/button"
 import Autoplay from "embla-carousel-autoplay"
 import styles from "./carousel.module.css"
-
-interface HomeCarouselProps {
-  images?: string[]
-}
 
 const defaultSlides = [
   {
@@ -42,71 +37,43 @@ const defaultSlides = [
   },
 ]
 
-export function HomeCarousel({ images }: HomeCarouselProps) {
+export function HomeCarousel() {
   const plugin = React.useRef(
     Autoplay({ 
-      delay: 3000, 
+      delay: 3000,
       stopOnInteraction: true,
-      stopOnMouseEnter: true,
-      rootNode: (emblaRoot) => emblaRoot.parentElement,
+      stopOnMouseEnter: true
     })
   )
 
-  const slides = images ? images.map((image, index) => ({
-    id: index + 1,
-    image,
-    title: "",
-    description: "",
-    link: "#"
-  })) : defaultSlides
-
   return (
-    <div className={styles.carousel}>
+    <div className={styles.content}>
       <Carousel
         plugins={[plugin.current]}
         opts={{
-          align: "start",
           loop: true,
         }}
-        className="w-full"
       >
-        <CarouselContent className={styles.carouselContent}>
-          {slides.map((slide) => (
-            <CarouselItem key={slide.id} className="relative">
-              <div className={styles.carouselImage}>
-                <Image
-                  src={slide.image}
-                  alt={slide.title || "Banner"}
-                  fill
-                  priority
-                  className="object-cover"
-                />
-              </div>
-              <div className={styles.carouselOverlay} />
-              {slide.title && (
-                <div className={styles.carouselContentWrap}>
-                  <div className={styles.carouselText}>
-                    <h2 className={styles.carouselTitle}>{slide.title}</h2>
-                    <p className={styles.carouselDescription}>{slide.description}</p>
-                    <Button asChild className={styles.carouselButton}>
-                      <Link href={slide.link}>立即查看</Link>
-                    </Button>
-                  </div>
+        <CarouselContent>
+          {defaultSlides.map((slide) => (
+            <CarouselItem key={slide.id}>
+              <Link href={slide.link} style={{ display: 'block', height: '100%' }}>
+                <div className={styles.image}>
+                  <Image
+                    src={slide.image}
+                    alt={slide.title}
+                    fill
+                    priority
+                    sizes="100vw"
+                    style={{ objectFit: "cover" }}
+                  />
                 </div>
-              )}
+              </Link>
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious 
-          className={styles.carouselPrev}
-          variant="outline"
-          size="icon"
-        />
-        <CarouselNext 
-          className={styles.carouselNext}
-          variant="outline"
-          size="icon"
-        />
+        <CarouselPrevious className={styles.prev} variant="outline" size="icon" />
+        <CarouselNext className={styles.next} variant="outline" size="icon" />
       </Carousel>
     </div>
   )
