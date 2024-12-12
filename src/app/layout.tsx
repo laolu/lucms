@@ -1,15 +1,15 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import "./globals.css"
-import { Providers } from "./providers"
+import { Providers } from "@/components/providers"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "LuCMS",
-  description: "A modern CMS built with Next.js",
+  description: "专注于CG艺术设计的在线学习平台",
 }
 
 export default function RootLayout({

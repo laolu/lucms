@@ -5,7 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Crown, User } from "lucide-react"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -82,6 +82,9 @@ export function MainNav() {
   const pathname = usePathname()
   const menuLinkStyle = "inline-flex items-center justify-center h-[70px] px-6 text-base font-medium transition-colors hover:text-primary data-[active=true]:text-primary"
 
+  // 模拟用户登录状态
+  const isLoggedIn = true // 这里应该从实际的用户状态管理中获取
+
   return (
     <NavigationMenu className="mx-0">
       <NavigationMenuList className="gap-0">
@@ -92,17 +95,6 @@ export function MainNav() {
               data-active={pathname === "/"}
             >
               首页
-            </NavigationMenuLink>
-          </Link>
-        </NavigationMenuItem>
-
-        <NavigationMenuItem>
-          <Link href="/list" legacyBehavior passHref>
-            <NavigationMenuLink 
-              className={menuLinkStyle}
-              data-active={pathname === "/list"}
-            >
-              列表
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>
@@ -200,14 +192,25 @@ export function MainNav() {
             </div>
           </NavigationMenuContent>
         </NavigationMenuItem>
-
         <NavigationMenuItem>
-          <Link href="/about" legacyBehavior passHref>
+          <Link href="/list" legacyBehavior passHref>
             <NavigationMenuLink 
               className={menuLinkStyle}
-              data-active={pathname === "/about"}
+              data-active={pathname === "/list"}
             >
-              关于
+              列表
+            </NavigationMenuLink>
+          </Link>
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <Link href="/superVip" legacyBehavior passHref>
+            <NavigationMenuLink 
+              className={menuLinkStyle}
+              data-active={pathname === "/superVip"}
+            >
+              <Crown className="mr-1 w-4 h-4" />
+              超级会员
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>

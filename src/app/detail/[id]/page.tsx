@@ -3,521 +3,391 @@
 import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ChevronRight, Heart, Download, Eye, Clock, Star, Shield, Gift, FileText, Coffee, Zap, MessageCircle, Crown, CheckCircle2, AlertCircle, Calendar, User, Book, Bookmark, Share2, ArrowRight } from "lucide-react"
-import styles from './detail.module.css'
+import { Button } from "@/components/ui/button"
+import {
+  Clock, Users, Star, Play, BookOpen, Award, CheckCircle2,
+  Target, Book, Laptop, Brain, Zap, Trophy, Rocket, Heart, ChevronRight, Eye, Shield, Crown, CreditCard, User, MessageCircle, FileBox, Layers, Wrench, FolderOpen, Calendar
+} from "lucide-react"
+import styles from "./detail.module.css"
+import { Comments } from "@/components/comments"
+import { Card, CardContent } from "@/components/ui/card"
+import { Users2 } from "lucide-react"
 
-// 扩展详情数据
-const detailData = {
+// 模拟数据
+const courseData = {
   id: 1,
-  title: "WordPress资源主题 RiPro V6.6.0 日主题破解版下载",
-  cover: "/demo/cover1.jpg",
-  stats: {
-    views: 2341,
-    downloads: 1280,
-    rating: 4.8,
-    ratingCount: 235,
-    updateTime: "2024-01-10",
-    likes: 856
+  title: "法常次世代与影视角色提高班第五期",
+  description: "掌握次世代角色制作流程，打造高品质作品集。本课程将带你深入学习角色制作的各个环节，从概念设计到最终渲染，全方位提升你的角色制作能力。",
+  coverImage: "/demo/banner1.png",
+  price: 3980,
+  originalPrice: 4298,
+  rating: 4.9,
+  studentsCount: 2138,
+  duration: "40小时",
+  level: "进阶",
+  category: "游戏美术",
+  updateDate: "2024-01-15",
+  progress: 85,
+  software: [
+    { name: "Zbrush", icon: "/demo/icons/zbrush.png" },
+    { name: "Maya", icon: "/demo/icons/maya.png" },
+    { name: "Substance Painter", icon: "/demo/icons/sp.png" },
+    { name: "Marvelous Designer", icon: "/demo/icons/md.png" }
+  ],
+  instructor: {
+    name: "法常",
+    avatar: "/demo/avatar1.png",
+    title: "资深角色艺术家",
+    company: "某知名游戏公司",
+    description: "拥有10年以上的戏角色制作经验参与过多款3A游戏制作",
+    students: 8000,
+    courses: 12,
+    achievements: [
+      "参与《原神》、《崩坏：星穹铁道》等多款名游戏角色制作",
+      "获得2023年度最佳游戏美术设计奖",
+      "担任某知名游戏公司角色主美",
+      "多次受邀参加游戏开发者大会分享经验"
+    ]
   },
-  author: {
-    name: "设计师张三",
-    avatar: "/demo/avatar.jpg",
-    title: "高级UI设计师",
-    description: "8年设计经验，专注于主题开发",
-  },
-  price: 29,
-  originalPrice: 399,
-  vipPrice: 0,
-  tags: ["WordPress", "主题模板", "资源下载", "破解版", "响应式", "高级版本"],
-  categories: ["主题模板", "建站资源", "精品推荐"],
-  description: "RiPro是一个优秀的资源下载付费主题，后台功能强大，配置简单方便，适合各类资源下载站使用。本站提供RiPro主题v6.6.0破解版下载，完整无限制使用。主题采用响应式设计，完美支持PC端和移动端，界面清新简洁，功能强大实用。",
   highlights: [
-    "完整商用授权，无需额外付费",
-    "终身更新支持，及时修复问题",
-    "详细安装文档，专业技术支持",
-    "免费提供服务器环境配置指导"
+    "完整的次世代角色制作工作流程",
+    "业内顶尖艺术家的实战经验分享",
+    "专业的作品集指导和点评",
+    "详细的软件技术讲解和案例实战",
+    "终身制课程，永久观看权限"
+  ],
+  requirements: [
+    "具备基础的3D建模和贴图制作能力",
+    "熟悉Maya、ZBrush等常用软件的基本操作",
+    "了解基本的角色设计原理",
+    "有一定的美术功���美能力",
+    "保证每周至少10小时的学习时间"
+  ],
+  objectives: [
+    "掌握次世代角色的完整制作流程",
+    "精通角色的高模制作和拓扑技巧",
+    "掌握PBR材质制作和贴图绘制",
+    "学会角色的毛发制作和布料模拟",
+    "能够独立完成高质量的角色作品"
   ],
   features: [
     {
-      icon: <Gift className="w-5 h-5" />,
-      title: "正版授权",
-      description: "官方正版主题授权，可用于商业项目"
+      icon: <Laptop className="w-6 h-6" />,
+      title: "在线教学",
+      description: "随时随地，想学就学"
     },
     {
-      icon: <FileText className="w-5 h-5" />,
-      title: "完整代码",
-      description: "无加密无限制使用，支持二次开发"
+      icon: <Brain className="w-6 h-6" />,
+      title: "实战项目",
+      description: "真实项目案例分析"
     },
     {
-      icon: <Coffee className="w-5 h-5" />,
-      title: "免费更新",
-      description: "永久更新无需续费，及时修复问题"
+      icon: <Zap className="w-6 h-6" />,
+      title: "作品点评",
+      description: "行业导师一对一指导"
     },
     {
-      icon: <Zap className="w-5 h-5" />,
-      title: "技术支持",
-      description: "一对一解答服务，专业技术指导"
+      icon: <Trophy className="w-6 h-6" />,
+      title: "就业指导",
+      description: "入职推荐与简历指导"
     }
   ],
-  screenshots: [
+  chapters: [
     {
-      url: "/demo/shot1.jpg",
-      title: "首页完整展示"
-    },
-    {
-      url: "/demo/shot2.jpg", 
-      title: "资源列表页面"
-    },
-    {
-      url: "/demo/shot3.jpg",
-      title: "会员中心界面"
-    },
-    {
-      url: "/demo/shot4.jpg",
-      title: "后台管理设置"
-    }
-  ],
-  details: [
-    {
-      title: "资源信息",
-      items: [
-        { label: "资源版本", value: "V6.6.0" },
-        { label: "更新时间", value: "2024-01-10" },
-        { label: "资源大小", value: "28.5MB" },
-        { label: "适用版本", value: "WordPress 5.0+" },
-        { label: "浏览器支持", value: "主流浏览器" },
-        { label: "资源语言", value: "中文简体" },
-        { label: "资源类型", value: "破解版" },
-        { label: "下载次数", value: "1280次" }
+      title: "第一章：课程介绍与前期准备",
+      lessons: [
+        { title: "1-1 课程概述与学习方法", duration: "25:30", free: true },
+        { title: "1-2 工具软件介绍与安装", duration: "40:15", free: true },
+        { title: "1-3 制作流程概述", duration: "35:45", free: false }
       ]
     },
     {
-      title: "功能特点",
-      content: [
-        "✓ 完整的付费下载功能，支持多种支付接口",
-        "✓ 会员系统功能，支持多等级会员制度",
-        "✓ 响应式自适应设计，完美支持移动端",
-        "✓ SEO优化及性能优化，提升网站速度",
-        "✓ 强大的后台管理功能，操作简单直观",
-        "✓ 自定义模板及样式，支持个性化定制",
-        "✓ 集成多种广告位，提升网站收益",
-        "✓ 数据统计分析，掌握运营情况"
+      title: "第二章：角色设计����基础",
+      lessons: [
+        { title: "2-1 色概念设计要点", duration: "55:20", free: false },
+        { title: "2-2 人体结构与比例", duration: "45:30", free: false },
+        { title: "2-3 面部结构与表情", duration: "50:15", free: false }
       ]
     },
     {
-      title: "更新日志",
-      content: [
-        "2024-01-10 V6.6.0",
-        "- 全新会员系统，支持积分和等级",
-        "- 优化支付接口，提升支付成功率",
-        "- 新增自定义模板功能，支持个性化",
-        "- 优化移动端显示效果，提升体验",
-        "2023-12-15 V6.5.9",
-        "- 修复已知安全问题，提升安全性",
-        "- 优化后台管理界面，更加直观",
-        "- 新增数据统计功能，支持导出"
+      title: "第三章：高级建模技巧",
+      lessons: [
+        { title: "3-1 ZBrush 高级雕刻技巧", duration: "60:00", free: false },
+        { title: "3-2 节处理优化", duration: "45:30", free: false },
+        { title: "3-3 拓扑结构优化", duration: "40:20", free: false }
       ]
     }
   ],
-  requirements: [
-    "PHP 7.0 或更高版本",
-    "MySQL 5.6 或更高版本",
-    "WordPress 5.0+ 最新版",
-    "支持伪静态的服务器环境"
-  ],
-  installation: [
-    "1. 上传主题文件到 wp-content/themes 目录",
-    "2. 在后台启用主题并进行基本设置",
-    "3. 配置支付接口和会员等级",
-    "4. 添加资源内容并设置价格"
-  ],
-  downloads: {
-    free: {
-      name: "免费版本",
-      links: [
-        {
-          name: "百度网盘",
-          url: "https://pan.baidu.com/xxx",
-          code: "ab1x"
-        },
-        {
-          name: "天翼云盘",
-          url: "https://cloud.189.cn/xxx",
-          code: "cd2y"
-        }
-      ]
+  studentWorks: [
+    {
+      image: "/demo/work1.png",
+      title: "科幻女战士",
+      author: "学员小王",
+      description: "课程第一个月作品，获得优秀作品奖"
     },
-    vip: {
-      name: "VIP高速下载",
-      links: [
-        {
-          name: "服务器直链",
-          url: "https://download.xxx.com/xxx",
-          speed: "不限速"
-        },
-        {
-          name: "国外节点",
-          url: "https://cdn.xxx.com/xxx",
-          speed: "不限速"
-        }
-      ]
+    {
+      image: "/demo/work2.png",
+      title: "东方武侠角色",
+      author: "学员小李",
+      description: "课程结业作品，已被游戏公司收录"
+    },
+    {
+      image: "/demo/work3.png",
+      title: "魔幻生物",
+      author: "学员小张",
+      description: "课程实战项目作品，广受好评"
     }
-  },
-  relatedResources: [
+  ],
+  recommendedCourses: [
+    {
+      id: 1,
+      title: "ZBrush角色雕刻阶实战班 - 写实角色全流程制作",
+      description: "从基础到进阶，掌握ZBrush色雕刻技巧，制作精美的写实角色模型。课程涵盖人体解析、面部表情、服装褶皱等专业知识。",
+      image: "/demo/course1.png",
+      instructor: "大鹏老师",
+      price: 2998
+    },
     {
       id: 2,
-      title: "RiPro子主题开发教程",
-      cover: "/demo/related1.jpg",
-      price: 19
+      title: "Maya高级动画师养成计划 - 次世代游戏动画制作",
+      description: "系统学习Maya动画制作流程包括角色动画、表情动画、特效动画等，让你成为专业的游戏动画师。",
+      image: "/demo/course2.png",
+      instructor: "阿杰老师",
+      price: 3298
     },
     {
       id: 3,
-      title: "WordPress优化指南",
-      cover: "/demo/related2.jpg",
-      price: 29
+      title: "Substance Painter 材质贴图高级训练营",
+      description: "深入学习Substance Painter的高级功能，制作各类写实材质，提升作品的视觉效果和细节表现。",
+      image: "/demo/course3.png",
+      instructor: "小林老师",
+      price: 2498
     },
     {
       id: 4,
-      title: "主题定制服务",
-      cover: "/demo/related3.jpg",
-      price: 99
+      title: "虚幻引擎5 - 开放世界场景制作进阶教程",
+      description: "使用虚幻引擎5制作大型开放世界场景，学习地形制作、植被系统、天气系统等高级功能。",
+      image: "/demo/course4.png",
+      instructor: "天琪老师",
+      price: 3998
     }
   ]
 }
 
-export default function DetailPage({ params }: { params: { id: string } }) {
-  const [isLiked, setIsLiked] = React.useState(false)
-  const [selectedImage, setSelectedImage] = React.useState(0)
-
+export default function CourseDetail({ params }: { params: { id: string } }) {
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.header}>
-        <div className={styles.headerPattern} />
-      </div>
-      
-      <div className={styles.container}>
-        {/* 面包屑导航 */}
-        <nav className={styles.breadcrumb}>
+    <div className={styles.container}>
+      {/* 面包屑导航 */}
+      <div className={styles.breadcrumbWrapper}>
+        <div className={styles.breadcrumb}>
           <Link href="/">首页</Link>
-          <ChevronRight className="w-4 h-4" />
-          <Link href="/list">资源下载</Link>
-          <ChevronRight className="w-4 h-4" />
-          <span>{detailData.title}</span>
-        </nav>
+          <span> / </span>
+          <Link href="/list">课程</Link>
+          <span> / </span>
+          <span>课程详情</span>
+        </div>
+      </div>
 
-        <div className={styles.content}>
-          {/* 左侧内容区 */}
-          <div className={styles.mainContent}>
-            {/* 主图预览 */}
-            <div className={styles.previewSection}>
+      {/* 主要内容区域 */}
+      <div className={styles.mainContent}>
+
+        <h1 className={styles.title}>{courseData.title}</h1>
+        <p className={styles.description}>{courseData.description}</p>
+
+        <div className={styles.imageAndMeta}>
+          {/* 左侧图片 */}
+          <div className={styles.leftContent}>
+            <div className={styles.previewImage}>
               <Image
-                src={detailData.screenshots[selectedImage].url}
-                alt={detailData.screenshots[selectedImage].title}
+                src={courseData.coverImage}
+                alt={courseData.title}
                 fill
-                className={styles.previewImage}
+                className="object-cover"
+                priority
               />
-              <div className={styles.previewTitle}>
-                {detailData.screenshots[selectedImage].title}
-              </div>
-            </div>
-
-            {/* 缩略图预览 */}
-            <div className={styles.thumbnails}>
-              {detailData.screenshots.map((shot, index) => (
-                <div 
-                  key={index}
-                  className={`${styles.thumbnail} ${selectedImage === index ? styles.active : ''}`}
-                  onClick={() => setSelectedImage(index)}
-                >
-                  <Image
-                    src={shot.url}
-                    alt={shot.title}
-                    fill
-                    className={styles.thumbnailImage}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* 基本信息 */}
-            <div className={styles.infoSection}>
-              <div className={styles.titleRow}>
-                <h1 className={styles.title}>{detailData.title}</h1>
-                <button 
-                  className={`${styles.likeButton} ${isLiked ? styles.liked : ''}`}
-                  onClick={() => setIsLiked(!isLiked)}
-                >
-                  <Heart className={`${styles.likeIcon} ${isLiked ? 'fill-current' : ''}`} />
-                  <span>{detailData.stats.likes}</span>
-                </button>
-              </div>
-
-              <div className={styles.categories}>
-                {detailData.categories.map((category, index) => (
-                  <Link key={index} href={`/category/${category}`} className={styles.category}>
-                    {category}
-                  </Link>
-                ))}
-              </div>
-
-              <div className={styles.meta}>
-                <div className={styles.metaItem}>
-                  <Eye className={styles.metaIcon} />
-                  <span>{detailData.stats.views} 浏览</span>
-                </div>
-                <div className={styles.metaItem}>
-                  <Download className={styles.metaIcon} />
-                  <span>{detailData.stats.downloads} 下载</span>
-                </div>
-                <div className={styles.metaItem}>
-                  <Star className={`${styles.metaIcon} text-yellow-400`} />
-                  <span>{detailData.stats.rating} ({detailData.stats.ratingCount}人评分)</span>
-                </div>
-                <div className={styles.metaItem}>
-                  <Clock className={styles.metaIcon} />
-                  <span>更新于 {detailData.stats.updateTime}</span>
-                </div>
-              </div>
-
-              <div className={styles.tags}>
-                {detailData.tags.map((tag, index) => (
-                  <span key={index} className={styles.tag}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              {/* 作者信息 */}
-              <div className={styles.author}>
-                <Image
-                  src={detailData.author.avatar}
-                  alt={detailData.author.name}
-                  width={48}
-                  height={48}
-                  className={styles.authorAvatar}
-                />
-                <div className={styles.authorInfo}>
-                  <div className={styles.authorName}>
-                    {detailData.author.name}
-                    <span className={styles.authorTitle}>{detailData.author.title}</span>
-                  </div>
-                  <div className={styles.authorDescription}>
-                    {detailData.author.description}
-                  </div>
-                </div>
-              </div>
-
-              {/* 亮点功能 */}
-              <div className={styles.highlights}>
-                {detailData.highlights.map((highlight, index) => (
-                  <div key={index} className={styles.highlightItem}>
-                    <CheckCircle2 className={styles.highlightIcon} />
-                    <span>{highlight}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 详细内容 */}
-            <div className={styles.tabSection}>
-              <div className={styles.tabs}>
-                <div className={`${styles.tab} ${styles.active}`}>
-                  资源详情
-                </div>
-                <div className={styles.tab}>
-                  评论反馈
-                </div>
-              </div>
-
-              <div className={styles.tabContent}>
-                {/* 资源描述 */}
-                <div className={styles.description}>
-                  <h2 className={styles.sectionTitle}>资源介绍</h2>
-                  <p>{detailData.description}</p>
-                </div>
-
-                {/* 功能特点 */}
-                <div className={styles.features}>
-                  {detailData.features.map((feature, index) => (
-                    <div key={index} className={styles.featureCard}>
-                      <div className={styles.featureIcon}>
-                        {feature.icon}
-                      </div>
-                      <div className={styles.featureInfo}>
-                        <h3>{feature.title}</h3>
-                        <p>{feature.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* 系统要求 */}
-                <div className={styles.requirements}>
-                  <h2 className={styles.sectionTitle}>
-                    <AlertCircle className={styles.sectionIcon} />
-                    系统要求
-                  </h2>
-                  <div className={styles.requirementsList}>
-                    {detailData.requirements.map((req, index) => (
-                      <div key={index} className={styles.requirementItem}>
-                        <ArrowRight className={styles.requirementIcon} />
-                        {req}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 安装说明 */}
-                <div className={styles.installation}>
-                  <h2 className={styles.sectionTitle}>
-                    <Book className={styles.sectionIcon} />
-                    安装说明
-                  </h2>
-                  <div className={styles.installSteps}>
-                    {detailData.installation.map((step, index) => (
-                      <div key={index} className={styles.installStep}>
-                        {step}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 资源信息 */}
-                {detailData.details.map((section, index) => (
-                  <div key={index} className={styles.detailSection}>
-                    <h2 className={styles.sectionTitle}>{section.title}</h2>
-                    {'items' in section && section.items ? (
-                      <div className={styles.infoGrid}>
-                        {section.items.map((item, idx) => (
-                          <div key={idx} className={styles.infoItem}>
-                            <span className={styles.infoLabel}>{item.label}</span>
-                            <span className={styles.infoValue}>{item.value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className={styles.contentList}>
-                        {section.content?.map((item, idx) => (
-                          <div key={idx} className={styles.contentItem}>
-                            {item}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {/* 相关推荐 */}
-                <div className={styles.related}>
-                  <h2 className={styles.sectionTitle}>
-                    <Bookmark className={styles.sectionIcon} />
-                    相关推荐
-                  </h2>
-                  <div className={styles.relatedGrid}>
-                    {detailData.relatedResources.map((resource, index) => (
-                      <Link key={index} href={`/detail/${resource.id}`} className={styles.relatedCard}>
-                        <div className={styles.relatedImage}>
-                          <Image
-                            src={resource.cover}
-                            alt={resource.title}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className={styles.relatedInfo}>
-                          <h3 className={styles.relatedTitle}>{resource.title}</h3>
-                          <div className={styles.relatedPrice}>¥{resource.price}</div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
-          {/* 右侧下载区 */}
-          <div className={styles.sidebar}>
-            <div className={styles.priceCard}>
-              <div className={styles.priceHeader}>
-                <div className={styles.priceInfo}>
-                  <span className={styles.currentPrice}>¥{detailData.price}</span>
-                  {detailData.originalPrice && (
+          {/* 右侧内容 */}
+          <div className={styles.rightContent}>
+            <div className={styles.priceSection}>
+              <div className={styles.priceRow}>
+                <div className={styles.priceBox}>
+                  <div className={styles.price}>
+                    <span className={styles.currency}>¥</span>
+                    <span className={styles.amount}>{courseData.price}</span>
+                  </div>
+                  {courseData.originalPrice && (
                     <span className={styles.originalPrice}>
-                      ¥{detailData.originalPrice}
+                      ¥{courseData.originalPrice}
                     </span>
                   )}
                 </div>
-                <div className={styles.vipPrice}>
-                  <span className={styles.vipTag}>
-                    <Crown className={styles.vipIcon} />
-                    VIP会员
-                  </span>
-                  <span>免费下载</span>
+                <div className={styles.vipTag}>
+                  <Crown className={`w-4 h-4 ${styles.vipIcon}`} />
+                  VIP会员免费学习
                 </div>
               </div>
-
-              <button className={styles.buyButton}>
-                立即购买
-              </button>
-              <button className={styles.vipButton}>
-                开通VIP会员
-              </button>
-
-              <div className={styles.guarantee}>
-                <Shield className={styles.guaranteeIcon} />
-                <span>担保交易 · 7天内可退款</span>
+              <div className={styles.priceDesc}>
+                <span className={styles.priceDescItem}>
+                  <Users className="w-4 h-4" />
+                  {courseData.studentsCount} 人已购买
+                </span>
+                <span className={styles.priceDescItem}>
+                  <Clock className="w-4 h-4" />
+                  永久有效
+                </span>
+                <span className={styles.priceDescItem}>
+                  <Calendar className="w-4 h-4" />
+                  {courseData.updateDate} 更新
+                </span>
               </div>
 
-              <div className={styles.shareSection}>
-                <Share2 className={styles.shareIcon} />
-                <span>分享资源</span>
+              <div className={styles.meta}>
+                <span className={styles.metaItem}>
+                  <Star className="w-4 h-4" />
+                  {courseData.rating} 分
+                </span>
+                <span className={styles.metaItem}>
+                  <Clock className="w-4 h-4" />
+                  {courseData.duration}
+                </span>
+                <span className={styles.metaItem}>
+                  <Target className="w-4 h-4" />
+                  {courseData.level}
+                </span>
+              </div>
+
+              <div className={styles.software}>
+                {courseData.software.map((sw, index) => (
+                  <div key={index} className={styles.softwareIcon}>
+                    <Image
+                      src={sw.icon}
+                      alt={sw.name}
+                      width={16}
+                      height={16}
+                    />
+                    <span>{sw.name}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className={styles.purchaseButtons}>
+                <button className={styles.buyButton}>立即购买</button>
+                <button className={styles.vipButton}>
+                  <Crown className="w-4 h-4" />
+                  开通VIP会员
+                </button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            <div className={styles.downloadSection}>
-              <h3 className={styles.downloadTitle}>免费下载地址</h3>
-              <div className={styles.downloadLinks}>
-                {detailData.downloads.free.links.map((link, index) => (
-                  <div key={index} className={styles.downloadLink}>
-                    <div className={styles.linkInfo}>
-                      <span className={styles.linkName}>{link.name}</span>
-                      <button className={styles.copyButton}>复制链接</button>
-                    </div>
-                    <div className={styles.linkCode}>
-                      提取码：<span className={styles.codeValue}>{link.code}</span>
-                      <button className={styles.copyButton}>复制</button>
+      <div className={styles.container}>
+
+        {/* 课程详情内容 */}
+        <div className={styles.courseContent}>
+          {/* 课程详情卡片 */}
+          <div className={styles.detailCard}>
+            {/* 课程大纲 */}
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                <BookOpen className="w-5 h-5" />
+                详情
+              </h2>
+              {/* 播放器区域 */}
+              <div className={styles.playerSection}>
+                <div className={styles.player}>
+                  <div className={styles.playerPlaceholder}>
+                    <Play className="w-12 h-12" />
+                    <span>试看视频</span>
+                  </div>
+                </div>
+              </div>
+              <div className={styles.curriculum}>
+                {courseData.chapters.map((chapter, index) => (
+                  <div key={index} className={styles.chapter}>
+                    <h3 className={styles.chapterTitle}>{chapter.title}</h3>
+                    <div className={styles.lessons}>
+                      {chapter.lessons.map((lesson, lessonIndex) => (
+                        <div key={lessonIndex} className={styles.lesson}>
+                          <div className={styles.lessonInfo}>
+                            <Play className="w-4 h-4" />
+                            <span className={styles.lessonTitle}>{lesson.title}</span>
+                            {lesson.free && <span className={styles.freeTag}>免费</span>}
+                          </div>
+                          <span className={styles.duration}>{lesson.duration}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className={styles.downloadSection}>
-              <h3 className={styles.downloadTitle}>
-                <Crown className={styles.vipIcon} />
-                VIP专属下载
-              </h3>
-              <div className={styles.downloadLinks}>
-                {detailData.downloads.vip.links.map((link, index) => (
-                  <div key={index} className={styles.downloadLink}>
-                    <div className={styles.linkInfo}>
-                      <span className={styles.linkName}>{link.name}</span>
-                      <span className={styles.speedTag}>{link.speed}</span>
-                    </div>
-                  </div>
-                ))}
+            课程介绍
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                <Book className="w-5 h-5" />
+                课程介绍
+              </h2>
+              <div className={styles.overview}>
+                {/* ... 课程特色部分保持不变 ... */}
               </div>
             </div>
 
-            <div className={styles.notice}>
-              <h3 className={styles.noticeTitle}>温馨提示</h3>
-              <ul className={styles.noticeList}>
-                <li>本站所有资源均经过测试可用</li>
-                <li>下载后请尽快保存，链接可能会失效</li>
-                <li>如遇问题可在下方评论区留言</li>
-                <li>VIP会员可享受专属下载加速</li>
-              </ul>
+            {/* 讲师介绍 */}
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                <User className="w-5 h-5" />
+                讲师介绍
+              </h2>
+              <div className={styles.instructor}>
+                {/* ... 讲师信息部分保持不变 ... */}
+              </div>
+            </div>
+
+            {/* 评论区域 */}
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                <MessageCircle className="w-5 h-5" />
+                课程评论
+              </h2>
+              <Comments limit={5} />
+              <div className={styles.pagination}>
+                <button className={styles.pageButton}>上一页</button>
+                <span className={styles.pageInfo}>1 / 10</span>
+                <button className={styles.pageButton}>下一页</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 相关推荐 */}
+      <div className={styles.container}>
+        <div className={styles.recommendSection}>
+          <div className={styles.recommendInner}>
+            <h2 className={styles.recommendTitle}>相关推荐</h2>
+            <div className={styles.recommendList}>
+              {courseData.recommendedCourses.slice(0, 8).map((course) => (
+                <Link href={`/detail/${course.id}`} key={course.id} className={styles.recommendCard}>
+                  <div className={styles.recommendImage}>
+                    <Image
+                      src={course.image}
+                      alt={course.title}
+                      fill
+                      className="object-cover transition-transform group-hover:scale-105"
+                    />
+                  </div>
+                  <h3 className={styles.recommendTitle}>{course.title}</h3>
+                  <div className={styles.recommendMeta}>
+                    <span className={styles.recommendInstructor}>{course.instructor}</span>
+                    <span className={styles.recommendPrice}>¥{course.price}</span>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </div>

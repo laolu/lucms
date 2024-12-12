@@ -57,6 +57,9 @@ function CourseCard({
             className="object-cover"
           />
         </Link>
+        <button className={styles.purchaseBtn}>
+          ¥{price.current}
+        </button>
         <div className={styles.software}>
           {software.map((item, index) => (
             <span key={index} className={styles.softwareIcon}>
@@ -90,13 +93,6 @@ function CourseCard({
             </span>
             <span className={styles.authorName}>{author.name}</span>
           </Link>
-          
-          <div className={styles.price}>
-            <span className={styles.currentPrice}>¥{price.current}</span>
-            {price.original && (
-              <span className={styles.originalPrice}>¥{price.original}</span>
-            )}
-          </div>
         </div>
         
         <div className={styles.divider} />
@@ -205,7 +201,7 @@ export function CourseSection() {
     <section className={styles.courseSection}>
       <div className={styles.sectionTitle}>
         <div className={styles.titleHr} />
-        <h2>在线课堂</h2>
+        <h2>在线���堂</h2>
         <div className={styles.titleHr} />
         <div className={styles.titleBg}>CLASSROOM</div>
         <Link href="/courses">

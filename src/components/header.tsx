@@ -3,10 +3,12 @@
 import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Menu, Search } from "lucide-react"
+import { Menu, Search, User } from "lucide-react"
 import { MainNav } from "@/components/nav"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
+import { getCurrentUser, logout } from "@/lib/auth"
+import type { User as UserType } from "@/lib/auth"
 import {
   Sheet,
   SheetContent,
@@ -17,10 +19,29 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 
 export function Header() {
   const [searchOpen, setSearchOpen] = React.useState(false)
+  const [user, setUser] = React.useState<UserType | null>(null)
+
+  React.useEffect(() => {
+    // 检查登录状态
+    const currentUser = getCurrentUser()
+    setUser(currentUser)
+  }, [])
+
+  const handleLogout = () => {
+    logout()
+    setUser(null)
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -88,21 +109,66 @@ export function Header() {
               </div>
             </DialogContent>
           </Dialog>
-          <nav className="flex items-center space-x-2">
-            <Link
-              href="/auth/login"
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              登录
-            </Link>
-            <span className="text-sm text-muted-foreground">/</span>
-            <Link
-              href="/auth/register"
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              注册
-            </Link>
-          </nav>
+
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Image
+                    src={user.avatar}
+                    alt={user.name}
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                  />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="font-medium">{user.name}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/user">
+                    会员中心
+                  </Link>
+                </DropdownMenuItem>
+                {user.isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin">
+                      管理后台
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={handleLogout}
+                >
+                  退出登录
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <nav className="flex items-center space-x-2">
+              <Link
+                href="/auth/login"
+                className="text-sm font-medium transition-colors hover:text-primary"
+              >
+                登录
+              </Link>
+              <span className="text-sm text-muted-foreground">/</span>
+              <Link
+                href="/auth/register"
+                className="text-sm font-medium transition-colors hover:text-primary"
+              >
+                注册
+              </Link>
+            </nav>
+          )}
           <ModeToggle />
         </div>
 
@@ -129,10 +195,62 @@ export function Header() {
                   style={{ width: 'auto' }}
                   priority
                 />
-                <span className="text-xl font-bold">LuCMS</span>
               </Link>
             </div>
             <div className="flex flex-col px-7 pt-8 space-y-4">
+              {user ? (
+                <>
+                  <div className="flex items-center gap-4 mb-4">
+                    <Image
+                      src={user.avatar}
+                      alt={user.name}
+                      width={40}
+                      height={40}
+                      className="rounded-full"
+                    />
+                    <div>
+                      <p className="font-medium">{user.name}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/user"
+                    className="text-base font-medium transition-colors hover:text-primary"
+                  >
+                    会员中心
+                  </Link>
+                  {user.isAdmin && (
+                    <Link
+                      href="/admin"
+                      className="text-base font-medium transition-colors hover:text-primary"
+                    >
+                      管理后台
+                    </Link>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="text-base font-medium text-left transition-colors hover:text-primary"
+                  >
+                    退出登录
+                  </button>
+                </>
+              ) : (
+                <div className="flex gap-4">
+                  <Link
+                    href="/auth/login"
+                    className="text-base font-medium transition-colors hover:text-primary"
+                  >
+                    登录
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    className="text-base font-medium transition-colors hover:text-primary"
+                  >
+                    注册
+                  </Link>
+                </div>
+              )}
+              <div className="h-px bg-border my-4" />
               <Link
                 href="/list"
                 className="text-base font-medium transition-colors hover:text-primary"
@@ -166,31 +284,6 @@ export function Header() {
             </div>
           </SheetContent>
         </Sheet>
-
-        {/* 移动端 Logo */}
-        <div className="flex flex-1 md:hidden">
-          <Link href="/" className="flex items-center">
-            <Image
-              src="/logo.png"
-              alt="Logo"
-              width={0}
-              height={40}
-              className="h-[40px] w-auto mr-10"
-              style={{ width: 'auto' }}
-              priority
-            />
-            <span className="text-xl font-bold">LuCMS</span>
-          </Link>
-        </div>
-
-        {/* 移动端右侧功能区 */}
-        <div className="flex items-center space-x-2 md:hidden">
-          <Button variant="ghost" size="icon" className="hover:bg-transparent">
-            <Search className="w-5 h-5" />
-            <span className="sr-only">搜索</span>
-          </Button>
-          <ModeToggle />
-        </div>
       </div>
     </header>
   )
