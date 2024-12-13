@@ -1,43 +1,83 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import type { User } from '@/lib/auth'
-import { getCurrentUser } from '@/lib/auth'
+import * as React from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { userService } from "@/services/user"
+import type { User } from "@/services/user"
 
 interface AuthContextType {
   user: User | null
-  setUser: (user: User | null) => void
-  isLoading: boolean
+  loading: boolean
+  login: (identifier: string, password: string, redirectUrl?: string) => Promise<void>
+  socialLogin: (type: 'wechat' | 'qq', redirectUrl?: string) => Promise<void>
+  logout: () => void
+  checkAuth: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = React.createContext<AuthContextType | undefined>(undefined)
 
-const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = React.useState<User | null>(null)
+  const [loading, setLoading] = React.useState(true)
+  const router = useRouter()
 
-  useEffect(() => {
-    // 页面加载时检查登录状态
-    const currentUser = getCurrentUser()
-    setUser(currentUser)
-    setIsLoading(false)
+  // 检查认证状态
+  const checkAuth = React.useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        setUser(null)
+        return
+      }
+
+      const userData = await userService.getUserInfo()
+      setUser(userData)
+    } catch (error) {
+      localStorage.removeItem("token")
+      localStorage.removeItem("user")
+      setUser(null)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  return (
-    <AuthContext.Provider value={{ user, setUser, isLoading }}>
-      {children}
-    </AuthContext.Provider>
-  )
+  // 登录
+  const login = async (identifier: string, password: string, redirectUrl?: string) => {
+    const response = await userService.login({ identifier, password })
+    localStorage.setItem("token", response.token)
+    localStorage.setItem("user", JSON.stringify(response.user))
+    setUser(response.user)
+    router.push("/")
+  }
+
+  // 登出
+  const logout = () => {
+    localStorage.removeItem("token")
+    localStorage.removeItem("user")
+    setUser(null)
+    router.push("/login")
+  }
+
+  // 初始化时检查认证状态
+  React.useEffect(() => {
+    checkAuth()
+  }, [checkAuth])
+
+  const value = {
+    user,
+    loading,
+    login,
+    logout,
+    checkAuth,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-AuthProvider.displayName = "AuthProvider"
-
-function useAuth() {
-  const context = useContext(AuthContext)
+export function useAuth() {
+  const context = React.useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error("useAuth must be used within an AuthProvider")
   }
   return context
-}
-
-export { AuthProvider, useAuth } 
+} 

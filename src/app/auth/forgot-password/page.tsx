@@ -1,98 +1,109 @@
-import React from "react"
+"use client"
+
+import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/components/ui/use-toast"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Icons } from "@/components/icons"
+import { userService } from "@/services/user"
 
-export default function ForgotPassword() {
+export default function ForgotPasswordPage() {
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [email, setEmail] = React.useState("")
+  const { toast } = useToast()
+  const router = useRouter()
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault()
+    setIsLoading(true)
+
+    try {
+      await userService.forgotPassword({ email })
+      toast({
+        title: "邮件已发送",
+        description: "请检查您的邮箱，按照邮件中的说明重置密码",
+      })
+      // 发送成功后跳转到登录页
+      router.push("/auth/login")
+    } catch (error) {
+      toast({
+        title: "发送失败",
+        description: "该邮箱未注册或系统错误，请稍后重试",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            找回密码
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            请输入您注册时使用的手机号码
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" action="#" method="POST">
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                手机号码
-              </label>
-              <div className="mt-1 flex rounded-md shadow-sm">
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  required
-                  className="appearance-none rounded-l-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="请输入手机号码"
-                />
-                <button
-                  type="button"
-                  className="relative inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  获取验证码
-                </button>
-              </div>
-            </div>
-            <div>
-              <label htmlFor="code" className="block text-sm font-medium text-gray-700">
-                验证码
-              </label>
-              <input
-                id="code"
-                name="code"
-                type="text"
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <Card className="w-[400px]">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">忘记密码</CardTitle>
+          <CardDescription className="text-center">
+            输入您的注册邮箱，我们将发送重置密码的链接
+          </CardDescription>
+        </CardHeader>
+        <form onSubmit={onSubmit}>
+          <CardContent className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">邮箱</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="请输入注册邮箱"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
                 required
-                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="请输入验证码"
               />
             </div>
-            <div>
-              <label htmlFor="new-password" className="block text-sm font-medium text-gray-700">
-                新密码
-              </label>
-              <input
-                id="new-password"
-                name="new-password"
-                type="password"
-                required
-                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="请输入新密码"
-              />
-            </div>
-            <div>
-              <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
-                确认新密码
-              </label>
-              <input
-                id="confirm-password"
-                name="confirm-password"
-                type="password"
-                required
-                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="请再次输入新密码"
-              />
-            </div>
-          </div>
-
-          <div>
-            <button
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
+            <Button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="w-full"
+              disabled={isLoading}
             >
-              重置密码
-            </button>
-          </div>
-
-          <div className="text-center">
-            <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
-              返回登录
-            </Link>
-          </div>
+              {isLoading && (
+                <Icons.spinner className="w-4 h-4 mr-2 animate-spin" />
+              )}
+              发送重置链接
+            </Button>
+            <div className="text-sm text-center">
+              记起密码了？{" "}
+              <Link
+                href="/auth/login"
+                className="text-blue-600 hover:text-blue-800"
+              >
+                返回登录
+              </Link>
+            </div>
+            <div className="text-xs text-center text-muted-foreground">
+              继续即表示您同意我们的{" "}
+              <Link href="/terms" className="text-blue-600 hover:text-blue-800">
+                服务条款
+              </Link>
+              {" "}和{" "}
+              <Link href="/privacy" className="text-blue-600 hover:text-blue-800">
+                隐私政策
+              </Link>
+            </div>
+          </CardFooter>
         </form>
-      </div>
+      </Card>
     </div>
   )
 } 
