@@ -1,23 +1,22 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from '../decorators/roles.decorator';
-import { UserRole } from '../../users/entities/user.entity';
+import { ADMIN_KEY } from '../decorators/admin.decorator';
 
 @Injectable()
-export class RolesGuard implements CanActivate {
+export class AdminGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
+    const requireAdmin = this.reflector.getAllAndOverride<boolean>(ADMIN_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
 
-    if (!requiredRoles) {
+    if (!requireAdmin) {
       return true;
     }
 
     const { user } = context.switchToHttp().getRequest();
-    return requiredRoles.includes(user.role);
+    return user?.isAdmin === true;
   }
 } 

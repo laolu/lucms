@@ -1,11 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
-export enum UserRole {
-  USER = 'user',
-  ADMIN = 'admin'
-}
-
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
@@ -28,13 +23,6 @@ export class User {
 
   @Column({ type: 'text', nullable: true })
   bio: string;
-
-  @Column({
-    type: 'enum',
-    enum: UserRole,
-    default: UserRole.USER
-  })
-  role: UserRole;
 
   @Column({ default: false })
   isAdmin: boolean;

@@ -1,6 +1,5 @@
-import { IsNotEmpty, IsString, IsEmail, IsOptional, IsBoolean, IsPhoneNumber, MinLength, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsString, IsEmail, IsOptional, IsBoolean, IsPhoneNumber, MinLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '../entities/user.entity';
 
 export class CreateUserDto {
   @ApiProperty({ description: '用户名', example: 'johndoe', minLength: 3 })
@@ -39,11 +38,6 @@ export class CreateUserDto {
   @IsOptional()
   @IsPhoneNumber()
   phone?: string;
-
-  @ApiPropertyOptional({ description: '用户角色', enum: UserRole, example: UserRole.USER })
-  @IsOptional()
-  @IsEnum(UserRole)
-  role?: UserRole;
 
   @ApiPropertyOptional({ description: '是否为管理员', example: false })
   @IsOptional()

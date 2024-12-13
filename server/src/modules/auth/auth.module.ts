@@ -6,8 +6,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
-import { ConfigModule } from '../config/config.module';
-import { ConfigService } from '../config/config.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SmsModule } from '../sms/sms.module';
 import { MailModule } from '../mail/mail.module';
 
@@ -20,11 +19,13 @@ import { MailModule } from '../mail/mail.module';
     MailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        secret: await configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: await configService.get('JWT_EXPIRES_IN') || '7d' },
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get('jwt.secret'),
+        signOptions: {
+          expiresIn: configService.get('jwt.expiresIn'),
+        },
       }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],

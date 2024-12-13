@@ -1,52 +1,39 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards } from '@nestjs/common';
 import { VipService } from './vip.service';
-import { CreateVipLevelDto } from './dto/create-vip-level.dto';
-import { CreateVipOrderDto } from './dto/create-vip-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '../users/entities/user.entity';
+import { Admin } from '../auth/decorators/admin.decorator';
+import { AdminGuard } from '../auth/guards/admin.guard';
 
 @Controller('vip')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, AdminGuard)
 export class VipController {
   constructor(private readonly vipService: VipService) {}
 
-  @Post('levels')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
-  async createVipLevel(@Body() createVipLevelDto: CreateVipLevelDto) {
-    return this.vipService.createVipLevel(createVipLevelDto);
+  @Post()
+  @Admin()
+  create(@Body() createVipDto: any) {
+    return this.vipService.create(createVipDto);
   }
 
-  @Get('levels')
-  async findAllVipLevels() {
-    return this.vipService.findAllVipLevels();
+  @Get()
+  findAll() {
+    return this.vipService.findAll();
   }
 
-  @Get('levels/:id')
-  async findVipLevel(@Param('id') id: string) {
-    return this.vipService.findVipLevel(+id);
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.vipService.findOne(+id);
   }
 
-  @Post('orders')
-  async createOrder(
-    @Request() req,
-    @Body() createVipOrderDto: CreateVipOrderDto
-  ) {
-    return this.vipService.createOrder(req.user.id, createVipOrderDto);
+  @Put(':id')
+  @Admin()
+  update(@Param('id') id: string, @Body() updateVipDto: any) {
+    return this.vipService.update(+id, updateVipDto);
   }
 
-  @Get('orders')
-  async findUserOrders(@Request() req) {
-    return this.vipService.findUserOrders(req.user.id);
-  }
-
-  @Post('orders/:id/pay')
-  async processPayment(
-    @Param('id') id: string,
-    @Body('paymentMethod') paymentMethod: string
-  ) {
-    return this.vipService.processPayment(+id, paymentMethod);
+  @Delete(':id')
+  @Admin()
+  remove(@Param('id') id: string) {
+    return this.vipService.remove(+id);
   }
 } 

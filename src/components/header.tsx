@@ -27,20 +27,13 @@ import {
 } from "@/components/ui/avatar"
 
 export function Header() {
-  const { user, setUser } = useAuth()
-
-  const handleLogout = () => {
-    setUser(null)
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    window.location.href = '/auth/login'
-  }
+  const { user, logout } = useAuth()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
+      <div className="container flex items-center h-16">
         {/* PC端 Logo + 导航 */}
-        <div className="hidden md:flex md:flex-1 items-center">
+        <div className="items-center hidden md:flex md:flex-1">
           <Link href="/" className="flex items-center">
             <Image
               src="/logo.png"
@@ -56,9 +49,9 @@ export function Header() {
         </div>
 
         {/* PC端右侧功能区 */}
-        <div className="hidden md:flex items-center space-x-4">
+        <div className="items-center hidden space-x-4 md:flex">
           <Button variant="ghost" size="icon" className="hover:bg-transparent">
-            <Search className="h-5 w-5" />
+            <Search className="w-5 h-5" />
             <span className="sr-only">搜索</span>
           </Button>
 
@@ -66,22 +59,22 @@ export function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative flex items-center space-x-2 hover:bg-transparent">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{user.name[0].toUpperCase()}</AvatarFallback>
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={user.avatar} alt={user.username} />
+                    <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium">{user.name}</span>
-                  <ChevronDown className="h-4 w-4 opacity-50" />
+                  <span className="text-sm font-medium">{user.username}</span>
+                  <ChevronDown className="w-4 h-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{user.name[0].toUpperCase()}</AvatarFallback>
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={user.avatar} alt={user.username} />
+                    <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{user.name}</p>
+                    <p className="font-medium">{user.username}</p>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
@@ -101,7 +94,7 @@ export function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="cursor-pointer"
-                  onClick={handleLogout}
+                  onClick={logout}
                 >
                   退出登录
                 </DropdownMenuItem>
@@ -134,7 +127,7 @@ export function Header() {
               variant="ghost"
               className="px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
             >
-              <Menu className="h-6 w-6" />
+              <Menu className="w-6 h-6" />
               <span className="sr-only">切换菜单</span>
             </Button>
           </SheetTrigger>
@@ -152,16 +145,16 @@ export function Header() {
                 />
               </Link>
             </div>
-            <div className="flex flex-col px-7 pt-8 space-y-4">
+            <div className="flex flex-col pt-8 space-y-4 px-7">
               {user ? (
                 <>
                   <div className="flex items-center gap-4 mb-4">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback>{user.name[0].toUpperCase()}</AvatarFallback>
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={user.avatar} alt={user.username} />
+                      <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{user.name}</p>
+                      <p className="font-medium">{user.username}</p>
                       <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
@@ -180,7 +173,7 @@ export function Header() {
                     </Link>
                   )}
                   <button
-                    onClick={handleLogout}
+                    onClick={logout}
                     className="text-base font-medium text-left transition-colors hover:text-primary"
                   >
                     退出登录
@@ -202,7 +195,7 @@ export function Header() {
                   </Link>
                 </div>
               )}
-              <div className="h-px bg-border my-4" />
+              <div className="h-px my-4 bg-border" />
               <Link
                 href="/list"
                 className="text-base font-medium transition-colors hover:text-primary"

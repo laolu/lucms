@@ -17,6 +17,7 @@ interface AuthContextType {
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = React.useState(false)
   const [user, setUser] = React.useState<User | null>(null)
   const [loading, setLoading] = React.useState(true)
   const router = useRouter()
@@ -27,12 +28,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = localStorage.getItem("token")
       if (!token) {
         setUser(null)
+        setLoading(false)
         return
       }
 
+      // 获取最新的用户数据
       const userData = await userService.getUserInfo()
-      setUser(userData)
+      if (userData.data) {
+        setUser(userData.data)
+        // 更新localStorage中的用户数据
+        localStorage.setItem("user", JSON.stringify(userData.data))
+      }
     } catch (error) {
+      console.error('Auth check failed:', error)
       localStorage.removeItem("token")
       localStorage.removeItem("user")
       setUser(null)
@@ -43,11 +51,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 登录
   const login = async (identifier: string, password: string, redirectUrl?: string) => {
-    const response = await userService.login({ identifier, password })
-    localStorage.setItem("token", response.token)
-    localStorage.setItem("user", JSON.stringify(response.user))
-    setUser(response.user)
-    router.push("/")
+    try {
+      const response = await userService.login({ identifier, password })
+      
+      if (response.data?.access_token && response.data?.user) {
+        localStorage.setItem("token", response.data.access_token)
+        localStorage.setItem("user", JSON.stringify(response.data.user))
+        setUser(response.data.user)
+        
+        // 如果有重定向URL则跳转到指定页面，否则跳转到首页
+        router.push(redirectUrl || "/")
+      } else {
+        throw new Error('Invalid login response')
+      }
+    } catch (error) {
+      console.error('Login failed:', error)
+      throw error
+    }
+  }
+
+  // 社交登录
+  const socialLogin = async (type: 'wechat' | 'qq', redirectUrl?: string) => {
+    const response = await userService.socialLogin({ type })
+    if (response.data?.url) {
+      // 存储重定向URL，用于社交登录回调后跳转
+      if (redirectUrl) {
+        localStorage.setItem("socialLoginRedirect", redirectUrl)
+      }
+      // 跳转到第三方登录页面
+      window.location.href = response.data.url
+    }
   }
 
   // 登出
@@ -55,18 +88,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("token")
     localStorage.removeItem("user")
     setUser(null)
-    router.push("/login")
+    router.push("/auth/login")
   }
 
   // 初始化时检查认证状态
   React.useEffect(() => {
+    setMounted(true)
+    try {
+      const savedUser = localStorage.getItem("user")
+      if (savedUser) {
+        const userData = JSON.parse(savedUser)
+        if (userData && typeof userData === 'object') {
+          setUser(userData)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to parse saved user:', error)
+      localStorage.removeItem("user")
+    }
     checkAuth()
   }, [checkAuth])
+
+  // 避免服务端渲染时的状态不匹配
+  if (!mounted) {
+    return null
+  }
 
   const value = {
     user,
     loading,
     login,
+    socialLogin,
     logout,
     checkAuth,
   }

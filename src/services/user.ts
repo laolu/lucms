@@ -7,8 +7,8 @@ export interface User {
   email: string
   avatar?: string
   nickname?: string
-  role: 'user' | 'vip' | 'admin'
-  vipExpireTime?: string
+  isAdmin: boolean
+  isActive: boolean
   createdAt: string
   updatedAt: string
 }

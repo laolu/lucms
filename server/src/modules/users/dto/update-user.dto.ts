@@ -1,16 +1,17 @@
-import { IsOptional, IsString, IsEmail, IsBoolean, IsPhoneNumber, IsEnum, IsNumber, IsDate } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsBoolean, IsPhoneNumber, MinLength, IsDate, IsNumber } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '../entities/user.entity';
 
 export class UpdateUserDto {
-  @ApiPropertyOptional({ description: '用户名', example: 'johndoe' })
+  @ApiPropertyOptional({ description: '用户名', example: 'johndoe', minLength: 3 })
   @IsOptional()
   @IsString()
+  @MinLength(3)
   username?: string;
 
-  @ApiPropertyOptional({ description: '密码', example: '123456' })
+  @ApiPropertyOptional({ description: '密码', example: '123456', minLength: 6 })
   @IsOptional()
   @IsString()
+  @MinLength(6)
   password?: string;
 
   @ApiPropertyOptional({ description: '邮箱', example: 'john@example.com' })
@@ -37,11 +38,6 @@ export class UpdateUserDto {
   @IsOptional()
   @IsPhoneNumber()
   phone?: string;
-
-  @ApiPropertyOptional({ description: '用户角色', enum: UserRole, example: UserRole.USER })
-  @IsOptional()
-  @IsEnum(UserRole)
-  role?: UserRole;
 
   @ApiPropertyOptional({ description: '是否为管理员', example: false })
   @IsOptional()

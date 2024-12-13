@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { SmsService } from '../sms/sms.service';
-import { User, UserRole } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { VerifyPhoneDto } from './dto/verify-phone.dto';
@@ -49,7 +49,7 @@ export class AuthService {
     const payload = {
       username: user.username,
       sub: user.id,
-      role: user.role
+      isAdmin: user.isAdmin
     };
 
     return {
@@ -59,7 +59,6 @@ export class AuthService {
         username: user.username,
         email: user.email,
         phone: user.phone,
-        role: user.role,
         isAdmin: user.isAdmin
       }
     };
@@ -78,7 +77,6 @@ export class AuthService {
     const createUserDto: CreateUserDto = {
       username: registerDto.username,
       password: registerDto.password,
-      role: UserRole.USER,
       isAdmin: false
     };
 
@@ -179,7 +177,7 @@ export class AuthService {
     }
 
     // 验证验证码
-    // TODO: 实现邮箱验证码验证逻辑
+    // TODO: ��现邮箱验证码验证逻辑
 
     await this.usersService.update(user.id, {
       verificationCode: null,
