@@ -13,6 +13,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface CategoryDialogProps {
   open: boolean
@@ -20,6 +27,7 @@ interface CategoryDialogProps {
   title: string
   initialData?: any
   parentId?: number | null
+  categories: any[]
   onSubmit: (data: any) => void
 }
 
@@ -29,6 +37,7 @@ export function CategoryDialog({
   title,
   initialData,
   parentId = null,
+  categories,
   onSubmit,
 }: CategoryDialogProps) {
   const [formData, setFormData] = React.useState({
@@ -36,8 +45,8 @@ export function CategoryDialog({
     description: '',
     sort: 0,
     isActive: true,
+    parentId: null,
     ...initialData,
-    parentId,
   })
 
   React.useEffect(() => {
@@ -55,10 +64,27 @@ export function CategoryDialog({
         description: '',
         sort: 0,
         isActive: true,
-        parentId,
+        parentId: parentId,
       })
     }
   }, [initialData, parentId])
+
+  const buildCategoryOptions = (items: any[], level = 0): React.ReactNode[] => {
+    return items.flatMap((item) => {
+      const prefix = '\u00A0'.repeat(level * 4)
+      const options = [
+        <SelectItem key={item.id} value={item.id.toString()}>
+          {prefix + item.name}
+        </SelectItem>
+      ]
+      
+      if (item.children?.length) {
+        options.push(...buildCategoryOptions(item.children, level + 1))
+      }
+      
+      return options
+    })
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,7 +93,7 @@ export function CategoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-[600px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
@@ -76,6 +102,28 @@ export function CategoryDialog({
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            {!initialData && (
+              <div className="grid gap-2">
+                <Label htmlFor="parentId">父分类</Label>
+                <Select
+                  value={formData.parentId?.toString() || "none"}
+                  onValueChange={(value) => 
+                    setFormData({ 
+                      ...formData, 
+                      parentId: value === "none" ? null : parseInt(value) 
+                    })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="选择父分类（可选）" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">无父分类</SelectItem>
+                    {buildCategoryOptions(categories)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="grid gap-2">
               <Label htmlFor="name">分类名称</Label>
               <Input

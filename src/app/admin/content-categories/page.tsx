@@ -4,238 +4,149 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  ChevronRight,
-  ChevronDown,
-  MoreHorizontal,
-  Plus,
-  Search,
-  Pencil,
-  FolderPlus,
-  Trash2
-} from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { ChevronRight, ChevronDown, MoreHorizontal, Plus, Search, Pencil, FolderPlus, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
 import { CategoryDialog } from './category-dialog'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
+import { contentCategoryService, type ContentCategory } from '@/services/content-category'
+import { cn } from "@/lib/utils"
 
 export default function ContentCategoriesPage() {
-  // 模拟分类数据
-  const [categories, setCategories] = React.useState([
-    {
-      id: 1,
-      name: '游戏美术',
-      description: '游戏美术相关资源',
-      parentId: null,
-      isActive: true,
-      sort: 0,
-      createdAt: '2024-01-01',
-      children: [
-        {
-          id: 3,
-          name: '角色设计',
-          description: '游戏角色设计资源',
-          parentId: 1,
-          isActive: true,
-          sort: 0,
-          createdAt: '2024-01-01',
-          children: [
-            {
-              id: 5,
-              name: '人物角色',
-              description: '人物角色设计资源',
-              parentId: 3,
-              isActive: true,
-              sort: 0,
-              createdAt: '2024-01-01',
-            },
-            {
-              id: 6,
-              name: '怪物角色',
-              description: '怪物角色设计资源',
-              parentId: 3,
-              isActive: false,
-              sort: 1,
-              createdAt: '2024-01-01',
-            }
-          ]
-        },
-        {
-          id: 4,
-          name: '场景设计',
-          description: '游戏场景设计资源',
-          parentId: 1,
-          isActive: true,
-          sort: 1,
-          createdAt: '2024-01-01',
-        }
-      ]
-    },
-    {
-      id: 2,
-      name: '动画制作',
-      description: '动画制作相关资源',
-      parentId: null,
-      isActive: true,
-      sort: 1,
-      createdAt: '2024-01-01',
-      children: []
-    }
-  ])
+  const [categories, setCategories] = React.useState<ContentCategory[]>([]);
+  const [expandedIds, setExpandedIds] = React.useState<number[]>([]);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dialogTitle, setDialogTitle] = React.useState('');
+  const [editingCategory, setEditingCategory] = React.useState<ContentCategory | null>(null);
+  const [parentId, setParentId] = React.useState<number | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [deletingCategory, setDeletingCategory] = React.useState<ContentCategory | null>(null);
+  const [searchQuery, setSearchQuery] = React.useState('');
 
-  const [expandedIds, setExpandedIds] = React.useState<number[]>([])
-  const [dialogOpen, setDialogOpen] = React.useState(false)
-  const [dialogTitle, setDialogTitle] = React.useState('')
-  const [editingCategory, setEditingCategory] = React.useState<any>(null)
-  const [parentId, setParentId] = React.useState<number | null>(null)
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
-  const [deletingCategory, setDeletingCategory] = React.useState<any>(null)
+  // 加载分类数据
+  const loadCategories = React.useCallback(async () => {
+    try {
+      const data = await contentCategoryService.getTree();
+      setCategories(data);
+    } catch (error) {
+      toast.error('加载分类失败');
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
 
   const toggleExpand = (id: number) => {
     setExpandedIds(prev => 
       prev.includes(id) 
         ? prev.filter(i => i !== id)
         : [...prev, id]
-    )
-  }
+    );
+  };
 
   const handleAddCategory = () => {
-    setDialogTitle('添加分类')
-    setEditingCategory(null)
-    setParentId(null)
-    setDialogOpen(true)
-  }
+    setDialogTitle('添加分类');
+    setEditingCategory(null);
+    setParentId(null);
+    setDialogOpen(true);
+  };
 
-  const handleAddSubCategory = (parentCategory: any) => {
-    setDialogTitle('添加子分类')
-    setEditingCategory(null)
-    setParentId(parentCategory.id)
-    setDialogOpen(true)
-  }
+  const handleAddSubCategory = (category: ContentCategory) => {
+    setDialogTitle(`添加 ${category.name} 的子分类`);
+    setEditingCategory(null);
+    setParentId(category.id);
+    setDialogOpen(true);
+  };
 
-  const handleEditCategory = (category: any) => {
-    setDialogTitle('编辑分类')
-    setEditingCategory(category)
-    setParentId(category.parentId)
-    setDialogOpen(true)
-  }
+  const handleEditCategory = (category: ContentCategory) => {
+    setDialogTitle('编辑分类');
+    setEditingCategory(category);
+    setParentId(category.parentId);
+    setDialogOpen(true);
+  };
 
-  const handleDeleteCategory = (category: any) => {
-    setDeletingCategory(category)
-    setDeleteDialogOpen(true)
-  }
+  const handleDeleteCategory = (category: ContentCategory) => {
+    setDeletingCategory(category);
+    setDeleteDialogOpen(true);
+  };
 
-  const updateCategoryInTree = (categories: any[], newCategory: any): any[] => {
-    return categories.map(category => {
-      if (category.id === newCategory.id) {
-        return { ...category, ...newCategory }
+  const handleSubmit = async (data: any) => {
+    try {
+      if (editingCategory) {
+        await contentCategoryService.update(editingCategory.id, data);
+        toast.success('分类已更新');
+      } else {
+        await contentCategoryService.create(data);
+        toast.success('分类已添加');
       }
-      if (category.children) {
-        return {
-          ...category,
-          children: updateCategoryInTree(category.children, newCategory)
-        }
-      }
-      return category
-    })
-  }
-
-  const addCategoryToTree = (categories: any[], newCategory: any, parentId: number | null): any[] => {
-    if (parentId === null) {
-      return [...categories, { ...newCategory, children: [] }]
+      loadCategories();
+      setDialogOpen(false);
+    } catch (error) {
+      toast.error(editingCategory ? '更新分类失败' : '添加分类失败');
     }
+  };
 
-    return categories.map(category => {
-      if (category.id === parentId) {
-        return {
-          ...category,
-          children: [...(category.children || []), newCategory]
-        }
-      }
-      if (category.children) {
-        return {
-          ...category,
-          children: addCategoryToTree(category.children, newCategory, parentId)
-        }
-      }
-      return category
-    })
-  }
-
-  const deleteCategoryFromTree = (categories: any[], categoryId: number): any[] => {
-    return categories.filter(category => {
-      if (category.id === categoryId) {
-        return false
-      }
-      if (category.children) {
-        category.children = deleteCategoryFromTree(category.children, categoryId)
-      }
-      return true
-    })
-  }
-
-  const handleSubmit = (data: any) => {
-    if (editingCategory) {
-      // 编辑现有分类
-      const updatedCategory = {
-        ...editingCategory,
-        ...data,
-      }
-      setCategories(prev => updateCategoryInTree(prev, updatedCategory))
-      toast.success('分类已更新')
-    } else {
-      // 添加新分类
-      const newCategory = {
-        ...data,
-        id: Math.max(...categories.map(c => c.id)) + 1,
-        createdAt: new Date().toISOString().split('T')[0],
-      }
-      setCategories(prev => addCategoryToTree(prev, newCategory, data.parentId))
-      toast.success('分类已添加')
-    }
-    setDialogOpen(false)
-  }
-
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deletingCategory) {
-      setCategories(prev => deleteCategoryFromTree(prev, deletingCategory.id))
-      toast.success('分类已删除')
-      setDeleteDialogOpen(false)
+      try {
+        await contentCategoryService.delete(deletingCategory.id);
+        toast.success('分类已删除');
+        loadCategories();
+        setDeleteDialogOpen(false);
+      } catch (error) {
+        toast.error('删除分类失败');
+      }
     }
-  }
+  };
 
-  const renderCategoryTree = (categories: any[], level = 0) => {
+  const filteredCategories = React.useMemo(() => {
+    if (!Array.isArray(categories)) {
+      console.warn('categories is not an array in filteredCategories:', categories);
+      return [];
+    }
+    
+    if (!searchQuery) return categories;
+    
+    const filterByQuery = (items: ContentCategory[]): ContentCategory[] => {
+      return items.reduce((acc: ContentCategory[], item) => {
+        if (
+          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.description.toLowerCase().includes(searchQuery.toLowerCase())
+        ) {
+          acc.push({
+            ...item,
+            children: item.children ? filterByQuery(item.children) : []
+          });
+        } else if (item.children) {
+          const filteredChildren = filterByQuery(item.children);
+          if (filteredChildren.length) {
+            acc.push({ ...item, children: filteredChildren });
+          }
+        }
+        return acc;
+      }, []);
+    };
+    
+    return filterByQuery(categories);
+  }, [categories, searchQuery]);
+
+  const renderCategoryTree = (categories: ContentCategory[], level = 0) => {
+    if (!Array.isArray(categories)) {
+      console.warn('categories is not an array:', categories);
+      return null;
+    }
     return categories.map((category) => (
       <div key={category.id}>
         <div 
           className={cn(
             "group flex items-center gap-4 py-2 px-4 hover:bg-accent/50 rounded-lg transition-colors",
-            level > 0 && "ml-6"
+            level > 0 && "ml-6",
+            "cursor-move"
           )}
+          draggable
         >
           <div className="flex items-center gap-2 min-w-[200px]">
             {category.children?.length > 0 ? (
@@ -320,7 +231,12 @@ export default function ContentCategoriesPage() {
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="搜索分类..." className="pl-8" />
+          <Input 
+            placeholder="搜索分类..." 
+            className="pl-8" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
       </div>
 
@@ -336,7 +252,7 @@ export default function ContentCategoriesPage() {
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          {renderCategoryTree(categories)}
+          {renderCategoryTree(filteredCategories)}
         </CardContent>
       </Card>
 
@@ -346,6 +262,7 @@ export default function ContentCategoriesPage() {
         title={dialogTitle}
         initialData={editingCategory}
         parentId={parentId}
+        categories={categories}
         onSubmit={handleSubmit}
       />
 
@@ -371,5 +288,5 @@ export default function ContentCategoriesPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 } 
