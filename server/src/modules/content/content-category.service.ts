@@ -3,6 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ContentCategory } from './entities/content-category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { CategoryAttribute } from './entities/category-attribute.entity';
+import { CategoryAttributeValue } from './entities/category-attribute-value.entity';
+import { ContentAttribute } from './entities/content-attribute.entity';
+import { ContentAttributeValue } from './entities/content-attribute-value.entity';
 
 @Injectable()
 export class ContentCategoryService {
@@ -11,6 +15,10 @@ export class ContentCategoryService {
   constructor(
     @InjectRepository(ContentCategory)
     private categoryRepository: Repository<ContentCategory>,
+    @InjectRepository(CategoryAttribute)
+    private categoryAttributeRepository: Repository<CategoryAttribute>,
+    @InjectRepository(CategoryAttributeValue)
+    private categoryAttributeValueRepository: Repository<CategoryAttributeValue>,
   ) {}
 
   async create(createDto: CreateCategoryDto): Promise<ContentCategory> {
@@ -30,7 +38,7 @@ export class ContentCategoryService {
       });
       
       if (!categories || categories.length === 0) {
-        this.logger.warn('没有找到任���分类数据');
+        this.logger.warn('没有找到任何分类数据');
         return [];
       }
       
@@ -261,5 +269,104 @@ export class ContentCategoryService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async getCategoryAttributes(id: number) {
+    try {
+      this.logger.debug(`Getting attributes for category ${id}`);
+      
+      const attributes = await this.categoryAttributeRepository
+        .createQueryBuilder('ca')
+        .leftJoinAndSelect('ca.attribute', 'attr')
+        .leftJoinAndSelect('ca.allowedValues', 'av')
+        .leftJoinAndSelect('av.attributeValue', 'val')
+        .where('ca.categoryId = :categoryId', { categoryId: id })
+        .orderBy('ca.sort', 'ASC')
+        .addOrderBy('av.sort', 'ASC')
+        .getMany();
+
+      this.logger.debug(`Found ${attributes.length} attributes for category ${id}`);
+
+      return attributes.map(attr => ({
+        attributeId: attr.attributeId,
+        attribute: {
+          name: attr.attribute.name,
+          type: attr.attribute.type
+        },
+        values: attr.allowedValues.map(v => ({
+          id: v.attributeValueId,
+          value: v.attributeValue.value,
+          sort: v.sort,
+          isEnabled: v.isEnabled
+        }))
+      }));
+    } catch (error) {
+      this.logger.error(`Error getting attributes for category ${id}:`, error);
+      throw error;
+    }
+  }
+
+  async updateCategoryAttributes(id: number, data: {
+    attributes: Array<{
+      attributeId: number;
+      valueIds: number[];
+    }>;
+  }) {
+    // 开启事务
+    await this.categoryAttributeRepository.manager.transaction(async manager => {
+      try {
+        this.logger.debug(`Updating attributes for category ${id}`);
+
+        // 1. 先删除所有相关的属性值关联
+        await manager
+          .createQueryBuilder()
+          .delete()
+          .from(CategoryAttributeValue)
+          .where('categoryAttributeId IN (SELECT id FROM category_attributes WHERE categoryId = :categoryId)', { categoryId: id })
+          .execute();
+
+        // 2. 然后删除属性关联
+        await manager
+          .createQueryBuilder()
+          .delete()
+          .from(CategoryAttribute)
+          .where('categoryId = :categoryId', { categoryId: id })
+          .execute();
+
+        // 3. 创建新的关联
+        for (const attr of data.attributes) {
+          this.logger.debug(`Creating attribute relation for attributeId: ${attr.attributeId}`);
+          
+          // 创建分类-属性关联
+          const categoryAttribute = manager.create(CategoryAttribute, {
+            categoryId: id,
+            attributeId: attr.attributeId,
+            isRequired: true, // 默认必填
+            sort: 0 // 默认排序
+          });
+          const savedCategoryAttribute = await manager.save(CategoryAttribute, categoryAttribute);
+
+          if (attr.valueIds.length > 0) {
+            // 创建分类-属性值关联
+            const attributeValues = attr.valueIds.map(valueId => 
+              manager.create(CategoryAttributeValue, {
+                categoryAttributeId: savedCategoryAttribute.id,
+                attributeValueId: valueId,
+                isEnabled: true, // 默认启用
+                sort: 0 // 默认排序
+              })
+            );
+            await manager.save(CategoryAttributeValue, attributeValues);
+          }
+        }
+
+        this.logger.debug(`Successfully updated attributes for category ${id}`);
+      } catch (error) {
+        this.logger.error(`Error updating attributes for category ${id}:`, error);
+        throw error;
+      }
+    });
+
+    return this.getCategoryAttributes(id);
   }
 } 

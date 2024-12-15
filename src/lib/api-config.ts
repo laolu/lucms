@@ -47,4 +47,12 @@ export const API_ENDPOINTS = {
   CONTENT_CATEGORY_SORT: (id: number) => `/content-categories/${id}/sort`,
   CONTENT_CATEGORY_STATUS: (id: number) => `/content-categories/${id}/status`,
   CONTENT_CATEGORY_MOVE: (id: number) => `/content-categories/${id}/move`,
+  CONTENT_CATEGORY_ATTRIBUTES: (id: number) => `/content-categories/${id}/attributes`,
+  CONTENT_CATEGORY_ATTRIBUTE_VALUES: (id: number) => `/content-categories/${id}/attribute-values`,
+
+  // Content Attributes
+  CONTENT_ATTRIBUTES: '/content-attributes',
+  CONTENT_ATTRIBUTE_DETAIL: (id: number) => `/content-attributes/${id}`,
+  CONTENT_ATTRIBUTE_VALUES: (id: number) => `/content-attributes/${id}/values`,
+  CONTENT_ATTRIBUTE_STATUS: (id: number) => `/content-attributes/${id}/status`,
 }; 

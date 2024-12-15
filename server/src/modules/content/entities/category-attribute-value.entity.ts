@@ -7,17 +7,17 @@ export class CategoryAttributeValue {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => CategoryAttribute, categoryAttribute => categoryAttribute.allowedValues)
-  categoryAttribute: CategoryAttribute;
-
   @Column()
   categoryAttributeId: number;
 
-  @ManyToOne(() => ContentAttributeValue, attributeValue => attributeValue.categoryAttributes)
-  attributeValue: ContentAttributeValue;
-
   @Column()
   attributeValueId: number;
+
+  @ManyToOne(() => CategoryAttribute, categoryAttribute => categoryAttribute.allowedValues)
+  categoryAttribute: CategoryAttribute;
+
+  @ManyToOne(() => ContentAttributeValue, attributeValue => attributeValue.categoryAttributes)
+  attributeValue: ContentAttributeValue;
 
   @Column({ default: true })
   isEnabled: boolean;

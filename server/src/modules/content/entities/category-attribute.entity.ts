@@ -8,17 +8,17 @@ export class CategoryAttribute {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => ContentCategory, category => category.attributes)
-  category: ContentCategory;
-
   @Column()
   categoryId: number;
 
-  @ManyToOne(() => ContentAttribute, attribute => attribute.categories)
-  attribute: ContentAttribute;
-
   @Column()
   attributeId: number;
+
+  @ManyToOne(() => ContentCategory, category => category.attributes)
+  category: ContentCategory;
+
+  @ManyToOne(() => ContentAttribute, attribute => attribute.categories)
+  attribute: ContentAttribute;
 
   @OneToMany(() => CategoryAttributeValue, categoryAttributeValue => categoryAttributeValue.categoryAttribute, {
     cascade: true

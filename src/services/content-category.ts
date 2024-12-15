@@ -98,5 +98,50 @@ export const contentCategoryService = {
   move: async (id: number, parentId: number) => {
     const response = await client.patch<ApiResponse<ContentCategory>>(API_ENDPOINTS.CONTENT_CATEGORY_MOVE(id), { parentId });
     return response.data?.data;
+  },
+
+  // 获取所有属性
+  getAllAttributes: async () => {
+    try {
+      const response = await client.get<ApiResponse<any[]>>(API_ENDPOINTS.CONTENT_ATTRIBUTES);
+      return response.data?.data || [];
+    } catch (error) {
+      console.error('获取属性列表失败:', error);
+      return [];
+    }
+  },
+
+  // 获取分类关联的属性
+  getCategoryAttributes: async (categoryId: number) => {
+    try {
+      const response = await client.get<ApiResponse<any[]>>(
+        API_ENDPOINTS.CONTENT_CATEGORY_ATTRIBUTES(categoryId)
+      );
+      return response.data?.data || [];
+    } catch (error) {
+      console.error('获取分类属性失败:', error);
+      return [];
+    }
+  },
+
+  // 更新分类关联的属性
+  updateCategoryAttributes: async (categoryId: number, data: {
+    attributes: Array<{
+      attributeId: number;
+      valueIds: number[];
+    }>;
+  }) => {
+    try {
+      // 更新分类-属性和属性值关联
+      const response = await client.put<ApiResponse<any>>(
+        API_ENDPOINTS.CONTENT_CATEGORY_ATTRIBUTES(categoryId),
+        data
+      );
+
+      return response.data?.data;
+    } catch (error) {
+      console.error('更新分类属性失败:', error);
+      throw error;
+    }
   }
 }; 

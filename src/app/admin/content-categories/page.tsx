@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { ChevronRight, ChevronDown, MoreHorizontal, Plus, Search, Pencil, FolderPlus, Trash2 } from "lucide-react"
+import { ChevronRight, ChevronDown, MoreHorizontal, Plus, Search, Pencil, FolderPlus, Trash2, Link } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { CategoryDialog } from './category-dialog'
+import { AttributeLinkDialog } from './attribute-link-dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { contentCategoryService, type ContentCategory } from '@/services/content-category'
@@ -26,6 +27,8 @@ export default function ContentCategoriesPage() {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [draggedCategory, setDraggedCategory] = React.useState<ContentCategory | null>(null);
   const [dragOverCategory, setDragOverCategory] = React.useState<ContentCategory | null>(null);
+  const [attributeDialogOpen, setAttributeDialogOpen] = React.useState(false);
+  const [selectedCategory, setSelectedCategory] = React.useState<ContentCategory | null>(null);
 
   // 加载分类数据
   const loadCategories = React.useCallback(async () => {
@@ -188,6 +191,11 @@ export default function ContentCategoriesPage() {
     }
   };
 
+  const handleLinkAttributes = (category: ContentCategory) => {
+    setSelectedCategory(category);
+    setAttributeDialogOpen(true);
+  };
+
   const renderCategoryTree = (categories: ContentCategory[], level = 0) => {
     if (!Array.isArray(categories)) {
       console.warn('categories is not an array:', categories);
@@ -233,7 +241,6 @@ export default function ContentCategoriesPage() {
             <Badge variant={category.isActive ? "default" : "secondary"}>
               {category.isActive ? '启用' : '禁用'}
             </Badge>
-            <span className="flex-1">{category.createdAt}</span>
           </div>
 
           <DropdownMenu>
@@ -256,6 +263,10 @@ export default function ContentCategoriesPage() {
               <DropdownMenuItem onClick={() => handleAddSubCategory(category)}>
                 <FolderPlus className="w-4 h-4 mr-2" />
                 添加子分类
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleLinkAttributes(category)}>
+                <Link className="w-4 h-4 mr-2" />
+                关联属性
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
@@ -306,7 +317,6 @@ export default function ContentCategoriesPage() {
             <div className="w-[200px]">描述</div>
             <div className="w-[100px]">排序</div>
             <div className="w-[60px]">状态</div>
-            <div className="flex-1">创建时间</div>
             <div className="w-8" />
           </div>
         </CardHeader>
@@ -323,6 +333,12 @@ export default function ContentCategoriesPage() {
         parentId={parentId}
         categories={categories}
         onSubmit={handleSubmit}
+      />
+
+      <AttributeLinkDialog
+        open={attributeDialogOpen}
+        onOpenChange={setAttributeDialogOpen}
+        category={selectedCategory}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
