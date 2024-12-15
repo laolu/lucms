@@ -36,7 +36,7 @@ export function CategoryDialog({
   onOpenChange,
   title,
   initialData,
-  parentId = null,
+  parentId = 0,
   categories,
   onSubmit,
 }: CategoryDialogProps) {
@@ -45,7 +45,7 @@ export function CategoryDialog({
     description: '',
     sort: 0,
     isActive: true,
-    parentId: null,
+    parentId: 0,
     ...initialData,
   })
 
@@ -70,6 +70,11 @@ export function CategoryDialog({
   }, [initialData, parentId])
 
   const buildCategoryOptions = (items: any[], level = 0): React.ReactNode[] => {
+    if (!Array.isArray(items)) {
+      console.warn('Expected items to be an array:', items);
+      return [];
+    }
+    
     return items.flatMap((item) => {
       const prefix = '\u00A0'.repeat(level * 4)
       const options = [
@@ -88,7 +93,10 @@ export function CategoryDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    onSubmit({
+      ...formData,
+      parentId: formData.parentId === "none" ? 0 : Number(formData.parentId)
+    })
   }
 
   return (
@@ -106,11 +114,11 @@ export function CategoryDialog({
               <div className="grid gap-2">
                 <Label htmlFor="parentId">父分类</Label>
                 <Select
-                  value={formData.parentId?.toString() || "none"}
+                  value={formData.parentId?.toString() || "0"}
                   onValueChange={(value) => 
                     setFormData({ 
                       ...formData, 
-                      parentId: value === "none" ? null : parseInt(value) 
+                      parentId: value === "none" ? 0 : parseInt(value) 
                     })
                   }
                 >
@@ -118,7 +126,7 @@ export function CategoryDialog({
                     <SelectValue placeholder="选择父分类（可选）" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">无父分类</SelectItem>
+                    <SelectItem value="0">无父分类</SelectItem>
                     {buildCategoryOptions(categories)}
                   </SelectContent>
                 </Select>

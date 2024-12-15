@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, MoreThanOrEqual } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -55,7 +55,7 @@ export class UsersService {
     return await this.userRepository.findOne({
       where: { 
         verificationCode: token,
-        verificationCodeExpiredAt: Like(new Date())
+        verificationCodeExpiredAt: MoreThanOrEqual(new Date())
       }
     });
   }
@@ -64,7 +64,7 @@ export class UsersService {
     return await this.userRepository.findOne({
       where: { 
         resetPasswordToken: token,
-        resetPasswordTokenExpiredAt: Like(new Date())
+        resetPasswordTokenExpiredAt: MoreThanOrEqual(new Date())
       }
     });
   }

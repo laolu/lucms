@@ -24,6 +24,8 @@ export default function ContentCategoriesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [deletingCategory, setDeletingCategory] = React.useState<ContentCategory | null>(null);
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [draggedCategory, setDraggedCategory] = React.useState<ContentCategory | null>(null);
+  const [dragOverCategory, setDragOverCategory] = React.useState<ContentCategory | null>(null);
 
   // 加载分类数据
   const loadCategories = React.useCallback(async () => {
@@ -50,7 +52,7 @@ export default function ContentCategoriesPage() {
   const handleAddCategory = () => {
     setDialogTitle('添加分类');
     setEditingCategory(null);
-    setParentId(null);
+    setParentId(0);
     setDialogOpen(true);
   };
 
@@ -64,7 +66,7 @@ export default function ContentCategoriesPage() {
   const handleEditCategory = (category: ContentCategory) => {
     setDialogTitle('编辑分类');
     setEditingCategory(category);
-    setParentId(category.parentId);
+    setParentId(category.parentId || 0);
     setDialogOpen(true);
   };
 
@@ -133,6 +135,59 @@ export default function ContentCategoriesPage() {
     return filterByQuery(categories);
   }, [categories, searchQuery]);
 
+  // 处理拖拽开始
+  const handleDragStart = (category: ContentCategory) => {
+    setDraggedCategory(category);
+  };
+
+  // 处理拖拽结束
+  const handleDragEnd = async () => {
+    if (!draggedCategory || !dragOverCategory || draggedCategory.id === dragOverCategory.id) {
+      setDraggedCategory(null);
+      setDragOverCategory(null);
+      return;
+    }
+
+    try {
+      // 检查是否为同级分类
+      const isSameLevel = draggedCategory.parentId === dragOverCategory.parentId;
+      
+      if (isSameLevel) {
+        // 同级分类之间的排序调整
+        console.log('更新排序:', {
+          draggedId: draggedCategory.id,
+          draggedSort: draggedCategory.sort,
+          targetSort: dragOverCategory.sort
+        });
+        await contentCategoryService.updateSort(draggedCategory.id, dragOverCategory.sort);
+        toast.success('排序已更新');
+      } else {
+        // 跨级分类的移动
+        console.log('移动分类:', {
+          draggedId: draggedCategory.id,
+          targetId: dragOverCategory.id
+        });
+        await contentCategoryService.move(draggedCategory.id, dragOverCategory.id);
+        toast.success('分类已移动');
+      }
+      loadCategories();
+    } catch (error) {
+      console.error('更新失败:', error);
+      toast.error('更新失败');
+    }
+
+    setDraggedCategory(null);
+    setDragOverCategory(null);
+  };
+
+  // 处理拖拽悬停
+  const handleDragOver = (e: React.DragEvent, category: ContentCategory) => {
+    e.preventDefault();
+    if (draggedCategory?.id !== category.id) {
+      setDragOverCategory(category);
+    }
+  };
+
   const renderCategoryTree = (categories: ContentCategory[], level = 0) => {
     if (!Array.isArray(categories)) {
       console.warn('categories is not an array:', categories);
@@ -142,11 +197,15 @@ export default function ContentCategoriesPage() {
       <div key={category.id}>
         <div 
           className={cn(
-            "group flex items-center gap-4 py-2 px-4 hover:bg-accent/50 rounded-lg transition-colors",
+            "group flex items-center gap-4 py-2 px-4 rounded-lg transition-colors",
             level > 0 && "ml-6",
+            dragOverCategory?.id === category.id ? "bg-accent" : "hover:bg-accent/50",
             "cursor-move"
           )}
           draggable
+          onDragStart={() => handleDragStart(category)}
+          onDragEnd={handleDragEnd}
+          onDragOver={(e) => handleDragOver(e, category)}
         >
           <div className="flex items-center gap-2 min-w-[200px]">
             {category.children?.length > 0 ? (

@@ -13,7 +13,7 @@ export class ContentCategory {
   @Column({ nullable: true })
   description: string;
 
-  @Column({ default: 0 })
+  @Column({ nullable: true })
   parentId: number;
 
   @ManyToOne(() => ContentCategory, category => category.children)

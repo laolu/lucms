@@ -50,5 +50,3 @@ export class MenuService {
     await this.menuRepository.delete(id);
   }
 } 
-  }
-} 

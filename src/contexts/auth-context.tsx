@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { userService } from "@/services/user"
 import type { User } from "@/services/user"
 
@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 检查认证状态
   const checkAuth = React.useCallback(async () => {
     try {
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("access_token")
       if (!token) {
         setUser(null)
         setLoading(false)
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Auth check failed:', error)
-      localStorage.removeItem("token")
+      localStorage.removeItem("access_token")
       localStorage.removeItem("user")
       setUser(null)
     } finally {
@@ -54,12 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await userService.login({ identifier, password })
       
-      if (response.data?.access_token && response.data?.user) {
-        localStorage.setItem("token", response.data.access_token)
-        localStorage.setItem("user", JSON.stringify(response.data.user))
-        setUser(response.data.user)
+      if (response.data?.data?.access_token && response.data?.data?.user) {
+        localStorage.setItem("access_token", response.data.data.access_token)
+        localStorage.setItem("user", JSON.stringify(response.data.data.user))
+        setUser(response.data.data.user)
         
-        // 如果有重定向URL则跳转到指定页面，否则跳转到首页
         router.push(redirectUrl || "/")
       } else {
         throw new Error('Invalid login response')
@@ -85,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 登出
   const logout = () => {
-    localStorage.removeItem("token")
+    localStorage.removeItem("access_token")
     localStorage.removeItem("user")
     setUser(null)
     router.push("/auth/login")
@@ -129,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = React.useContext(AuthContext)
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
+    throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
 } 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Patch } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from '../../guards/admin.guard';
 import { ContentCategoryService } from './content-category.service';
@@ -69,5 +69,20 @@ export class ContentCategoryController {
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   async delete(@Param('id') id: number): Promise<void> {
     await this.categoryService.delete(id);
+  }
+
+  @Patch(':id/sort')
+  @ApiOperation({ summary: '更新分类排序' })
+  @ApiParam({ name: 'id', description: '分类ID' })
+  @ApiResponse({ status: 200, description: '排序更新成功', type: ContentCategory })
+  @ApiResponse({ status: 401, description: '未授权' })
+  @ApiResponse({ status: 403, description: '无权限' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
+  async updateSort(
+    @Param('id') id: number,
+    @Body('targetSort') targetSort: number
+  ): Promise<ContentCategory> {
+    return await this.categoryService.updateSort(id, targetSort);
   }
 } 
