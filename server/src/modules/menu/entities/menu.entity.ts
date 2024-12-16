@@ -17,9 +17,6 @@ export class Menu {
   @Column({ default: true })
   visible: boolean = true;
 
-  @Column({ default: false })
-  adminOnly: boolean = false;
-
   @Column({ default: 0 })
   sort: number = 0;
 

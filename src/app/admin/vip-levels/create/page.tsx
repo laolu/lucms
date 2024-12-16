@@ -4,7 +4,7 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 import { VipLevelForm } from '../_components/vip-level-form'
-import { vipLevelService, type CreateVipLevelData } from '@/services/vip-level.service'
+import { vipLevelService, type CreateVipLevelData } from '@/services/vip-level'
 
 export default function CreateVipLevelPage() {
   const router = useRouter()

@@ -40,23 +40,16 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, EyeOff, ArrowUpDown } from "lucide-react"
 import { toast } from "sonner"
-import { menuService, type Menu, type MenuListResponse } from '@/services/menu'
+import { menuService, type Menu } from '@/services/menu'
 import { formatDate } from '@/lib/utils'
 
 export default function MenusPage() {
   const router = useRouter()
   const [loading, setLoading] = React.useState(true)
-  const [menus, setMenus] = React.useState<MenuListResponse>({
-    items: [],
-    total: 0,
-    page: 1,
-    pageSize: 10,
-    totalPages: 0
-  })
+  const [menus, setMenus] = React.useState<Menu[]>([])
   const [searchQuery, setSearchQuery] = React.useState('')
   const [selectedParentId, setSelectedParentId] = React.useState<string>('all')
   const [selectedStatus, setSelectedStatus] = React.useState<string>('all')
-  const [selectedType, setSelectedType] = React.useState<string>('all')
   const [sortBy, setSortBy] = React.useState<string>('sort')
   const [sortOrder, setSortOrder] = React.useState<'ASC' | 'DESC'>('ASC')
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
@@ -70,24 +63,17 @@ export default function MenusPage() {
         search: searchQuery,
         parentId: selectedParentId === 'all' ? undefined : parseInt(selectedParentId),
         visible: selectedStatus === 'all' ? undefined : selectedStatus === 'visible',
-        adminOnly: selectedType === 'all' ? undefined : selectedType === 'admin',
         sortBy,
         sort: sortOrder
       })
-      setMenus(data)
+      setMenus(Array.isArray(data) ? data : [])
     } catch (error) {
       toast.error('加载菜单列表失败')
-      setMenus({
-        items: [],
-        total: 0,
-        page: 1,
-        pageSize: 10,
-        totalPages: 0
-      })
+      setMenus([])
     } finally {
       setLoading(false)
     }
-  }, [searchQuery, selectedParentId, selectedStatus, selectedType, sortBy, sortOrder])
+  }, [searchQuery, selectedParentId, selectedStatus, sortBy, sortOrder])
 
   React.useEffect(() => {
     loadMenus()
@@ -174,9 +160,9 @@ export default function MenusPage() {
             <SelectValue placeholder="选择父级" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">��部</SelectItem>
+            <SelectItem value="all">全部</SelectItem>
             <SelectItem value="0">顶级菜单</SelectItem>
-            {menus.items
+            {Array.isArray(menus) && menus
               .filter(menu => !menu.parentId)
               .map(menu => (
                 <SelectItem key={menu.id} value={menu.id.toString()}>
@@ -196,19 +182,6 @@ export default function MenusPage() {
             <SelectItem value="all">全部状态</SelectItem>
             <SelectItem value="visible">显示</SelectItem>
             <SelectItem value="hidden">隐藏</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          value={selectedType}
-          onValueChange={setSelectedType}
-        >
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="选择类型" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部类型</SelectItem>
-            <SelectItem value="admin">管理员菜单</SelectItem>
-            <SelectItem value="user">普通菜单</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -233,7 +206,6 @@ export default function MenusPage() {
               <TableHead>路径</TableHead>
               <TableHead>父级菜单</TableHead>
               <TableHead>状态</TableHead>
-              <TableHead>类型</TableHead>
               <TableHead>
                 <Button variant="ghost" className="h-8 p-0" onClick={() => handleSort('createdAt')}>
                   创建时间
@@ -246,34 +218,29 @@ export default function MenusPage() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   加载中...
                 </TableCell>
               </TableRow>
-            ) : !menus?.items?.length ? (
+            ) : !menus?.length ? (
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   暂无数据
                 </TableCell>
               </TableRow>
             ) : (
-              menus.items.map((menu) => (
+              menus.map((menu) => (
                 <TableRow key={menu.id}>
                   <TableCell>{menu.sort}</TableCell>
                   <TableCell className="font-medium">{menu.name}</TableCell>
                   <TableCell>{menu.icon}</TableCell>
                   <TableCell>{menu.path}</TableCell>
                   <TableCell>
-                    {menu.parentId ? menus.items.find(m => m.id === menu.parentId)?.name : '顶级菜单'}
+                    {menu.parentId ? menus.find(m => m.id === menu.parentId)?.name : '顶级菜单'}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={menu.visible ? "success" : "secondary"}>
+                    <Badge variant={menu.visible ? "default" : "secondary"}>
                       {menu.visible ? '显示' : '隐藏'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={menu.adminOnly ? "default" : "outline"}>
-                      {menu.adminOnly ? '管��员菜单' : '普通菜单'}
                     </Badge>
                   </TableCell>
                   <TableCell>{formatDate(menu.createdAt)}</TableCell>

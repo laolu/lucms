@@ -290,7 +290,7 @@ export default function AdvertisementsPage() {
                     {AD_POSITIONS.find(p => p.value === ad.position)?.label}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={ad.isActive ? "success" : "destructive"}>
+                    <Badge variant={ad.isActive ? "default" : "secondary"}>
                       {ad.isActive ? '已启用' : '已禁用'}
                     </Badge>
                   </TableCell>
@@ -347,34 +347,36 @@ export default function AdvertisementsPage() {
         </Table>
       </div>
 
-      <div className="flex items-center justify-center">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious 
-                onClick={() => handlePageChange(ads.page - 1)}
-                disabled={ads.page === 1}
-              />
-            </PaginationItem>
-            {Array.from({ length: ads.totalPages }, (_, i) => i + 1).map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  onClick={() => handlePageChange(page)}
-                  isActive={ads.page === page}
-                >
-                  {page}
-                </PaginationLink>
+      {ads.totalPages > 1 && (
+        <div className="flex items-center justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => handlePageChange(ads.page - 1)}
+                  disabled={ads.page === 1}
+                />
               </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => handlePageChange(ads.page + 1)}
-                disabled={ads.page === ads.totalPages}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
+              {Array.from({ length: ads.totalPages }, (_, i) => i + 1).map((page) => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    onClick={() => handlePageChange(page)}
+                    isActive={ads.page === page}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => handlePageChange(ads.page + 1)}
+                  disabled={ads.page === ads.totalPages}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

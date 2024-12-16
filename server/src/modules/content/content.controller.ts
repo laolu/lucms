@@ -1,15 +1,49 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from '../../guards/admin.guard';
 import { ContentService } from './content.service';
 import { CreateContentDto } from './dto/create-content.dto';
 import { Content } from './entities/content.entity';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { PaginationDto } from '@/common/dto/pagination.dto';
 
 @ApiTags('内容')
 @Controller('contents')
 export class ContentController {
   constructor(private readonly contentService: ContentService) {}
+
+  @Get()
+  @ApiOperation({ summary: '获取内容列表' })
+  @ApiResponse({ status: 200, description: '获取成功', type: [Content] })
+  async findAll(
+    @Query() query: PaginationDto & {
+      search?: string;
+      categoryId?: string;
+      isActive?: string;
+      sortBy?: string;
+      sort?: 'ASC' | 'DESC';
+    }
+  ) {
+    const { 
+      page = 1, 
+      pageSize = 10,
+      search,
+      categoryId,
+      isActive,
+      sortBy = 'createdAt',
+      sort = 'DESC'
+    } = query;
+
+    return await this.contentService.findAll({
+      page: Number(page),
+      pageSize: Number(pageSize),
+      search,
+      categoryId: categoryId ? Number(categoryId) : undefined,
+      isActive: isActive ? isActive === 'true' : undefined,
+      sortBy,
+      sort
+    });
+  }
 
   @Post()
   @ApiOperation({ summary: '创建内容' })
@@ -20,13 +54,6 @@ export class ContentController {
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   async create(@Body() createDto: CreateContentDto): Promise<Content> {
     return await this.contentService.create(createDto);
-  }
-
-  @Get()
-  @ApiOperation({ summary: '获取所有内容' })
-  @ApiResponse({ status: 200, description: '获取成功', type: [Content] })
-  async findAll(): Promise<Content[]> {
-    return await this.contentService.findAll();
   }
 
   @Get(':id')

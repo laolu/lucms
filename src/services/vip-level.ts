@@ -1,5 +1,5 @@
 import { API_ENDPOINTS } from '@/lib/api-config'
-import { client } from '@/lib/api-client'
+import client from '@/lib/api-client'
 
 export interface VipLevel {
   id: number

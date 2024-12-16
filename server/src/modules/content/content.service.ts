@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { Content } from './entities/content.entity';
 import { ContentAttributeValue } from './entities/content-attribute-value.entity';
 import { ContentAttributeRelation } from './entities/content-attribute-relation.entity';
@@ -16,6 +16,52 @@ export class ContentService {
     @InjectRepository(ContentAttributeRelation)
     private attributeRelationRepository: Repository<ContentAttributeRelation>,
   ) {}
+
+  async findAll(query: {
+    page: number;
+    pageSize: number;
+    search?: string;
+    categoryId?: number;
+    isActive?: boolean;
+    sortBy?: string;
+    sort?: 'ASC' | 'DESC';
+  }) {
+    const { search, categoryId, isActive, sortBy, sort, page, pageSize } = query;
+    
+    const where: any = {};
+    if (search) {
+      where.title = Like(`%${search}%`);
+    }
+    if (categoryId !== undefined) {
+      where.categoryId = categoryId;
+    }
+    if (isActive !== undefined) {
+      where.isActive = isActive;
+    }
+
+    const order: any = {};
+    if (sortBy) {
+      order[sortBy] = sort || 'DESC';
+    } else {
+      order.createdAt = 'DESC';
+    }
+
+    const [items, total] = await this.contentRepository.findAndCount({
+      where,
+      order,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      relations: ['category', 'attributeValues', 'attributeValues.attributeValue']
+    });
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize)
+    };
+  }
 
   async create(createDto: CreateContentDto): Promise<Content> {
     // 创建内容
@@ -45,20 +91,10 @@ export class ContentService {
     return this.findOne(savedContent.id);
   }
 
-  async findAll(): Promise<Content[]> {
-    return await this.contentRepository.find({
-      relations: ['attributeValues', 'attributeValues.attributeValue', 'attributeValues.attributeValue.attribute'],
-      order: {
-        sort: 'ASC',
-        createdAt: 'DESC',
-      },
-    });
-  }
-
   async findOne(id: number): Promise<Content> {
     const content = await this.contentRepository.findOne({
       where: { id },
-      relations: ['attributeValues', 'attributeValues.attributeValue', 'attributeValues.attributeValue.attribute'],
+      relations: ['category', 'attributeValues', 'attributeValues.attributeValue']
     });
 
     if (!content) {

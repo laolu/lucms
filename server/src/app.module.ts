@@ -7,9 +7,11 @@ import { UsersModule } from './modules/users/users.module';
 import { ContentModule } from './modules/content/content.module';
 import { MailModule } from './modules/mail/mail.module';
 import { SmsModule } from './modules/sms/sms.module';
+import { VipModule } from './modules/vip/vip.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { loggerConfig } from './config/logger.config';
 import { AdvertisementModule } from './modules/advertisement/advertisement.module';
+import { MenuModule } from './modules/menu/menu.module';
 import dataSource from './config/typeorm.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -41,8 +43,10 @@ import { ConfigModule as SystemConfigModule } from './modules/config/config.modu
     ContentModule,
     MailModule,
     SmsModule,
+    VipModule,
     AdvertisementModule,
     SystemConfigModule,
+    MenuModule,
   ],
   controllers: [AppController],
   providers: [AppService],

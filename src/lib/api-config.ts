@@ -14,6 +14,8 @@ export const API_ENDPOINTS = {
   SOCIAL_LOGIN_CALLBACK: '/auth/social/callback',
   FORGOT_PASSWORD: '/auth/forgot-password',
   RESET_PASSWORD: '/auth/reset-password',
+  LOGOUT: '/auth/logout',
+  PROFILE: '/auth/profile',
 
   // User
   USER_INFO: '/user/info',
@@ -69,11 +71,11 @@ export const API_ENDPOINTS = {
   CONTENT_UNFAVORITE: (id: number) => `/contents/${id}/unfavorite`,
   CONTENT_SHARE: (id: number) => `/contents/${id}/share`,
   CONTENT_REPORT: (id: number) => `/contents/${id}/report`,
-  UPLOAD_IMAGE: '/api/resources/upload/image',
+  UPLOAD_IMAGE: '/resources/upload/image',
 
   // Users
   USERS: '/users',
-  USER_DETAIL: (id: number) => `/users/${id}`,
+  USER_DETAIL: (id: string) => `/users/${id}`,
   USER_STATUS: (id: number) => `/users/${id}/status`,
   USER_ROLE: (id: number) => `/users/${id}/role`,
   USER_RESET_PASSWORD: (id: number) => `/users/${id}/reset-password`,

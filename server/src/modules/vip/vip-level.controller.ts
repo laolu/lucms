@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { VipLevelService } from './vip-level.service';
 import { CreateVipLevelDto } from './dto/create-vip-level.dto';
 import { UpdateVipLevelDto } from './dto/update-vip-level.dto';
-import { PaginationDto } from '@/common/dto/pagination.dto';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 
 @Controller('vip-levels')
 export class VipLevelController {

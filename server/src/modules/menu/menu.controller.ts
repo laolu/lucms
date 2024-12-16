@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { MenuService } from './menu.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Admin } from '../auth/decorators/admin.decorator';
 import { AdminGuard } from '../auth/guards/admin.guard';
+import { MenuQueryDto } from './dto/menu-query.dto';
+import { CreateMenuDto } from './dto/create-menu.dto';
 
 @Controller('menus')
 @UseGuards(JwtAuthGuard, AdminGuard)
@@ -11,13 +13,13 @@ export class MenuController {
 
   @Post()
   @Admin()
-  create(@Body() createMenuDto: any) {
+  create(@Body() createMenuDto: CreateMenuDto) {
     return this.menuService.create(createMenuDto);
   }
 
   @Get()
-  findAll() {
-    return this.menuService.findAll();
+  findAll(@Query() query: MenuQueryDto) {
+    return this.menuService.findAll(query);
   }
 
   @Get(':id')
@@ -27,7 +29,7 @@ export class MenuController {
 
   @Put(':id')
   @Admin()
-  update(@Param('id') id: string, @Body() updateMenuDto: any) {
+  update(@Param('id') id: string, @Body() updateMenuDto: Partial<CreateMenuDto>) {
     return this.menuService.update(+id, updateMenuDto);
   }
 

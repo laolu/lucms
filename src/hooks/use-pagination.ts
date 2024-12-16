@@ -1,24 +1,27 @@
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
-export function usePagination(initialPage = 0, initialPageSize = 10) {
-  const [pageIndex, setPageIndex] = useState(initialPage)
-  const [pageSize, setPageSize] = useState(initialPageSize)
-  const router = useRouter()
+interface PaginationState {
+  pageIndex: number
+  pageSize: number
+}
 
-  const setPagination = ({ pageIndex: newPageIndex, pageSize: newPageSize }: { pageIndex: number; pageSize: number }) => {
-    setPageIndex(newPageIndex)
-    setPageSize(newPageSize)
-  }
+interface SetPaginationParams {
+  pageIndex: number
+  pageSize?: number
+}
 
-  const refresh = () => {
-    router.refresh()
+export function usePagination(initialState: PaginationState = { pageIndex: 0, pageSize: 10 }) {
+  const [state, setState] = useState<PaginationState>(initialState)
+
+  const setPagination = (params: SetPaginationParams) => {
+    setState((prev) => ({
+      ...prev,
+      ...params,
+    }))
   }
 
   return {
-    pageIndex,
-    pageSize,
+    ...state,
     setPagination,
-    refresh
   }
 } 

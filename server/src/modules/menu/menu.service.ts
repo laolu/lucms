@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { Menu } from './entities/menu.entity';
+import { MenuQueryDto } from './dto/menu-query.dto';
 
 @Injectable()
 export class MenuService {
@@ -10,38 +11,54 @@ export class MenuService {
     private menuRepository: Repository<Menu>
   ) {}
 
-  async findAll(): Promise<Menu[]> {
-    return this.menuRepository.find({
-      order: {
-        sort: 'ASC'
-      }
-    });
-  }
-
-  async findUserMenus(isAdmin: boolean): Promise<Menu[]> {
-    const menus = await this.menuRepository.find({
-      order: {
-        sort: 'ASC'
-      }
-    });
-
-    if (isAdmin) {
-      return menus;
+  async findAll(query: MenuQueryDto = {}): Promise<Menu[]> {
+    const { search, visible, parentId, sortBy, sort } = query;
+    
+    const where: any = {};
+    if (search) {
+      where.name = Like(`%${search}%`);
+    }
+    if (visible !== undefined) {
+      where.visible = visible;
+    }
+    if (parentId !== undefined) {
+      where.parentId = parentId;
     }
 
-    return menus.filter(menu => !menu.adminOnly);
+    const order: any = {};
+    if (sortBy) {
+      order[sortBy] = sort || 'ASC';
+    } else {
+      order.sort = 'ASC';
+    }
+
+    return this.menuRepository.find({
+      where,
+      order
+    });
   }
 
-  async findOne(id: number): Promise<Menu> {
+  async findUserMenus(): Promise<Menu[]> {
+    return this.menuRepository.find({
+      where: {
+        visible: true
+      },
+      order: {
+        sort: 'ASC'
+      }
+    });
+  }
+
+  async findOne(id: number): Promise<Menu | null> {
     return this.menuRepository.findOne({ where: { id } });
   }
 
-  async create(createMenuDto: any): Promise<Menu> {
+  async create(createMenuDto: Partial<Menu>): Promise<Menu> {
     const menu = this.menuRepository.create(createMenuDto);
     return this.menuRepository.save(menu);
   }
 
-  async update(id: number, updateMenuDto: any): Promise<Menu> {
+  async update(id: number, updateMenuDto: Partial<Menu>): Promise<Menu | null> {
     await this.menuRepository.update(id, updateMenuDto);
     return this.findOne(id);
   }

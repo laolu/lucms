@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsNumber, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsNumber } from 'class-validator';
 
 export class CreateMenuDto {
   @IsString()
@@ -17,15 +17,14 @@ export class CreateMenuDto {
   visible?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  adminOnly?: boolean;
+
+  @IsOptional()
   @IsNumber()
   sort?: number;
 
   @IsOptional()
   @IsNumber()
   parentId?: number;
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  roles?: string[];
 } 

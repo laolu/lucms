@@ -1,16 +1,8 @@
 'use client'
 
-import * as React from 'react'
+import React from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -18,26 +10,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/table'
+import { useToast } from '@/components/ui/use-toast'
+import { userService, type User } from '@/services/user'
+import { usePagination } from '@/hooks/use-pagination'
+import { Switch } from '@/components/ui/switch'
+import { formatDateTime } from '@/lib/format'
+import { AdminLayout } from '@/components/ui/admin-layout'
 import {
   Pagination,
   PaginationContent,
@@ -47,311 +26,160 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, ArrowUpDown, Ban, CheckCircle } from "lucide-react"
-import { toast } from "sonner"
-import { userService, type User, type UserListResponse } from '@/services/user'
-import { formatDate } from '@/lib/utils'
+import { AlertDialog } from '@/components/ui/alert-dialog'
 
 export default function UsersPage() {
   const router = useRouter()
-  const [loading, setLoading] = React.useState(true)
-  const [users, setUsers] = React.useState<UserListResponse>({
-    items: [],
-    total: 0,
-    page: 1,
-    pageSize: 10,
-    totalPages: 0
-  })
-  const [searchQuery, setSearchQuery] = React.useState('')
-  const [selectedStatus, setSelectedStatus] = React.useState<string>('all')
-  const [sortBy, setSortBy] = React.useState<string>('createdAt')
-  const [sortOrder, setSortOrder] = React.useState<'ASC' | 'DESC'>('DESC')
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
-  const [selectedUser, setSelectedUser] = React.useState<User | null>(null)
+  const { toast } = useToast()
+  const pagination = usePagination()
+  const [users, setUsers] = React.useState<User[]>([])
+  const [total, setTotal] = React.useState(0)
+  const [loading, setLoading] = React.useState(false)
 
-  // 加载用户列表
-  const loadUsers = React.useCallback(async () => {
+  const fetchUsers = React.useCallback(async () => {
     try {
       setLoading(true)
-      const data = await userService.getAll({
-        search: searchQuery,
-        status: selectedStatus === 'all' ? undefined : selectedStatus,
-        sortBy,
-        sort: sortOrder,
-        page: users.page,
-        pageSize: users.pageSize
+      const { items, total } = await userService.getAll({
+        page: pagination.pageIndex + 1,
+        pageSize: pagination.pageSize
       })
-      setUsers({
-        items: data?.items || [],
-        total: data?.total || 0,
-        page: data?.page || 1,
-        pageSize: data?.pageSize || 10,
-        totalPages: data?.totalPages || 0
-      })
+      setUsers(items)
+      setTotal(total)
     } catch (error) {
-      toast.error('加载用户列表失败')
-      setUsers({
-        items: [],
-        total: 0,
-        page: 1,
-        pageSize: 10,
-        totalPages: 0
+      console.error('获取用户列表失败:', error)
+      toast({
+        variant: 'destructive',
+        description: '获取用户列表失败'
       })
     } finally {
       setLoading(false)
     }
-  }, [searchQuery, selectedStatus, sortBy, sortOrder, users.page, users.pageSize])
+  }, [pagination.pageIndex, pagination.pageSize, toast])
 
   React.useEffect(() => {
-    loadUsers()
-  }, [loadUsers])
-
-  // 处理创建用户
-  const handleCreate = () => {
-    router.push('/admin/users/create')
-  }
-
-  // 处理编辑用户
-  const handleEdit = (user: User) => {
-    router.push(`/admin/users/${user.id}/edit`)
-  }
-
-  // 处理删除用户
-  const handleDelete = (user: User) => {
-    setSelectedUser(user)
-    setDeleteDialogOpen(true)
-  }
-
-  // 确认删除用户
-  const handleConfirmDelete = async () => {
-    if (!selectedUser) return
-
-    try {
-      await userService.delete(selectedUser.id)
-      toast.success('用户已删除')
-      loadUsers()
-    } catch (error) {
-      toast.error('删除用户失败')
-    } finally {
-      setDeleteDialogOpen(false)
-      setSelectedUser(null)
-    }
-  }
-
-  // 处理禁用/启用用户
-  const handleToggleStatus = async (user: User) => {
-    try {
-      await userService.updateStatus(user.id, !user.isActive)
-      toast.success(user.isActive ? '用户已禁用' : '用户已启用')
-      loadUsers()
-    } catch (error) {
-      toast.error('操作失败')
-    }
-  }
-
-  // 处理排序变更
-  const handleSort = (field: string) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC')
-    } else {
-      setSortBy(field)
-      setSortOrder('DESC')
-    }
-  }
-
-  // 处理页码变更
-  const handlePageChange = (page: number) => {
-    setUsers(prev => ({ ...prev, page }))
-  }
+    fetchUsers()
+  }, [fetchUsers])
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">用户管理</h1>
-        <Button onClick={handleCreate}>
-          <Plus className="w-4 h-4 mr-2" />
-          创建用户
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="搜索用户..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        <Select
-          value={selectedStatus}
-          onValueChange={setSelectedStatus}
-        >
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="选择状态" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部状态</SelectItem>
-            <SelectItem value="active">已启用</SelectItem>
-            <SelectItem value="inactive">已禁用</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="border rounded-lg">
+    <AdminLayout title="用户管理">
+      <div className="space-y-4">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px]">
-                <Button variant="ghost" className="h-8 p-0" onClick={() => handleSort('username')}>
-                  用户名
-                  <ArrowUpDown className="w-4 h-4 ml-2" />
-                </Button>
-              </TableHead>
-              <TableHead>
-                <Button variant="ghost" className="h-8 p-0" onClick={() => handleSort('email')}>
-                  邮箱
-                  <ArrowUpDown className="w-4 h-4 ml-2" />
-                </Button>
-              </TableHead>
-              <TableHead>角色</TableHead>
+              <TableHead>用户名</TableHead>
+              <TableHead>邮箱</TableHead>
+              <TableHead>手机号</TableHead>
               <TableHead>状态</TableHead>
-              <TableHead>
-                <Button variant="ghost" className="h-8 p-0" onClick={() => handleSort('lastLoginAt')}>
-                  最后登录
-                  <ArrowUpDown className="w-4 h-4 ml-2" />
-                </Button>
-              </TableHead>
-              <TableHead>
-                <Button variant="ghost" className="h-8 p-0" onClick={() => handleSort('createdAt')}>
-                  创建时间
-                  <ArrowUpDown className="w-4 h-4 ml-2" />
-                </Button>
-              </TableHead>
-              <TableHead className="w-[100px]">操作</TableHead>
+              <TableHead>创建时间</TableHead>
+              <TableHead>操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={6} className="text-center">
                   加载中...
                 </TableCell>
               </TableRow>
-            ) : !users?.items?.length ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  暂无数据
-                </TableCell>
-              </TableRow>
             ) : (
-              users.items.map((user) => (
+              users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.username}</TableCell>
+                  <TableCell>{user.username}</TableCell>
                   <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.phone}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">
-                      {user.isAdmin ? '管理员' : '普通用户'}
-                    </Badge>
+                    <Switch
+                      checked={user.isActive}
+                      onCheckedChange={async (checked) => {
+                        try {
+                          await userService.update(user.id, { isActive: checked })
+                          toast({
+                            description: '更新成功'
+                          })
+                          fetchUsers()
+                        } catch (error) {
+                          console.error('更新失败:', error)
+                          toast({
+                            variant: 'destructive',
+                            description: '更新失败'
+                          })
+                        }
+                      }}
+                    />
                   </TableCell>
+                  <TableCell>{formatDateTime(user.createdAt)}</TableCell>
                   <TableCell>
-                    <Badge variant={user.isActive ? "success" : "destructive"}>
-                      {user.isActive ? '已启用' : '已禁用'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{formatDate(user.lastLoginAt)}</TableCell>
-                  <TableCell>{formatDate(user.createdAt)}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="w-4 h-4" />
-                          <span className="sr-only">打开菜单</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>操作</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleEdit(user)}>
-                          <Pencil className="w-4 h-4 mr-2" />
-                          编辑
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleToggleStatus(user)}>
-                          {user.isActive ? (
-                            <>
-                              <Ban className="w-4 h-4 mr-2" />
-                              禁用
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              启用
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => handleDelete(user)}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          删除
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/admin/users/${user.id}/edit`)}
+                      >
+                        编辑
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={async () => {
+                          if (!confirm('确定要删除吗？')) return
+                          try {
+                            await userService.delete(user.id)
+                            toast({
+                              description: '删除成功'
+                            })
+                            fetchUsers()
+                          } catch (error) {
+                            console.error('删除失败:', error)
+                            toast({
+                              variant: 'destructive',
+                              description: '删除失败'
+                            })
+                          }
+                        }}
+                      >
+                        删除
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
-      </div>
 
-      <div className="flex items-center justify-center">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious 
-                onClick={() => handlePageChange(users.page - 1)}
-                disabled={users.page === 1}
-              />
-            </PaginationItem>
-            {Array.from({ length: users.totalPages }, (_, i) => i + 1).map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  onClick={() => handlePageChange(page)}
-                  isActive={users.page === page}
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => handlePageChange(users.page + 1)}
-                disabled={users.page === users.totalPages}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
+        {total > pagination.pageSize && (
+          <div className="flex items-center justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => pagination.setPagination({ pageIndex: Math.max(0, pagination.pageIndex - 1) })}
+                    disabled={pagination.pageIndex === 0}
+                  />
+                </PaginationItem>
+                {Array.from({ length: Math.ceil(total / pagination.pageSize) }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => pagination.setPagination({ pageIndex: page - 1 })}
+                      isActive={pagination.pageIndex === page - 1}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => pagination.setPagination({ pageIndex: Math.min(Math.ceil(total / pagination.pageSize) - 1, pagination.pageIndex + 1) })}
+                    disabled={pagination.pageIndex === Math.ceil(total / pagination.pageSize) - 1}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>确认删除</AlertDialogTitle>
-            <AlertDialogDescription>
-              确定要删除用户 "{selectedUser?.username}" 吗？此操作不可撤销。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
-              确认删除
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        <AlertDialog />
+      </div>
+    </AdminLayout>
   )
 } 
