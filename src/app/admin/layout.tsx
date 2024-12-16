@@ -17,6 +17,8 @@ import {
   Moon,
   User,
   LogOut,
+  Image,
+  Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -52,6 +54,16 @@ const menuItems = [
     href: "/admin/contents",
     label: "内容管理",
     icon: FileText
+  },
+  {
+    href: "/admin/advertisements",
+    label: "广告管理",
+    icon: Image
+  },
+  {
+    href: "/admin/menus",
+    label: "导航菜单",
+    icon: Menu
   },
   {
     href: "/admin/users",

@@ -133,7 +133,13 @@ export const userService = {
   // 用户管理相关
   getAll: async (query: UserQuery = {}): Promise<UserListResponse> => {
     const response = await client.get<any>(API_ENDPOINTS.USERS, { params: query })
-    return response.data?.data || { items: [], total: 0, page: 1, pageSize: 10, totalPages: 0 }
+    return {
+      items: response.data?.data || [],
+      total: response.data?.data?.length || 0,
+      page: 1,
+      pageSize: 10,
+      totalPages: Math.ceil((response.data?.data?.length || 0) / 10)
+    }
   },
 
   getById: async (id: number): Promise<User> => {

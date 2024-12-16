@@ -90,4 +90,17 @@ export const API_ENDPOINTS = {
   CONFIGS_SECURITY: '/configs/security',
   CONFIGS_CACHE: '/configs/cache',
   CONFIGS_REFRESH: '/configs/refresh',
+
+  // Advertisements
+  ADVERTISEMENTS: '/advertisements',
+  ADVERTISEMENT_DETAIL: (id: number) => `/advertisements/${id}`,
+  ADVERTISEMENT_STATUS: (id: number) => `/advertisements/${id}/status`,
+  ADVERTISEMENT_ORDER: (id: number) => `/advertisements/${id}/order`,
+
+  // Menus
+  MENUS: '/menus',
+  MENUS_TREE: '/menus/tree',
+  MENU_DETAIL: (id: number) => `/menus/${id}`,
+  MENU_STATUS: (id: number) => `/menus/${id}/status`,
+  MENU_SORT: (id: number) => `/menus/${id}/sort`,
 } as const; 
