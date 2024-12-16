@@ -70,4 +70,24 @@ export const API_ENDPOINTS = {
   CONTENT_SHARE: (id: number) => `/contents/${id}/share`,
   CONTENT_REPORT: (id: number) => `/contents/${id}/report`,
   UPLOAD_IMAGE: '/api/resources/upload/image',
+
+  // Users
+  USERS: '/users',
+  USER_DETAIL: (id: number) => `/users/${id}`,
+  USER_STATUS: (id: number) => `/users/${id}/status`,
+  USER_ROLE: (id: number) => `/users/${id}/role`,
+  USER_RESET_PASSWORD: (id: number) => `/users/${id}/reset-password`,
+
+  // Settings
+  SETTINGS: '/settings',
+  SETTINGS_BASIC: '/settings/basic',
+  SETTINGS_EMAIL: '/settings/email',
+  SETTINGS_EMAIL_TEST: '/settings/email/test',
+  SETTINGS_STORAGE: '/settings/storage',
+  SETTINGS_SMS: '/settings/sms',
+  SETTINGS_PAYMENT: '/settings/payment',
+  SETTINGS_OAUTH: '/settings/oauth',
+  SETTINGS_SECURITY: '/settings/security',
+  SETTINGS_CACHE: '/settings/cache',
+  SETTINGS_REFRESH: '/settings/refresh',
 } as const; 

@@ -15,6 +15,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { JwtModule } from '@nestjs/jwt';
 import jwtConfig from './config/jwt.config';
+import { ConfigModule as SystemConfigModule } from './modules/config/config.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import jwtConfig from './config/jwt.config';
     MailModule,
     SmsModule,
     AdvertisementModule,
+    SystemConfigModule,
   ],
   controllers: [AppController],
   providers: [AppService],

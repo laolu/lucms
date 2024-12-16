@@ -1,4 +1,4 @@
-import { api } from '@/lib/api-client'
+import client from '@/lib/api-client'
 import { API_ENDPOINTS } from '@/lib/api-config'
 
 export interface Resource {
@@ -93,39 +93,39 @@ export interface UploadResponse {
 export const resourceService = {
   // 获取资源列表
   getResources: (params?: ResourceListParams) =>
-    api.get<ResourceListResponse>(API_ENDPOINTS.RESOURCES, { params }),
+    client.get<ResourceListResponse>(API_ENDPOINTS.RESOURCES, { params }),
 
   // 获取资源详情
   getResourceDetail: (id: string | number) =>
-    api.get<Resource>(API_ENDPOINTS.RESOURCE_DETAIL(id)),
+    client.get<Resource>(API_ENDPOINTS.RESOURCE_DETAIL(id)),
 
   // 获取分类资源
   getCategoryResources: (categoryId: string | number, params?: ResourceListParams) =>
-    api.get<ResourceListResponse>(API_ENDPOINTS.CATEGORY_RESOURCES(categoryId), { params }),
+    client.get<ResourceListResponse>(API_ENDPOINTS.CATEGORY_RESOURCES(categoryId), { params }),
 
   // 点赞资源
   likeResource: (id: string | number) =>
-    api.post(API_ENDPOINTS.RESOURCE_LIKE(id)),
+    client.post(API_ENDPOINTS.RESOURCE_LIKE(id)),
 
   // 下载资源
   downloadResource: (id: string | number) =>
-    api.get(API_ENDPOINTS.RESOURCE_DOWNLOAD(id)),
+    client.get(API_ENDPOINTS.RESOURCE_DOWNLOAD(id)),
 
   // 获取资源评论
   getResourceComments: (id: string | number) =>
-    api.get(API_ENDPOINTS.RESOURCE_COMMENTS(id)),
+    client.get(API_ENDPOINTS.RESOURCE_COMMENTS(id)),
 
   // 添加评论
   addComment: (resourceId: string | number, content: string) =>
-    api.post(API_ENDPOINTS.COMMENT_CREATE, { resourceId, content }),
+    client.post(API_ENDPOINTS.COMMENT_CREATE, { resourceId, content }),
 
   // 删除评论
   deleteComment: (commentId: string | number) =>
-    api.delete(API_ENDPOINTS.COMMENT_DELETE(commentId)),
+    client.delete(API_ENDPOINTS.COMMENT_DELETE(commentId)),
 
   // 搜索资源
   searchResources: (query: string, params?: ResourceListParams) =>
-    api.get<ResourceListResponse>(API_ENDPOINTS.SEARCH, {
+    client.get<ResourceListResponse>(API_ENDPOINTS.SEARCH, {
       params: { ...params, q: query }
     }),
 
@@ -134,7 +134,7 @@ export const resourceService = {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await api.post<any>(API_ENDPOINTS.UPLOAD_IMAGE, formData, {
+    const response = await client.post<any>(API_ENDPOINTS.UPLOAD_IMAGE, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

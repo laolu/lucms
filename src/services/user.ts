@@ -9,6 +9,7 @@ export interface User {
   nickname?: string
   isAdmin: boolean
   isActive: boolean
+  lastLoginAt?: string
   createdAt: string
   updatedAt: string
 }
@@ -25,7 +26,7 @@ export interface RegisterParams {
 }
 
 export interface LoginResponse {
-  access_token: string
+  token: string
   user: User
 }
 
@@ -61,48 +62,106 @@ export interface VipPlan {
   features: string[]
 }
 
+// 用户管理相关接口
+export interface UserCreateInput {
+  username: string
+  email: string
+  password: string
+  isAdmin?: boolean
+  isActive?: boolean
+}
+
+export interface UserUpdateInput extends Partial<Omit<UserCreateInput, 'password'>> {
+  id: number
+  password?: string
+}
+
+export interface UserQuery {
+  search?: string
+  status?: string
+  sortBy?: string
+  sort?: 'ASC' | 'DESC'
+  page?: number
+  pageSize?: number
+}
+
+export interface UserListResponse {
+  items: User[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
 export const userService = {
-  // 登录
+  // 登录相关
   login: (params: LoginParams) =>
     client.post<LoginResponse>(API_ENDPOINTS.LOGIN, params),
 
-  // 社交登录
   socialLogin: (params: SocialLoginParams) =>
     client.post<SocialLoginResponse>(API_ENDPOINTS.SOCIAL_LOGIN, params),
 
-  // 社交登录回调
   socialLoginCallback: (params: { code: string; state: string; type: 'wechat' | 'qq' }) =>
     client.post<LoginResponse>(API_ENDPOINTS.SOCIAL_LOGIN_CALLBACK, params),
 
-  // 注册
   register: (params: RegisterParams) =>
     client.post<LoginResponse>(API_ENDPOINTS.REGISTER, params),
 
-  // 获取用户信息
+  // 用户信息相关
   getUserInfo: () =>
     client.get<User>(API_ENDPOINTS.USER_INFO),
 
-  // 更新用户信息
   updateUser: (params: UpdateUserParams) =>
     client.put<User>(API_ENDPOINTS.USER_UPDATE, params),
 
-  // 忘记密码
   forgotPassword: (params: ForgotPasswordParams) =>
     client.post(API_ENDPOINTS.FORGOT_PASSWORD, params),
 
-  // 重置密码
   resetPassword: (params: ResetPasswordParams) =>
     client.post(API_ENDPOINTS.RESET_PASSWORD, params),
 
-  // 获取VIP套餐列表
+  // VIP相关
   getVipPlans: () =>
     client.get<VipPlan[]>(API_ENDPOINTS.VIP_PLANS),
 
-  // 购买VIP
   purchaseVip: (planId: number) =>
     client.post(API_ENDPOINTS.VIP_PURCHASE, { planId }),
 
-  // 获取VIP状态
   getVipStatus: () =>
-    client.get(API_ENDPOINTS.VIP_STATUS)
+    client.get(API_ENDPOINTS.VIP_STATUS),
+
+  // 用户管理相关
+  getAll: async (query: UserQuery = {}): Promise<UserListResponse> => {
+    const response = await client.get<any>(API_ENDPOINTS.USERS, { params: query })
+    return response.data?.data || { items: [], total: 0, page: 1, pageSize: 10, totalPages: 0 }
+  },
+
+  getById: async (id: number): Promise<User> => {
+    const response = await client.get<any>(API_ENDPOINTS.USER_DETAIL(id))
+    return response.data?.data
+  },
+
+  create: async (input: UserCreateInput): Promise<User> => {
+    const response = await client.post<any>(API_ENDPOINTS.USERS, input)
+    return response.data?.data
+  },
+
+  update: async (input: UserUpdateInput): Promise<User> => {
+    const response = await client.patch<any>(API_ENDPOINTS.USER_DETAIL(input.id), input)
+    return response.data?.data
+  },
+
+  delete: async (id: number): Promise<void> => {
+    await client.delete(API_ENDPOINTS.USER_DETAIL(id))
+  },
+
+  updateStatus: async (id: number, isActive: boolean): Promise<User> => {
+    const response = await client.patch<any>(API_ENDPOINTS.USER_STATUS(id), { isActive })
+    return response.data?.data
+  },
+
+  // 管理员重置用户密码
+  adminResetPassword: async (id: number, password: string): Promise<void> => {
+    await client.post(API_ENDPOINTS.USER_RESET_PASSWORD(id), { password })
+  }
 } 
