@@ -20,9 +20,9 @@ export const API_ENDPOINTS = {
   USER_UPDATE: '/user/update',
 
   // VIP
-  VIP_PLANS: '/vip/plans',
-  VIP_PURCHASE: '/vip/purchase',
-  VIP_STATUS: '/vip/status',
+  VIP_LEVELS: '/vip-levels',
+  VIP_LEVEL_DETAIL: (id: number) => `/vip-levels/${id}`,
+  VIP_LEVEL_STATUS: (id: number) => `/vip-levels/${id}/status`,
 
   // Payment
   PAYMENT_CREATE: '/payments',

@@ -14,7 +14,6 @@ export class CreateVipLevelDto {
   duration: number;
 
   @IsArray()
-  @IsString({ each: true })
   benefits: string[];
 
   @IsBoolean()

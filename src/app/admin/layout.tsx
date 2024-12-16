@@ -19,6 +19,7 @@ import {
   LogOut,
   Image,
   Menu,
+  Crown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -64,6 +65,11 @@ const menuItems = [
     href: "/admin/menus",
     label: "导航菜单",
     icon: Menu
+  },
+  {
+    href: "/admin/vip-levels",
+    label: "VIP等级",
+    icon: Crown
   },
   {
     href: "/admin/users",

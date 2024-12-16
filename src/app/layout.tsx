@@ -1,14 +1,15 @@
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import { Providers } from "@/components/providers"
-import "./globals.css"
+'use client'
 
-const inter = Inter({ subsets: ["latin"] })
+import { Inter } from 'next/font/google'
+import { ThemeProvider } from 'next-themes'
+import { Toaster } from '@/components/ui/toaster'
+import { AuthProvider } from '@/contexts/auth-context'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import './globals.css'
 
-export const metadata: Metadata = {
-  title: "LuCMS",
-  description: "专注于CG艺术设计的在线学习平台",
-}
+const inter = Inter({ subsets: ['latin'] })
+
+const queryClient = new QueryClient()
 
 export default function RootLayout({
   children,
@@ -17,10 +18,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
-        <Providers>
-          {children}
-        </Providers>
+      <body className={inter.className}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <AuthProvider>
+              {children}
+              <Toaster />
+            </AuthProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
       </body>
     </html>
   )
