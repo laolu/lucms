@@ -55,4 +55,19 @@ export const API_ENDPOINTS = {
   CONTENT_ATTRIBUTE_DETAIL: (id: number) => `/content-attributes/${id}`,
   CONTENT_ATTRIBUTE_VALUES: (id: number) => `/content-attributes/${id}/values`,
   CONTENT_ATTRIBUTE_STATUS: (id: number) => `/content-attributes/${id}/status`,
-}; 
+
+  // Contents
+  CONTENTS: '/contents',
+  CONTENT_DETAIL: (id: number) => `/contents/${id}`,
+  CONTENT_VIEW: (id: number) => `/contents/${id}/view`,
+  CONTENT_COMMENTS: (id: number) => `/contents/${id}/comments`,
+  CONTENT_COMMENT_CREATE: (id: number) => `/contents/${id}/comments`,
+  CONTENT_COMMENT_DELETE: (id: number, commentId: number) => `/contents/${id}/comments/${commentId}`,
+  CONTENT_LIKE: (id: number) => `/contents/${id}/like`,
+  CONTENT_UNLIKE: (id: number) => `/contents/${id}/unlike`,
+  CONTENT_FAVORITE: (id: number) => `/contents/${id}/favorite`,
+  CONTENT_UNFAVORITE: (id: number) => `/contents/${id}/unfavorite`,
+  CONTENT_SHARE: (id: number) => `/contents/${id}/share`,
+  CONTENT_REPORT: (id: number) => `/contents/${id}/report`,
+  UPLOAD_IMAGE: '/api/resources/upload/image',
+} as const; 

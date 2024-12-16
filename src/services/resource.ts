@@ -82,6 +82,14 @@ export interface ResourceListResponse {
   totalPages: number
 }
 
+export interface UploadResponse {
+  url: string
+  path: string
+  size: number
+  filename: string
+  mimetype: string
+}
+
 export const resourceService = {
   // 获取资源列表
   getResources: (params?: ResourceListParams) =>
@@ -119,5 +127,35 @@ export const resourceService = {
   searchResources: (query: string, params?: ResourceListParams) =>
     api.get<ResourceListResponse>(API_ENDPOINTS.SEARCH, {
       params: { ...params, q: query }
+    }),
+
+  // 上传图片
+  uploadImage: async (file: File, onProgress?: (percent: number) => void): Promise<UploadResponse> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await api.post<any>(API_ENDPOINTS.UPLOAD_IMAGE, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total && onProgress) {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+          onProgress(percent)
+        }
+      },
     })
+
+    return response.data?.data
+  },
+
+  // 检查文件是否为图片
+  isImage: (file: File): boolean => {
+    return file.type.startsWith('image/')
+  },
+
+  // 检查图片大小是否符合限制
+  checkImageSize: (file: File, maxSize: number = 5 * 1024 * 1024): boolean => {
+    return file.size <= maxSize
+  }
 } 
