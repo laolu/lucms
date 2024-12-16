@@ -78,16 +78,16 @@ export const API_ENDPOINTS = {
   USER_ROLE: (id: number) => `/users/${id}/role`,
   USER_RESET_PASSWORD: (id: number) => `/users/${id}/reset-password`,
 
-  // Settings
-  SETTINGS: '/settings',
-  SETTINGS_BASIC: '/settings/basic',
-  SETTINGS_EMAIL: '/settings/email',
-  SETTINGS_EMAIL_TEST: '/settings/email/test',
-  SETTINGS_STORAGE: '/settings/storage',
-  SETTINGS_SMS: '/settings/sms',
-  SETTINGS_PAYMENT: '/settings/payment',
-  SETTINGS_OAUTH: '/settings/oauth',
-  SETTINGS_SECURITY: '/settings/security',
-  SETTINGS_CACHE: '/settings/cache',
-  SETTINGS_REFRESH: '/settings/refresh',
+  // Configs
+  CONFIGS: '/configs',
+  CONFIGS_BASIC: '/configs/basic',
+  CONFIGS_EMAIL: '/configs/email',
+  CONFIGS_EMAIL_TEST: '/configs/email/test',
+  CONFIGS_STORAGE: '/configs/storage',
+  CONFIGS_SMS: '/configs/sms',
+  CONFIGS_PAYMENT: '/configs/payment',
+  CONFIGS_OAUTH: '/configs/oauth',
+  CONFIGS_SECURITY: '/configs/security',
+  CONFIGS_CACHE: '/configs/cache',
+  CONFIGS_REFRESH: '/configs/refresh',
 } as const; 

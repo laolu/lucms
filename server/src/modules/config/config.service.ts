@@ -1,76 +1,64 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { SystemConfig } from './entities/system-config.entity';
 
 @Injectable()
 export class ConfigService {
-  private configs: Map<string, any> = new Map();
-
   constructor(
     @InjectRepository(SystemConfig)
-    private configRepository: Repository<SystemConfig>,
-  ) {
-    this.loadConfigs();
-  }
+    private readonly configRepository: Repository<SystemConfig>,
+  ) {}
 
-  private async loadConfigs() {
-    const configs = await this.configRepository.find();
-    configs.forEach(config => {
-      this.configs.set(config.key, this.parseValue(config.value, config.type));
+  // 获取所有配置
+  async findAll(): Promise<SystemConfig[]> {
+    return await this.configRepository.find({
+      order: { sort: 'ASC' },
     });
   }
 
-  private parseValue(value: string, type: string): any {
-    switch (type) {
-      case 'number':
-        return Number(value);
-      case 'boolean':
-        return value === 'true';
-      case 'json':
-        try {
-          return JSON.parse(value);
-        } catch {
-          return value;
-        }
-      default:
-        return value;
-    }
+  // 根据分组获取配置
+  async findByGroup(group: string): Promise<SystemConfig[]> {
+    return await this.configRepository.find({
+      where: {
+        key: Like(`${group}%`),
+        isActive: true
+      },
+      order: { sort: 'ASC' },
+    });
   }
 
-  async get(key: string): Promise<any> {
-    if (!this.configs.has(key)) {
-      await this.loadConfigs();
-    }
-    return this.configs.get(key);
+  // 根据键名获取配置
+  async findByKey(key: string): Promise<SystemConfig> {
+    return await this.configRepository.findOne({
+      where: { key },
+    });
   }
 
-  async set(key: string, value: any, type: string = 'string'): Promise<void> {
-    const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
-    
-    let config = await this.configRepository.findOne({ where: { key } });
-    if (config) {
-      config.value = stringValue;
-      config.type = type;
-      await this.configRepository.save(config);
-    } else {
-      config = this.configRepository.create({
-        key,
-        value: stringValue,
-        type,
-      });
-      await this.configRepository.save(config);
+  // 更新配置
+  async update(key: string, value: string): Promise<SystemConfig> {
+    const config = await this.findByKey(key);
+    if (!config) {
+      throw new Error('配置项不存在');
     }
 
-    this.configs.set(key, this.parseValue(stringValue, type));
+    config.value = value;
+    return await this.configRepository.save(config);
   }
 
-  async delete(key: string): Promise<void> {
-    await this.configRepository.delete({ key });
-    this.configs.delete(key);
+  // 测试邮件配置
+  async testEmail(): Promise<void> {
+    // TODO: 实现发送测试邮件的逻辑
+    // 1. 获取邮件配置
+    const emailConfigs = await this.findByGroup('email');
+    // 2. 使用配置发送测试邮件
+    console.log('发送测试邮件', emailConfigs);
   }
 
+  // 刷新配置缓存
   async refresh(): Promise<void> {
-    await this.loadConfigs();
+    // TODO: 实现配置缓存刷新的逻辑
+    // 例如：清除 Redis 缓存等
+    console.log('刷新配置缓存');
   }
 } 
