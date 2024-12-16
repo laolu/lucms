@@ -80,6 +80,13 @@ export const API_ENDPOINTS = {
   USER_ROLE: (id: number) => `/users/${id}/role`,
   USER_RESET_PASSWORD: (id: number) => `/users/${id}/reset-password`,
 
+  // Orders
+  ORDERS: '/orders',
+  ORDER_DETAIL: (id: number) => `/orders/${id}`,
+  ORDER_CANCEL: (id: number) => `/orders/${id}/cancel`,
+  ORDER_REFUND: (id: number) => `/orders/${id}/refund`,
+  ORDER_PAY: (id: number) => `/orders/${id}/pay`,
+
   // Configs
   CONFIGS: '/configs',
   CONFIGS_BASIC: '/configs/basic',

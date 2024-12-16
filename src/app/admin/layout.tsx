@@ -20,6 +20,7 @@ import {
   Image,
   Menu,
   Crown,
+  ShoppingCart,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -70,6 +71,11 @@ const menuItems = [
     href: "/admin/vip-levels",
     label: "VIP等级",
     icon: Crown
+  },
+  {
+    href: "/admin/orders",
+    label: "订单管理",
+    icon: ShoppingCart
   },
   {
     href: "/admin/users",
