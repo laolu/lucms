@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Plus, Search, Pencil, Trash2 } from "lucide-react"
+import { MoreHorizontal, Plus, Search, Pencil, Trash2, FileEdit } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { contentAttributeService, type ContentAttribute, AttributeType } from '@/services/content-attribute'
@@ -119,7 +119,7 @@ export default function ContentAttributesPage() {
             <div className="w-[100px]">类型</div>
             <div className="flex-1">属性值</div>
             <div className="w-[80px]">状态</div>
-            <div className="w-8" />
+            <div className="w-[120px] text-center">操作</div>
           </div>
         </CardHeader>
         <CardContent className="pt-0">
@@ -147,33 +147,28 @@ export default function ContentAttributesPage() {
                 </Badge>
               </div>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="w-8 h-8 p-0 transition-opacity opacity-0 group-hover:opacity-100"
-                  >
-                    <MoreHorizontal className="w-4 h-4" />
-                    <span className="sr-only">操作菜单</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>操作</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => handleEditAttribute(attribute)}>
-                    <Pencil className="w-4 h-4 mr-2" />
-                    编辑属性
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="text-red-600"
-                    onClick={() => handleDeleteAttribute(attribute)}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    删除属性
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex gap-1 items-center w-[120px] justify-center">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleEditAttribute(attribute)}
+                  className="w-8 h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                  title="编辑属性"
+                >
+                  <FileEdit className="w-4 h-4" />
+                  <span className="sr-only">编辑</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDeleteAttribute(attribute)}
+                  className="w-8 h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  title="删除属性"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="sr-only">删除</span>
+                </Button>
+              </div>
             </div>
           ))}
         </CardContent>

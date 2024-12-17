@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { ChevronRight, ChevronDown, MoreHorizontal, Plus, Search, Pencil, FolderPlus, Trash2, Link } from "lucide-react"
+import { ChevronRight, ChevronDown, MoreHorizontal, Plus, Search, Pencil, FolderPlus, Trash2, Link, FileEdit, Trash } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { CategoryDialog } from './category-dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
@@ -219,7 +219,7 @@ export default function ContentCategoriesPage() {
               <Button 
                 variant="ghost" 
                 size="icon"
-                className="w-8 h-8 p-0"
+                className="p-0 w-8 h-8"
                 onClick={() => toggleExpand(category.id)}
               >
                 {expandedIds.includes(category.id) ? (
@@ -234,7 +234,7 @@ export default function ContentCategoriesPage() {
             <span className="font-medium">{category.name}</span>
           </div>
           
-          <div className="flex items-center flex-1 gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-1 gap-4 items-center text-sm text-muted-foreground">
             <span className="w-[200px] truncate">{category.description}</span>
             <span className="w-[100px]">排序: {category.sort}</span>
             <Badge variant={category.isActive ? "default" : "secondary"}>
@@ -242,37 +242,38 @@ export default function ContentCategoriesPage() {
             </Badge>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="w-8 h-8 p-0 transition-opacity opacity-0 group-hover:opacity-100"
-              >
-                <MoreHorizontal className="w-4 h-4" />
-                <span className="sr-only">操作菜单</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>操作</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => handleEditCategory(category)}>
-                <Pencil className="w-4 h-4 mr-2" />
-                编辑分类
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddSubCategory(category)}>
-                <FolderPlus className="w-4 h-4 mr-2" />
-                添加子分类
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-red-600"
-                onClick={() => handleDeleteCategory(category)}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                删除分类
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex gap-1 items-center w-[120px] justify-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleEditCategory(category)}
+              className="w-8 h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+              title="编辑分类"
+            >
+              <FileEdit className="w-4 h-4" />
+              <span className="sr-only">编辑</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleAddSubCategory(category)}
+              className="w-8 h-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+              title="添加子分类"
+            >
+              <FolderPlus className="w-4 h-4" />
+              <span className="sr-only">添加子分类</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDeleteCategory(category)}
+              className="w-8 h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+              title="删除分类"
+            >
+              <Trash className="w-4 h-4" />
+              <span className="sr-only">删除</span>
+            </Button>
+          </div>
         </div>
         {expandedIds.includes(category.id) && category.children && (
           <div className="mt-0.5">
@@ -285,10 +286,10 @@ export default function ContentCategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold tracking-tight">内容分类管理</h1>
         <Button onClick={handleAddCategory}>
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="mr-2 w-4 h-4" />
           添加分类
         </Button>
       </div>
@@ -307,12 +308,12 @@ export default function ContentCategoriesPage() {
 
       <Card>
         <CardHeader className="py-4">
-          <div className="flex items-center gap-4 px-4 text-sm text-muted-foreground">
+          <div className="flex gap-4 items-center px-4 text-sm text-muted-foreground">
             <div className="min-w-[200px]">分类名称</div>
             <div className="w-[200px]">描述</div>
             <div className="w-[100px]">排序</div>
             <div className="w-[60px]">状态</div>
-            <div className="w-8" />
+            <div className="w-[120px] text-center">操作</div>
           </div>
         </CardHeader>
         <CardContent className="pt-0">

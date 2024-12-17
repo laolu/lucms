@@ -8,16 +8,16 @@ export class ContentModel {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ length: 100 })
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   description: string;
 
   @OneToMany(() => ContentCategory, category => category.model)
   categories: ContentCategory[];
 
-  @ManyToMany(() => ContentAttribute)
+  @ManyToMany(() => ContentAttribute, { eager: true })
   @JoinTable({
     name: 'content_model_attributes',
     joinColumn: {
@@ -31,7 +31,7 @@ export class ContentModel {
   })
   attributes: ContentAttribute[];
 
-  @ManyToMany(() => ContentAttributeValue)
+  @ManyToMany(() => ContentAttributeValue, { eager: true })
   @JoinTable({
     name: 'content_model_attribute_values',
     joinColumn: {
@@ -45,15 +45,15 @@ export class ContentModel {
   })
   attributeValues: ContentAttributeValue[];
 
-  @Column({ default: 0 })
+  @Column({ type: 'int', default: 0 })
   sort: number;
 
-  @Column({ default: true })
+  @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 } 
