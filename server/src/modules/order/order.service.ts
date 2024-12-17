@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Between } from 'typeorm';
-import { Order, OrderStatus } from './entities/order.entity';
+import { Order, OrderStatus, PaymentMethod } from './entities/order.entity';
 import { OrderQueryDto } from './dto/order-query.dto';
 
 @Injectable()
@@ -136,7 +136,7 @@ export class OrderService {
   }
 
   // 支付成功
-  async paymentSuccess(id: number, paymentMethod: string, paymentNo: string) {
+  async paymentSuccess(id: number, paymentMethod: PaymentMethod, paymentNo: string) {
     const order = await this.findOne(id);
     if (!order || order.status !== OrderStatus.PENDING) {
       throw new Error('订单不存在或状态不允许支付');

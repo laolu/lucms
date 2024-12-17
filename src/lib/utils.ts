@@ -15,3 +15,10 @@ export function formatDate(date: string | Date | null | undefined) {
     minute: '2-digit'
   })
 }
+
+export function formatPrice(price: number) {
+  return new Intl.NumberFormat('zh-CN', {
+    style: 'currency',
+    currency: 'CNY'
+  }).format(price)
+}

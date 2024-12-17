@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { OrderService } from './order.service';
 import { OrderQueryDto } from './dto/order-query.dto';
 import { Order } from './entities/order.entity';
+import { PaymentMethod } from './entities/order.entity';
 
 @ApiTags('订单管理')
 @Controller('orders')
@@ -59,7 +60,7 @@ export class OrderController {
   @ApiOperation({ summary: '支付成功回调' })
   async paymentSuccess(
     @Param('id', ParseIntPipe) id: number,
-    @Body('paymentMethod') paymentMethod: string,
+    @Body('paymentMethod') paymentMethod: PaymentMethod,
     @Body('paymentNo') paymentNo: string,
   ) {
     return this.orderService.paymentSuccess(id, paymentMethod, paymentNo);
