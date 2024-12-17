@@ -22,6 +22,7 @@ import { toast } from "sonner"
 import { contentService } from '@/services/content'
 import { contentCategoryService } from '@/services/content-category'
 import { contentAttributeService } from '@/services/content-attribute'
+import { Badge } from "@/components/ui/badge"
 
 interface EditContentPageProps {
   params: {
@@ -34,6 +35,7 @@ export default function EditContentPage({ params }: EditContentPageProps) {
   const [loading, setLoading] = React.useState(false)
   const [categories, setCategories] = React.useState<any[]>([])
   const [attributes, setAttributes] = React.useState<any[]>([])
+  const [selectedCategory, setSelectedCategory] = React.useState<any>(null)
   const [formData, setFormData] = React.useState({
     title: '',
     description: '',
@@ -66,39 +68,17 @@ export default function EditContentPage({ params }: EditContentPageProps) {
     try {
       const data = await contentService.getById(parseInt(params.id))
       setFormData({
-        title: data.title,
-        description: data.description || '',
+        ...data,
         categoryId: data.categoryId.toString(),
-        content: data.content,
-        isActive: data.isActive,
-        sort: data.sort,
-        thumbnail: data.thumbnail || '',
-        images: data.images || [],
-        coverImage: data.coverImage || '',
-        bannerImage: data.bannerImage || '',
-        price: data.price || 0,
-        originalPrice: data.originalPrice || 0,
-        isFree: data.isFree || false,
-        isVipFree: data.isVipFree || false,
-        vipPrice: data.vipPrice || 0,
-        downloadUrl: data.downloadUrl || '',
-        downloadPassword: data.downloadPassword || '',
-        extractPassword: data.extractPassword || '',
-        tags: data.tags || [],
-        meta: data.meta || {},
-        source: data.source || '',
-        author: data.author || '',
         publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString().split('T')[0] : '',
-        attributeValues: data.attributeValues?.map((av: any) => ({
-          attributeId: av.attributeId,
-          valueId: av.valueId
-        })) || []
+        images: data.images || [],
+        tags: data.tags || [],
+        attributeValues: data.attributeValues || []
       })
     } catch (error) {
       toast.error('加载内容失败')
-      router.push('/admin/contents')
     }
-  }, [params.id, router])
+  }, [params.id])
 
   // 加载分类列表
   const loadCategories = React.useCallback(async () => {
@@ -107,6 +87,16 @@ export default function EditContentPage({ params }: EditContentPageProps) {
       setCategories(data)
     } catch (error) {
       toast.error('加载分类列表失败')
+    }
+  }, [])
+
+  // 加载分类详情
+  const loadCategory = React.useCallback(async (categoryId: string) => {
+    try {
+      const category = await contentCategoryService.getById(parseInt(categoryId))
+      setSelectedCategory(category)
+    } catch (error) {
+      toast.error('加载分类详情失败')
     }
   }, [])
 
@@ -137,8 +127,11 @@ export default function EditContentPage({ params }: EditContentPageProps) {
   }, [loadContent, loadCategories])
 
   React.useEffect(() => {
-    loadAttributes()
-  }, [loadAttributes])
+    if (formData.categoryId) {
+      loadCategory(formData.categoryId)
+      loadAttributes()
+    }
+  }, [formData.categoryId, loadCategory, loadAttributes])
 
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
@@ -208,7 +201,7 @@ export default function EditContentPage({ params }: EditContentPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold tracking-tight">编辑内容</h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => router.back()}>
@@ -270,6 +263,50 @@ export default function EditContentPage({ params }: EditContentPageProps) {
                     {buildCategoryOptions(categories)}
                   </SelectContent>
                 </Select>
+                {selectedCategory?.model && (
+                  <div className="p-4 mt-4 space-y-4 rounded-lg border bg-muted/50">
+                    <div className="flex gap-2 items-center">
+                      <Badge variant="outline" className="bg-primary/5">
+                        {selectedCategory.model.name}
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {selectedCategory.model.description || '暂无描述'}
+                      </span>
+                    </div>
+                    
+                    <div className="grid gap-4">
+                      {selectedCategory.model.attributes?.map((attr: any) => (
+                        <div key={attr.id} className="space-y-2">
+                          <Label>{attr.name}</Label>
+                          <Select
+                            value={formData.attributeValues.find(av => av.attributeId === attr.id)?.valueId.toString()}
+                            onValueChange={(value) => {
+                              setFormData(prev => ({
+                                ...prev,
+                                attributeValues: prev.attributeValues.map(av => 
+                                  av.attributeId === attr.id 
+                                    ? { ...av, valueId: parseInt(value) }
+                                    : av
+                                )
+                              }))
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={`请选择${attr.name}`} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {attr.values?.map((value: any) => (
+                                <SelectItem key={value.id} value={value.id.toString()}>
+                                  {value.value}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="grid gap-2">
@@ -302,7 +339,7 @@ export default function EditContentPage({ params }: EditContentPageProps) {
                 />
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2 items-center">
                 <Switch
                   id="isActive"
                   checked={formData.isActive}
@@ -396,7 +433,7 @@ export default function EditContentPage({ params }: EditContentPageProps) {
               <CardDescription>设置内容的价格信息</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2 items-center">
                 <Switch
                   id="isFree"
                   checked={formData.isFree}
@@ -431,7 +468,7 @@ export default function EditContentPage({ params }: EditContentPageProps) {
 
                   <Separator className="my-4" />
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex gap-2 items-center">
                     <Switch
                       id="isVipFree"
                       checked={formData.isVipFree}

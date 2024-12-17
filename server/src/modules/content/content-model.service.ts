@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { ContentModel } from './entities/content-model.entity';
 import { ContentAttribute } from './entities/content-attribute.entity';
 import { ContentAttributeValue } from './entities/content-attribute-value.entity';
+import { ContentModelAttribute } from './entities/content-model-attribute.entity';
+import { ContentModelAttributeValue } from './entities/content-model-attribute-value.entity';
 import { CreateContentModelDto, UpdateContentModelDto } from './dto/content-model.dto';
 
 @Injectable()
@@ -17,6 +19,10 @@ export class ContentModelService {
     private attributeRepository: Repository<ContentAttribute>,
     @InjectRepository(ContentAttributeValue)
     private attributeValueRepository: Repository<ContentAttributeValue>,
+    @InjectRepository(ContentModelAttribute)
+    private modelAttributeRepository: Repository<ContentModelAttribute>,
+    @InjectRepository(ContentModelAttributeValue)
+    private modelAttributeValueRepository: Repository<ContentModelAttributeValue>,
   ) {}
 
   async create(createDto: CreateContentModelDto): Promise<ContentModel> {
@@ -40,29 +46,41 @@ export class ContentModelService {
       const model = this.modelRepository.create({
         name: createDto.name,
         description: createDto.description,
-        sort: createDto.sort,
-        isActive: createDto.isActive,
-        attributes: attributes,
-        attributeValues: attributeValues,
+        sort: createDto.sort ?? 0,
+        isActive: createDto.isActive ?? true
       });
 
-      // 4. 保存模型及其关联
+      // 4. 保存模型
       const savedModel = await this.modelRepository.save(model);
 
-      // 5. 更新关联表中的额外字段
+      // 5. 创建属性关联
+      if (createDto.attributeIds.length > 0) {
+        const modelAttributes = createDto.attributeIds.map(attributeId => ({
+          modelId: savedModel.id,
+          attributeId: attributeId
+        }));
+        await this.modelAttributeRepository
+          .createQueryBuilder()
+          .insert()
+          .into('content_model_attributes')
+          .values(modelAttributes)
+          .execute();
+      }
+
+      // 6. 创建属性值关联
       if (createDto.attributeValues.length > 0) {
-        await this.modelRepository
+        const modelAttributeValues = createDto.attributeValues.map(av => ({
+          modelId: savedModel.id,
+          attributeId: av.attributeId,
+          attributeValueId: av.attributeValueId,
+          isEnabled: av.isEnabled ?? true,
+          sort: av.sort ?? 0
+        }));
+        await this.modelAttributeValueRepository
           .createQueryBuilder()
           .insert()
           .into('content_model_attribute_values')
-          .values(
-            createDto.attributeValues.map(av => ({
-              modelId: savedModel.id,
-              attributeValueId: av.attributeValueId,
-              isEnabled: av.isEnabled ?? true,
-              sort: av.sort ?? 0,
-            }))
-          )
+          .values(modelAttributeValues)
           .execute();
       }
 
@@ -78,7 +96,15 @@ export class ContentModelService {
     try {
       this.logger.log('开始获取所有内容模型');
       const models = await this.modelRepository.find({
-        relations: ['attributes', 'attributeValues'],
+        relations: {
+          attributes: {
+            attribute: true
+          },
+          attributeValues: {
+            attribute: true,
+            attributeValue: true
+          }
+        },
         order: {
           sort: 'ASC',
           createdAt: 'DESC',
@@ -97,31 +123,21 @@ export class ContentModelService {
       this.logger.log(`开始获取内容模型: ${id}`);
       const model = await this.modelRepository.findOne({
         where: { id },
-        relations: ['attributes', 'attributeValues'],
+        relations: {
+          attributes: {
+            attribute: true
+          },
+          attributeValues: {
+            attribute: true,
+            attributeValue: true
+          }
+        }
       });
 
       if (!model) {
         this.logger.warn(`内容模型不存在: ${id}`);
         throw new NotFoundException('内容模型不存在');
       }
-
-      // 获取属性值的额外字段
-      const attributeValuesWithExtra = await this.modelRepository
-        .createQueryBuilder()
-        .select('cmav.*')
-        .from('content_model_attribute_values', 'cmav')
-        .where('cmav.modelId = :modelId', { modelId: id })
-        .getRawMany();
-
-      // 合并额外字段到模型的属性值中
-      model.attributeValues = model.attributeValues.map(av => {
-        const extra = attributeValuesWithExtra.find(e => e.attributeValueId === av.id);
-        return {
-          ...av,
-          isEnabled: extra?.isEnabled ?? true,
-          sort: extra?.sort ?? 0,
-        };
-      });
 
       this.logger.log(`获取内容模型成功: ${id}`);
       return model;
@@ -149,44 +165,45 @@ export class ContentModelService {
         throw new NotFoundException('部分属性值不存在');
       }
 
-      // 3. 更新基本信息和关联
+      // 3. 更新基本信息
       Object.assign(model, {
         name: updateDto.name,
         description: updateDto.description,
         sort: updateDto.sort,
-        isActive: updateDto.isActive,
-        attributes: attributes,
-        attributeValues: attributeValues,
+        isActive: updateDto.isActive
       });
 
       // 4. 保存模型
       await this.modelRepository.save(model);
 
-      // 5. 更新属性值关联表
-      // 先删除旧的关联
-      await this.modelRepository
+      // 5. 更新属性关联
+      await this.modelAttributeRepository.delete({ modelId: id });
+      const modelAttributes = updateDto.attributeIds.map(attributeId => ({
+        modelId: id,
+        attributeId
+      }));
+      await this.modelAttributeRepository
         .createQueryBuilder()
-        .delete()
-        .from('content_model_attribute_values')
-        .where('modelId = :modelId', { modelId: id })
+        .insert()
+        .into('content_model_attributes')
+        .values(modelAttributes)
         .execute();
 
-      // 添加新的关联
-      if (updateDto.attributeValues.length > 0) {
-        await this.modelRepository
-          .createQueryBuilder()
-          .insert()
-          .into('content_model_attribute_values')
-          .values(
-            updateDto.attributeValues.map(av => ({
-              modelId: id,
-              attributeValueId: av.attributeValueId,
-              isEnabled: av.isEnabled ?? true,
-              sort: av.sort ?? 0,
-            }))
-          )
-          .execute();
-      }
+      // 6. 更新属性值关联
+      await this.modelAttributeValueRepository.delete({ modelId: id });
+      const modelAttributeValues = updateDto.attributeValues.map(av => ({
+        modelId: id,
+        attributeId: av.attributeId,
+        attributeValueId: av.attributeValueId,
+        isEnabled: av.isEnabled ?? true,
+        sort: av.sort ?? 0
+      }));
+      await this.modelAttributeValueRepository
+        .createQueryBuilder()
+        .insert()
+        .into('content_model_attribute_values')
+        .values(modelAttributeValues)
+        .execute();
 
       this.logger.log(`更新内容模型成功: ${id}`);
       return this.findOne(id);
@@ -208,7 +225,7 @@ export class ContentModelService {
     }
   }
 
-  async getModelAttributes(id: number): Promise<ContentAttribute[]> {
+  async getModelAttributes(id: number): Promise<ContentModelAttribute[]> {
     try {
       this.logger.log(`开始获取内容模型属性: ${id}`);
       const model = await this.findOne(id);
@@ -231,9 +248,19 @@ export class ContentModelService {
         throw new NotFoundException('部分属性不存在');
       }
 
-      // 2. 更新模型的属性
-      model.attributes = attributes;
-      const updatedModel = await this.modelRepository.save(model);
+      // 2. 删除旧的关联
+      await this.modelAttributeRepository.delete({ modelId: id });
+
+      // 3. 创建新的关联
+      const modelAttributes = attributeIds.map(attributeId => ({
+        modelId: id,
+        attributeId
+      }));
+
+      await this.modelAttributeRepository.save(modelAttributes);
+
+      // 4. 重新加载模型
+      const updatedModel = await this.findOne(id);
       this.logger.log(`更新内容模型属性成功: ${id}`);
       return updatedModel;
     } catch (error) {
@@ -242,7 +269,7 @@ export class ContentModelService {
     }
   }
 
-  async getModelAttributeValues(id: number): Promise<ContentAttributeValue[]> {
+  async getModelAttributeValues(id: number): Promise<ContentModelAttributeValue[]> {
     try {
       this.logger.log(`开始获取内容模型属性值: ${id}`);
       const model = await this.findOne(id);
@@ -256,7 +283,7 @@ export class ContentModelService {
 
   async updateModelAttributeValues(
     id: number, 
-    attributeValues: { attributeValueId: number; isEnabled?: boolean; sort?: number; }[]
+    attributeValues: { attributeId: number; attributeValueId: number; isEnabled?: boolean; sort?: number; }[]
   ): Promise<ContentModel> {
     try {
       this.logger.log(`开始更新内容模型属性值: ${id}, ${JSON.stringify(attributeValues)}`);
@@ -269,32 +296,22 @@ export class ContentModelService {
         throw new NotFoundException('部分属性值不存在');
       }
 
-      // 2. 更新关联表
-      await this.modelRepository
-        .createQueryBuilder()
-        .delete()
-        .from('content_model_attribute_values')
-        .where('modelId = :modelId', { modelId: id })
-        .execute();
+      // 2. 删除旧的关联
+      await this.modelAttributeValueRepository.delete({ modelId: id });
 
-      if (attributeValues.length > 0) {
-        await this.modelRepository
-          .createQueryBuilder()
-          .insert()
-          .into('content_model_attribute_values')
-          .values(
-            attributeValues.map(av => ({
-              modelId: id,
-              attributeValueId: av.attributeValueId,
-              isEnabled: av.isEnabled ?? true,
-              sort: av.sort ?? 0,
-            }))
-          )
-          .execute();
-      }
+      // 3. 创建新的关联
+      const modelAttributeValues = attributeValues.map(av => ({
+        modelId: id,
+        attributeId: av.attributeId,
+        attributeValueId: av.attributeValueId,
+        isEnabled: av.isEnabled ?? true,
+        sort: av.sort ?? 0
+      }));
 
-      model.attributeValues = values;
-      const updatedModel = await this.modelRepository.save(model);
+      await this.modelAttributeValueRepository.save(modelAttributeValues);
+
+      // 4. 重新加载模型
+      const updatedModel = await this.findOne(id);
       this.logger.log(`更新内容模型属性值成功: ${id}`);
       return updatedModel;
     } catch (error) {

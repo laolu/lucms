@@ -2,6 +2,10 @@ import { IsNotEmpty, IsString, IsOptional, IsNumber, IsBoolean, IsArray } from '
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ModelAttributeValueDto {
+  @ApiProperty({ description: '属性ID', example: 1 })
+  @IsNumber()
+  attributeId: number;
+
   @ApiProperty({ description: '属性值ID', example: 1 })
   @IsNumber()
   attributeValueId: number;

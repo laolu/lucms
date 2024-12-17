@@ -18,6 +18,7 @@ import { Editor } from '@/components/editor'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { contentService } from '@/services/content'
 import { contentCategoryService } from '@/services/content-category'
@@ -28,6 +29,7 @@ export default function CreateContentPage() {
   const [loading, setLoading] = React.useState(false)
   const [categories, setCategories] = React.useState<any[]>([])
   const [attributes, setAttributes] = React.useState<any[]>([])
+  const [selectedCategory, setSelectedCategory] = React.useState<any>(null)
   const [formData, setFormData] = React.useState({
     title: '',
     description: '',
@@ -65,6 +67,16 @@ export default function CreateContentPage() {
     }
   }, [])
 
+  // 加载分类详情
+  const loadCategory = React.useCallback(async (categoryId: string) => {
+    try {
+      const category = await contentCategoryService.getById(parseInt(categoryId))
+      setSelectedCategory(category)
+    } catch (error) {
+      toast.error('加载分类详情失败')
+    }
+  }, [])
+
   // 加载属性列表
   const loadAttributes = React.useCallback(async () => {
     if (!formData.categoryId) return
@@ -91,8 +103,11 @@ export default function CreateContentPage() {
   }, [loadCategories])
 
   React.useEffect(() => {
-    loadAttributes()
-  }, [loadAttributes])
+    if (formData.categoryId) {
+      loadCategory(formData.categoryId)
+      loadAttributes()
+    }
+  }, [formData.categoryId, loadCategory, loadAttributes])
 
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
@@ -223,6 +238,50 @@ export default function CreateContentPage() {
                     {buildCategoryOptions(categories)}
                   </SelectContent>
                 </Select>
+                {selectedCategory?.model && (
+                  <div className="space-y-4 mt-4 p-4 border rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-primary/5">
+                        {selectedCategory.model.name}
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {selectedCategory.model.description || '暂无描述'}
+                      </span>
+                    </div>
+                    
+                    <div className="grid gap-4">
+                      {selectedCategory.model.attributes?.map((attr: any) => (
+                        <div key={attr.id} className="space-y-2">
+                          <Label>{attr.name}</Label>
+                          <Select
+                            value={formData.attributeValues.find(av => av.attributeId === attr.id)?.valueId.toString()}
+                            onValueChange={(value) => {
+                              setFormData(prev => ({
+                                ...prev,
+                                attributeValues: prev.attributeValues.map(av => 
+                                  av.attributeId === attr.id 
+                                    ? { ...av, valueId: parseInt(value) }
+                                    : av
+                                )
+                              }))
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={`请选择${attr.name}`} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {attr.values?.map((value: any) => (
+                                <SelectItem key={value.id} value={value.id.toString()}>
+                                  {value.value}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="grid gap-2">

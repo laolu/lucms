@@ -27,7 +27,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { contentModelService } from '@/services/content-model';
 import { contentAttributeService } from '@/services/content-attribute';
-import type { ContentModel, ContentAttribute } from '@/services/content-model';
+import type { ContentModel} from '@/services/content-model';
 import { ChevronDown, ChevronRight, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -36,6 +36,8 @@ const formSchema = z.object({
   description: z.string().optional(),
   attributeIds: z.array(z.number()),
   attributeValues: z.array(z.object({
+    modelId: z.number().optional(),
+    attributeId: z.number(),
     attributeValueId: z.number(),
     isEnabled: z.boolean().optional(),
     sort: z.number().optional()
@@ -57,21 +59,28 @@ export function ModelForm({ model }: ModelFormProps) {
   const [formData, setFormData] = React.useState<FormData | null>(null);
   const [attributes, setAttributes] = React.useState<ContentAttribute[]>([]);
   const [selectedAttributeIds, setSelectedAttributeIds] = React.useState<number[]>(
-    model?.attributes?.map(attr => attr.id) || []
+    model?.attributes?.map(attr => attr.attribute.id) || []
   );
   const [selectedValueIds, setSelectedValueIds] = React.useState<number[]>(
-    model?.attributeValues?.map(value => value.id) || []
+    model?.attributeValues?.map(value => value.attributeValue.id) || []
   );
+  const [selectedState, setSelectedState] = React.useState<{
+    attributeIds: number[];
+    valueIds: number[];
+    attributeValues: FormData['attributeValues'];
+  } | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: model?.name || '',
       description: model?.description || '',
-      attributeIds: model?.attributes?.map(attr => attr.id) || [],
+      attributeIds: model?.attributes?.map(attr => attr.attribute.id) || [],
       attributeValues: model?.attributeValues?.map(value => ({
-        attributeValueId: value.id,
-        isEnabled: true,
+        modelId: model?.id,
+        attributeId: value.attribute.id,
+        attributeValueId: value.attributeValue.id,
+        isEnabled: value.isEnabled,
         sort: value.sort
       })) || [],
       sort: model?.sort || 0,
@@ -83,10 +92,18 @@ export function ModelForm({ model }: ModelFormProps) {
   const loadAttributes = React.useCallback(async () => {
     try {
       const data = await contentAttributeService.getAll();
+      console.log('加载的属性数据:', data);
       setAttributes(data);
 
       // 如果是编辑模式，使用现有的选择
       if (model) {
+        console.log('编辑模式，现有模型:', model);
+        const selectedAttrIds = model.attributes.map(attr => attr.attribute.id);
+        const selectedValIds = model.attributeValues.map(value => value.attributeValue.id);
+        console.log('选中的属性ID:', selectedAttrIds);
+        console.log('选中的属性值ID:', selectedValIds);
+        setSelectedAttributeIds(selectedAttrIds);
+        setSelectedValueIds(selectedValIds);
         return;
       }
 
@@ -95,6 +112,8 @@ export function ModelForm({ model }: ModelFormProps) {
       const allValueIds = data.flatMap(attr => attr.values.map(value => value.id));
       const allAttributeValues = data.flatMap(attr => 
         attr.values.map((value, index) => ({
+          modelId: model?.id,
+          attributeId: attr.id,
           attributeValueId: value.id,
           isEnabled: true,
           sort: index
@@ -115,22 +134,43 @@ export function ModelForm({ model }: ModelFormProps) {
   }, [loadAttributes]);
 
   const handleSubmit = async (data: FormData) => {
-    // 无论是创建还是编辑都显示确认对话框
+    // 保存当前的选择状态
+    setSelectedState({
+      attributeIds: selectedAttributeIds,
+      valueIds: selectedValueIds,
+      attributeValues: data.attributeValues
+    });
     setFormData(data);
     setShowConfirmDialog(true);
+  };
+
+  const handleDialogClose = () => {
+    if (!loading) {
+      // 如果取消，恢复之前的选择状态
+      if (selectedState) {
+        setSelectedAttributeIds(selectedState.attributeIds);
+        setSelectedValueIds(selectedState.valueIds);
+        form.setValue('attributeIds', selectedState.attributeIds);
+        form.setValue('attributeValues', selectedState.attributeValues);
+      }
+      setShowConfirmDialog(false);
+    }
   };
 
   const onSubmit = async (data: FormData) => {
     try {
       setLoading(true);
 
-      // 确保数据格式正确
-      const formattedData = {
-        id: model?.id,
+      console.log('原始表单数据:', data);
+
+      // 准备提交数据
+      const submitData = {
+        ...(model ? { id: model.id } : {}), // 如果是更新模式，添加 id 字段
         name: data.name,
         description: data.description || '',
         attributeIds: data.attributeIds || [],
         attributeValues: data.attributeValues.map(value => ({
+          attributeId: value.attributeId,
           attributeValueId: value.attributeValueId,
           isEnabled: value.isEnabled ?? true,
           sort: value.sort ?? 0
@@ -139,29 +179,33 @@ export function ModelForm({ model }: ModelFormProps) {
         isActive: data.isActive ?? true
       };
 
-      console.log('提交的数据:', formattedData); // 调试用
-
       if (model) {
-        await contentModelService.update(model.id, formattedData);
+        // 更新模式
+        console.log('更新数据:', submitData);
+        await contentModelService.update(model.id, submitData);
         toast.success('更新成功');
-        router.push('/admin/content-models');
-        router.refresh();
       } else {
-        const { id, ...createData } = formattedData;
-        await contentModelService.create(createData);
+        // 创建模式
+        console.log('创建数据:', submitData);
+        await contentModelService.create(submitData);
         toast.success('创建成功');
-        router.push('/admin/content-models');
-        router.refresh();
       }
+      
+      router.push('/admin/content-models');
+      router.refresh();
     } catch (error: any) {
       console.error('操作失败:', error);
-      // 显示详细的错误信息
       const errorMessage = error.response?.data?.message || error.message || (model ? '更新失败' : '创建失败');
       toast.error(errorMessage);
-    } finally {
+      // 发生错误时不关闭对话框，让用户可以重试
       setLoading(false);
-      setShowConfirmDialog(false);
+      return;
     }
+
+    // 只有在成功时才重置状态和关闭对话框
+    setLoading(false);
+    setShowConfirmDialog(false);
+    setSelectedState(null);
   };
 
   const handleAttributeChange = (attributeId: number, checked: boolean) => {
@@ -180,6 +224,8 @@ export function ModelForm({ model }: ModelFormProps) {
       newValueIds = [...newValueIds, ...attributeValueIds];
       // 添加属性值到表单
       const newValues = attribute.values.map((value, index) => ({
+        modelId: model?.id || undefined,
+        attributeId: attribute.id,
         attributeValueId: value.id,
         isEnabled: true,
         sort: newAttributeValues.length + index
@@ -223,6 +269,7 @@ export function ModelForm({ model }: ModelFormProps) {
         newAttributeValues = [
           ...newAttributeValues,
           {
+            attributeId: attributeId,
             attributeValueId: valueId,
             isEnabled: true,
             sort: newAttributeValues.length
@@ -271,6 +318,7 @@ export function ModelForm({ model }: ModelFormProps) {
       newAttributeValues = [
         ...newAttributeValues.filter(v => !attributeValueIds.includes(v.attributeValueId)),
         ...attribute.values.map((value, index) => ({
+          attributeId: attribute.id,
           attributeValueId: value.id,
           isEnabled: true,
           sort: newAttributeValues.length + index
@@ -301,6 +349,7 @@ export function ModelForm({ model }: ModelFormProps) {
       const allValueIds = attributes.flatMap(attr => attr.values.map(value => value.id));
       const allAttributeValues = attributes.flatMap(attr => 
         attr.values.map((value, index) => ({
+          attributeId: attr.id,
           attributeValueId: value.id,
           isEnabled: true,
           sort: index
@@ -525,7 +574,14 @@ export function ModelForm({ model }: ModelFormProps) {
         </div>
       </form>
 
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      <AlertDialog 
+        open={showConfirmDialog} 
+        onOpenChange={(open) => {
+          if (!open && !loading) {
+            handleDialogClose();
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -539,7 +595,12 @@ export function ModelForm({ model }: ModelFormProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowConfirmDialog(false)}>取消</AlertDialogCancel>
+            <AlertDialogCancel 
+              onClick={handleDialogClose}
+              disabled={loading}
+            >
+              取消
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => formData && onSubmit(formData)}
               disabled={loading}

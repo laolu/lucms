@@ -7,7 +7,7 @@ import { ModelForm } from '../../_components/model-form';
 import { contentModelService } from '@/services/content-model';
 import type { ContentModel } from '@/services/content-model';
 
-export default function EditModelPage() {
+export default function EditContentModelPage() {
   const params = useParams();
   const [model, setModel] = useState<ContentModel | null>(null);
   const [loading, setLoading] = useState(true);
@@ -18,25 +18,29 @@ export default function EditModelPage() {
         const data = await contentModelService.getById(Number(params.id));
         setModel(data);
       } catch (error) {
-        toast.error('加载数据失败');
+        toast.error('加载模型失败');
       } finally {
         setLoading(false);
       }
     };
+
     loadModel();
   }, [params.id]);
 
   if (loading) {
-    return <div className="p-8">加载中...</div>;
+    return <div>加载中...</div>;
   }
 
   if (!model) {
-    return <div className="p-8">未找到数据</div>;
+    return <div>模型不存在</div>;
   }
 
   return (
-    <div className="space-y-4 p-8 pt-6">
-      <h2 className="text-3xl font-bold tracking-tight">编辑内容模型</h2>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">编辑内容模型</h1>
+      </div>
+
       <ModelForm model={model} />
     </div>
   );

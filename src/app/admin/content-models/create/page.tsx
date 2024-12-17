@@ -1,9 +1,14 @@
+'use client';
+
 import { ModelForm } from '../_components/model-form';
 
-export default function CreateModelPage() {
+export default function CreateContentModelPage() {
   return (
-    <div className="space-y-4 p-8 pt-6">
-      <h2 className="text-3xl font-bold tracking-tight">创建内容模型</h2>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">创建内容模型</h1>
+      </div>
+
       <ModelForm />
     </div>
   );

@@ -1,7 +1,7 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { ContentCategory } from './content-category.entity';
-import { ContentAttribute } from './content-attribute.entity';
-import { ContentAttributeValue } from './content-attribute-value.entity';
+import { ContentModelAttribute } from './content-model-attribute.entity';
+import { ContentModelAttributeValue } from './content-model-attribute-value.entity';
 
 @Entity('content_models')
 export class ContentModel {
@@ -17,33 +17,11 @@ export class ContentModel {
   @OneToMany(() => ContentCategory, category => category.model)
   categories: ContentCategory[];
 
-  @ManyToMany(() => ContentAttribute, { eager: true })
-  @JoinTable({
-    name: 'content_model_attributes',
-    joinColumn: {
-      name: 'modelId',
-      referencedColumnName: 'id'
-    },
-    inverseJoinColumn: {
-      name: 'attributeId',
-      referencedColumnName: 'id'
-    }
-  })
-  attributes: ContentAttribute[];
+  @OneToMany(() => ContentModelAttribute, modelAttribute => modelAttribute.model, { eager: true })
+  attributes: ContentModelAttribute[];
 
-  @ManyToMany(() => ContentAttributeValue, { eager: true })
-  @JoinTable({
-    name: 'content_model_attribute_values',
-    joinColumn: {
-      name: 'modelId',
-      referencedColumnName: 'id'
-    },
-    inverseJoinColumn: {
-      name: 'attributeValueId',
-      referencedColumnName: 'id'
-    }
-  })
-  attributeValues: ContentAttributeValue[];
+  @OneToMany(() => ContentModelAttributeValue, attributeValue => attributeValue.model, { eager: true })
+  attributeValues: ContentModelAttributeValue[];
 
   @Column({ type: 'int', default: 0 })
   sort: number;
