@@ -138,16 +138,46 @@ const data = {
       name: "设计工程",
       url: "#",
       icon: Frame,
+      items: [
+        {
+          name: "UI 设计",
+          url: "#ui-design"
+        },
+        {
+          name: "平面设计",
+          url: "#graphic-design"
+        }
+      ]
     },
     {
       name: "销售营销",
       url: "#",
       icon: PieChart,
+      items: [
+        {
+          name: "数据分析",
+          url: "#data-analysis"
+        },
+        {
+          name: "市场调研",
+          url: "#market-research"
+        }
+      ]
     },
     {
       name: "旅游项目",
       url: "#",
       icon: Map,
+      items: [
+        {
+          name: "景点规划",
+          url: "#attractions"
+        },
+        {
+          name: "路线设计",
+          url: "#routes"
+        }
+      ]
     },
   ],
 }

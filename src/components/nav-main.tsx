@@ -15,9 +15,8 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuAction,
-  SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuButton,
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
@@ -41,7 +40,6 @@ export function NavMain({ className, items, ...props }: NavMainProps) {
 
   return (
     <SidebarGroup className={className} {...props}>
-      <SidebarGroupLabel>导航菜单</SidebarGroupLabel>
       <SidebarMenu>
         {items?.map((item) => {
           const isActive = item.url === pathname || 
@@ -49,48 +47,51 @@ export function NavMain({ className, items, ...props }: NavMainProps) {
 
           return (
             <Collapsible key={item.title} asChild defaultOpen={isActive}>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild 
-                  tooltip={item.title}
-                  className={cn(isActive && "bg-accent text-accent-foreground")}
-                >
-                  <Link href={item.url}>
-                    <item.icon className="w-4 h-4" />
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
+              <SidebarMenuItem className="group/item">
                 {item.items?.length ? (
                   <>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuAction className="data-[state=open]:rotate-90">
-                        <ChevronRight className="w-4 h-4" />
-                        <span className="sr-only">展开</span>
-                      </SidebarMenuAction>
+                      <SidebarMenuButton className={cn(isActive && "bg-accent text-accent-foreground")}>
+                        <item.icon className="size-4" />
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
                     </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {item.items?.map((subItem) => {
-                          const isSubActive = subItem.url === pathname
-                          return (
-                            <SidebarMenuSubItem key={subItem.title}>
-                              <SidebarMenuSubButton 
-                                asChild
-                                className={cn(
-                                  isSubActive && "bg-accent text-accent-foreground"
-                                )}
-                              >
-                                <Link href={subItem.url}>
-                                  <span>{subItem.title}</span>
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          )
-                        })}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
+                    <ChevronRight className="absolute right-2 top-2.5 size-4 transition-transform duration-200 group-data-[state=open]/item:rotate-90" />
                   </>
-                ) : null}
+                ) : (
+                  <SidebarMenuButton 
+                    asChild 
+                    className={cn(isActive && "bg-accent text-accent-foreground")}
+                  >
+                    <Link href={item.url}>
+                      <item.icon className="size-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                )}
+                {item.items?.length && (
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {item.items?.map((subItem) => {
+                        const isSubActive = subItem.url === pathname
+                        return (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton 
+                              asChild
+                              className={cn(
+                                isSubActive && "bg-accent text-accent-foreground"
+                              )}
+                            >
+                              <Link href={subItem.url}>
+                                <span>{subItem.title}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        )
+                      })}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                )}
               </SidebarMenuItem>
             </Collapsible>
           )
