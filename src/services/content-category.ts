@@ -5,13 +5,18 @@ export interface ContentCategory {
   id: number;
   name: string;
   description: string;
-  parentId: number;
+  parentId: number | null;
+  parent?: ContentCategory;
+  children?: ContentCategory[];
   sort: number;
   isActive: boolean;
+  modelId: number | null;
+  model?: {
+    id: number;
+    name: string;
+  };
   createdAt: string;
   updatedAt: string;
-  parent: ContentCategory | null;
-  children: ContentCategory[];
 }
 
 interface ApiResponse<T> {
@@ -21,15 +26,16 @@ interface ApiResponse<T> {
   timestamp: string;
 }
 
-export interface CreateContentCategoryDto {
+export interface CreateCategoryDto {
   name: string;
   description?: string;
-  parentId?: number;
+  parentId?: number | null;
+  modelId?: number | null;
   sort?: number;
   isActive?: boolean;
 }
 
-export interface UpdateContentCategoryDto extends Partial<CreateContentCategoryDto> {
+export interface UpdateCategoryDto extends Partial<CreateCategoryDto> {
   id: number;
 }
 
@@ -73,15 +79,31 @@ export const contentCategoryService = {
   },
 
   // 创建分类
-  create: async (dto: CreateContentCategoryDto) => {
-    const response = await client.post<ApiResponse<ContentCategory>>(API_ENDPOINTS.CONTENT_CATEGORIES, dto);
-    return response.data?.data;
+  create: async (data: CreateCategoryDto) => {
+    try {
+      const response = await client.post<ApiResponse<ContentCategory>>(
+        API_ENDPOINTS.CONTENT_CATEGORIES,
+        data
+      )
+      return response.data?.data
+    } catch (error) {
+      console.error('创建分类失败:', error)
+      throw error
+    }
   },
 
   // 更新分类
-  update: async (id: number, dto: Partial<CreateContentCategoryDto>) => {
-    const response = await client.patch<ApiResponse<ContentCategory>>(API_ENDPOINTS.CONTENT_CATEGORY_DETAIL(id), dto);
-    return response.data?.data;
+  update: async (id: number, data: Partial<CreateCategoryDto>) => {
+    try {
+      const response = await client.put<ApiResponse<ContentCategory>>(
+        API_ENDPOINTS.CONTENT_CATEGORY_DETAIL(id),
+        data
+      )
+      return response.data?.data
+    } catch (error) {
+      console.error('更新分类失败:', error)
+      throw error
+    }
   },
 
   // 删除分类

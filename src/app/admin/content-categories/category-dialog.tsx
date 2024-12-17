@@ -20,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { contentModelService } from '@/services/content-model'
+import type { ContentModel } from '@/services/content-model'
 
 interface CategoryDialogProps {
   open: boolean
@@ -46,8 +48,25 @@ export function CategoryDialog({
     sort: 0,
     isActive: true,
     parentId: 0,
+    modelId: '',
     ...initialData,
   })
+
+  const [models, setModels] = React.useState<ContentModel[]>([])
+
+  // 加载内容模型列表
+  const loadModels = React.useCallback(async () => {
+    try {
+      const data = await contentModelService.getAll()
+      setModels(data)
+    } catch (error) {
+      console.error('加载内容模型失败:', error)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    loadModels()
+  }, [loadModels])
 
   React.useEffect(() => {
     if (initialData) {
@@ -57,6 +76,7 @@ export function CategoryDialog({
         sort: initialData.sort,
         isActive: initialData.isActive,
         parentId: initialData.parentId,
+        modelId: initialData.modelId?.toString() || '',
       })
     } else {
       setFormData({
@@ -65,14 +85,15 @@ export function CategoryDialog({
         sort: 0,
         isActive: true,
         parentId: parentId,
+        modelId: '',
       })
     }
   }, [initialData, parentId])
 
   const buildCategoryOptions = (items: any[], level = 0): React.ReactNode[] => {
     if (!Array.isArray(items)) {
-      console.warn('Expected items to be an array:', items);
-      return [];
+      console.warn('Expected items to be an array:', items)
+      return []
     }
     
     return items.flatMap((item) => {
@@ -95,7 +116,8 @@ export function CategoryDialog({
     e.preventDefault()
     onSubmit({
       ...formData,
-      parentId: formData.parentId === "none" ? 0 : Number(formData.parentId)
+      parentId: formData.parentId === "none" ? 0 : Number(formData.parentId),
+      modelId: formData.modelId ? Number(formData.modelId) : null
     })
   }
 
@@ -132,6 +154,7 @@ export function CategoryDialog({
                 </Select>
               </div>
             )}
+
             <div className="grid gap-2">
               <Label htmlFor="name">分类名称</Label>
               <Input
@@ -141,6 +164,7 @@ export function CategoryDialog({
                 placeholder="输入分类名称"
               />
             </div>
+
             <div className="grid gap-2">
               <Label htmlFor="description">描述</Label>
               <Input
@@ -150,6 +174,32 @@ export function CategoryDialog({
                 placeholder="输入分类描述"
               />
             </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="modelId">内容模型</Label>
+              <Select
+                value={formData.modelId?.toString() || "none"}
+                onValueChange={(value) => 
+                  setFormData({ 
+                    ...formData, 
+                    modelId: value === "none" ? "" : value 
+                  })
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="选择内容模型（可选）" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">无内容模型</SelectItem>
+                  {models.map(model => (
+                    <SelectItem key={model.id} value={model.id.toString()}>
+                      {model.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="sort">排序</Label>
               <Input
@@ -159,7 +209,8 @@ export function CategoryDialog({
                 onChange={(e) => setFormData({ ...formData, sort: parseInt(e.target.value) })}
               />
             </div>
-            <div className="flex items-center justify-between">
+
+            <div className="flex justify-between items-center">
               <Label htmlFor="isActive">启用状态</Label>
               <Switch
                 id="isActive"
@@ -168,6 +219,7 @@ export function CategoryDialog({
               />
             </div>
           </div>
+
           <DialogFooter>
             <Button type="submit">保存</Button>
           </DialogFooter>

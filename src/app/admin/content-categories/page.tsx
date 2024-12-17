@@ -204,7 +204,7 @@ export default function ContentCategoriesPage() {
       <div key={category.id}>
         <div 
           className={cn(
-            "group flex items-center gap-4 py-2 px-4 rounded-lg transition-colors",
+            "group flex items-center py-2 px-4 rounded-lg transition-colors",
             level > 0 && "ml-6",
             dragOverCategory?.id === category.id ? "bg-accent" : "hover:bg-accent/50",
             "cursor-move"
@@ -214,7 +214,7 @@ export default function ContentCategoriesPage() {
           onDragEnd={handleDragEnd}
           onDragOver={(e) => handleDragOver(e, category)}
         >
-          <div className="flex items-center gap-2 min-w-[200px]">
+          <div className="flex items-center gap-2 w-[260px]">
             {category.children?.length > 0 ? (
               <Button 
                 variant="ghost" 
@@ -231,18 +231,29 @@ export default function ContentCategoriesPage() {
             ) : (
               <div className="w-8" />
             )}
-            <span className="font-medium">{category.name}</span>
+            <span className="font-medium truncate">{category.name}</span>
           </div>
           
-          <div className="flex flex-1 gap-4 items-center text-sm text-muted-foreground">
-            <span className="w-[200px] truncate">{category.description}</span>
-            <span className="w-[100px]">排序: {category.sort}</span>
-            <Badge variant={category.isActive ? "default" : "secondary"}>
-              {category.isActive ? '启用' : '禁用'}
-            </Badge>
+          <div className="flex items-center">
+            <span className="w-[260px] truncate">{category.description}</span>
+            <span className="w-[100px] text-center">排序: {category.sort}</span>
+            <div className="w-[100px] flex justify-center">
+              <Badge variant={category.isActive ? "default" : "secondary"}>
+                {category.isActive ? '启用' : '禁用'}
+              </Badge>
+            </div>
+            <div className="w-[180px]">
+              {category.model ? (
+                <Badge variant="outline" className="bg-primary/5">
+                  {category.model.name}
+                </Badge>
+              ) : (
+                <span className="text-muted-foreground text-sm">未绑定</span>
+              )}
+            </div>
           </div>
 
-          <div className="flex gap-1 items-center w-[120px] justify-center">
+          <div className="flex gap-1 items-center w-[140px] justify-end">
             <Button
               variant="ghost"
               size="icon"
@@ -308,12 +319,13 @@ export default function ContentCategoriesPage() {
 
       <Card>
         <CardHeader className="py-4">
-          <div className="flex gap-4 items-center px-4 text-sm text-muted-foreground">
-            <div className="min-w-[200px]">分类名称</div>
-            <div className="w-[200px]">描述</div>
-            <div className="w-[100px]">排序</div>
-            <div className="w-[60px]">状态</div>
-            <div className="w-[120px] text-center">操作</div>
+          <div className="flex items-center px-4 text-sm text-muted-foreground">
+            <div className="w-[260px]">分类名称</div>
+            <div className="w-[260px]">描述</div>
+            <div className="w-[100px] text-center">排序</div>
+            <div className="w-[100px] text-center">状态</div>
+            <div className="w-[180px]">内容模型</div>
+            <div className="w-[140px] text-right">操作</div>
           </div>
         </CardHeader>
         <CardContent className="pt-0">
