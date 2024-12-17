@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { Content } from '../../content/entities/content.entity';
 import { VipLevel } from '../../vip/entities/vip-level.entity';
 

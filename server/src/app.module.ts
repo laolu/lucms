@@ -8,6 +8,7 @@ import { ContentModule } from './modules/content/content.module';
 import { MailModule } from './modules/mail/mail.module';
 import { SmsModule } from './modules/sms/sms.module';
 import { VipModule } from './modules/vip/vip.module';
+import { OrderModule } from './modules/order/order.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { loggerConfig } from './config/logger.config';
 import { AdvertisementModule } from './modules/advertisement/advertisement.module';
@@ -47,6 +48,7 @@ import { ConfigModule as SystemConfigModule } from './modules/config/config.modu
     AdvertisementModule,
     SystemConfigModule,
     MenuModule,
+    OrderModule
   ],
   controllers: [AppController],
   providers: [AppService],
