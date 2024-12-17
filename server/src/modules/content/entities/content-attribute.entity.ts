@@ -1,6 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { ContentAttributeValue } from './content-attribute-value.entity';
-import { CategoryAttribute } from './category-attribute.entity';
 
 export enum AttributeType {
   SINGLE = 'single',    // 单选
@@ -26,9 +25,6 @@ export class ContentAttribute {
     cascade: true
   })
   values: ContentAttributeValue[];
-
-  @OneToMany(() => CategoryAttribute, categoryAttribute => categoryAttribute.attribute)
-  categories: CategoryAttribute[];
 
   @Column({ default: 0 })
   sort: number;

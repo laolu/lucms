@@ -7,15 +7,20 @@ export class CreateCategoryDto {
   @IsString()
   name: string;
 
-  @ApiPropertyOptional({ description: '分类描述', example: '新闻分类的详细描述' })
+  @ApiPropertyOptional({ description: '分类描述', example: '新闻分类' })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ description: '父分类ID', example: 1 })
+  @ApiPropertyOptional({ description: '父级分类ID', example: 1 })
   @IsOptional()
   @IsNumber()
   parentId?: number;
+
+  @ApiPropertyOptional({ description: '内容模型ID', example: 1 })
+  @IsOptional()
+  @IsNumber()
+  modelId?: number;
 
   @ApiPropertyOptional({ description: '排序顺序', example: 1 })
   @IsOptional()

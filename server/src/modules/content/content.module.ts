@@ -7,12 +7,13 @@ import { ContentCategory } from './entities/content-category.entity';
 import { ContentAttribute } from './entities/content-attribute.entity';
 import { ContentAttributeValue } from './entities/content-attribute-value.entity';
 import { ContentAttributeRelation } from './entities/content-attribute-relation.entity';
-import { CategoryAttribute } from './entities/category-attribute.entity';
-import { CategoryAttributeValue } from './entities/category-attribute-value.entity';
+import { ContentModel } from './entities/content-model.entity';
 import { ContentCategoryController } from './content-category.controller';
 import { ContentCategoryService } from './content-category.service';
 import { ContentAttributeController } from './content-attribute.controller';
 import { ContentAttributeService } from './content-attribute.service';
+import { ContentModelController } from './content-model.controller';
+import { ContentModelService } from './content-model.service';
 
 @Module({
   imports: [
@@ -22,12 +23,26 @@ import { ContentAttributeService } from './content-attribute.service';
       ContentAttribute,
       ContentAttributeValue,
       ContentAttributeRelation,
-      CategoryAttribute,
-      CategoryAttributeValue
+      ContentModel
     ])
   ],
-  controllers: [ContentController, ContentCategoryController, ContentAttributeController],
-  providers: [ContentService, ContentCategoryService, ContentAttributeService],
-  exports: [ContentService, ContentCategoryService, ContentAttributeService]
+  controllers: [
+    ContentController, 
+    ContentCategoryController, 
+    ContentAttributeController,
+    ContentModelController
+  ],
+  providers: [
+    ContentService, 
+    ContentCategoryService, 
+    ContentAttributeService,
+    ContentModelService
+  ],
+  exports: [
+    ContentService, 
+    ContentCategoryService, 
+    ContentAttributeService,
+    ContentModelService
+  ]
 })
 export class ContentModule {} 

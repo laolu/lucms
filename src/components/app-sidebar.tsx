@@ -81,6 +81,10 @@ const data = {
           url: "/admin/content-attributes",
         },
         {
+          title: "模型管理",
+          url: "/admin/content-models",
+        },
+        {
           title: "内容列表",
           url: "/admin/contents",
         },

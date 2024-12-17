@@ -112,4 +112,9 @@ export const API_ENDPOINTS = {
   MENU_DETAIL: (id: number) => `/menus/${id}`,
   MENU_STATUS: (id: number) => `/menus/${id}/status`,
   MENU_SORT: (id: number) => `/menus/${id}/sort`,
+
+  // 内容模型
+  CONTENT_MODELS: '/content-models',
+  CONTENT_MODEL_DETAIL: (id: number) => `/content-models/${id}`,
+  CONTENT_MODEL_ATTRIBUTES: (id: number) => `/content-models/${id}/attributes`,
 } as const; 

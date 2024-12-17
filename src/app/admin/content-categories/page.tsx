@@ -9,7 +9,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { ChevronRight, ChevronDown, MoreHorizontal, Plus, Search, Pencil, FolderPlus, Trash2, Link } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { CategoryDialog } from './category-dialog'
-import { AttributeLinkDialog } from './attribute-link-dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { contentCategoryService, type ContentCategory } from '@/services/content-category'
@@ -97,7 +96,7 @@ export default function ContentCategoriesPage() {
   const handleConfirmDelete = async () => {
     if (deletingCategory) {
       try {
-        await contentCategoryService.delete(deletingCategory.id);
+        await contentCategoryService.remove(deletingCategory.id);
         toast.success('分类已删除');
         loadCategories();
         setDeleteDialogOpen(false);
@@ -264,10 +263,6 @@ export default function ContentCategoriesPage() {
                 <FolderPlus className="w-4 h-4 mr-2" />
                 添加子分类
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleLinkAttributes(category)}>
-                <Link className="w-4 h-4 mr-2" />
-                关联属性
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="text-red-600"
@@ -333,12 +328,6 @@ export default function ContentCategoriesPage() {
         parentId={parentId}
         categories={categories}
         onSubmit={handleSubmit}
-      />
-
-      <AttributeLinkDialog
-        open={attributeDialogOpen}
-        onOpenChange={setAttributeDialogOpen}
-        category={selectedCategory}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

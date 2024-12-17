@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
 import { Content } from './content.entity';
-import { CategoryAttribute } from './category-attribute.entity';
+import { ContentModel } from './content-model.entity';
 
 @Entity('content_categories')
 export class ContentCategory {
@@ -16,6 +16,9 @@ export class ContentCategory {
   @Column({ nullable: true })
   parentId: number;
 
+  @Column({ nullable: true })
+  modelId: number;
+
   @ManyToOne(() => ContentCategory, category => category.children)
   parent: ContentCategory;
 
@@ -25,8 +28,8 @@ export class ContentCategory {
   @OneToMany(() => Content, content => content.category)
   contents: Content[];
 
-  @OneToMany(() => CategoryAttribute, categoryAttribute => categoryAttribute.category)
-  attributes: CategoryAttribute[];
+  @ManyToOne(() => ContentModel, model => model.categories)
+  model: ContentModel;
 
   @Column({ default: 0 })
   sort: number;

@@ -67,8 +67,8 @@ export class ContentCategoryController {
   @ApiResponse({ status: 403, description: '无权限' })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), AdminGuard)
-  async delete(@Param('id') id: number): Promise<void> {
-    await this.categoryService.delete(id);
+  async remove(@Param('id') id: number): Promise<void> {
+    await this.categoryService.remove(id);
   }
 
   @Patch(':id/sort')
@@ -84,35 +84,5 @@ export class ContentCategoryController {
     @Body('targetSort') targetSort: number
   ): Promise<ContentCategory> {
     return await this.categoryService.updateSort(id, targetSort);
-  }
-
-  @Get(':id/attributes')
-  @ApiOperation({ summary: '获取分类关联的属性' })
-  @ApiParam({ name: 'id', description: '分类ID' })
-  @ApiResponse({ status: 200, description: '获取成功' })
-  async getCategoryAttributes(
-    @Param('id', ParseIntPipe) id: number
-  ) {
-    return await this.categoryService.getCategoryAttributes(id);
-  }
-
-  @Put(':id/attributes')
-  @ApiOperation({ summary: '更新分类关联的属性' })
-  @ApiParam({ name: 'id', description: '分类ID' })
-  @ApiResponse({ status: 200, description: '更新成功' })
-  @ApiResponse({ status: 401, description: '未授权' })
-  @ApiResponse({ status: 403, description: '无权限' })
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'), AdminGuard)
-  async updateCategoryAttributes(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() data: {
-      attributes: Array<{
-        attributeId: number;
-        valueIds: number[];
-      }>;
-    }
-  ) {
-    return await this.categoryService.updateCategoryAttributes(id, data);
   }
 } 
