@@ -21,9 +21,6 @@ const publicRoutes = [
   '/course',
   '/detail',
   '/superVip',
-  '/api/auth/login',
-  '/api/auth/register',
-  '/api/auth/forgot-password',
 ]
 
 export function middleware(request: NextRequest) {
@@ -63,12 +60,10 @@ export const config = {
      * 匹配所有需要处理的路由:
      * - 需要认证的路由 (/user/*, /admin/*, /superVip/*)
      * - 认证页面 (/auth/*)
-     * - API 路由 (/api/*)，但排除认证相关的API
      */
     '/user/:path*',
     '/admin/:path*',
     '/superVip/:path*',
     '/auth/:path*',
-    '/api/((?!auth/login|auth/register|auth/forgot-password).*)',
   ],
 } 
