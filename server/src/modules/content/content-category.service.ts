@@ -32,27 +32,19 @@ export class ContentCategoryService {
   }
 
   async findAll(): Promise<ContentCategory[]> {
-    this.logger.debug('开始查询所有分类');
-    try {
-      const categories = await this.categoryRepository.find({
-        relations: ['parent', 'children', 'model'],
-        order: {
-          sort: 'ASC',
-          createdAt: 'DESC',
-        }
-      });
-      
-      if (!categories || categories.length === 0) {
-        this.logger.warn('没有找到任何分类数据');
-        return [];
+    const categories = await this.categoryRepository.find({
+      relations: ['parent', 'children', 'model'],
+      order: {
+        sort: 'ASC',
+        createdAt: 'DESC',
       }
-      
-      this.logger.debug(`找到 ${categories.length} 个分类`);
-      return categories;
-    } catch (error) {
-      this.logger.error('查询分类失败:', error);
-      throw error;
+    });
+    
+    if (!categories || categories.length === 0) {
+      return [];
     }
+    
+    return categories;
   }
 
   async findOne(id: number): Promise<ContentCategory> {
@@ -124,7 +116,9 @@ export class ContentCategoryService {
 
   private buildTree(categories: ContentCategory[], parentId: number | null = null): ContentCategory[] {
     return categories
-      .filter(category => category.parentId === parentId)
+      .filter(category => 
+        parentId === null ? category.parentId === 0 || !category.parentId : category.parentId === parentId
+      )
       .map(category => ({
         ...category,
         children: this.buildTree(categories, category.id)

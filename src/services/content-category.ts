@@ -37,8 +37,18 @@ export const contentCategoryService = {
   // 获取分类树
   getTree: async () => {
     try {
+      console.log('开始请求分类树数据');
       const response = await client.get<ApiResponse<ContentCategory[]>>(API_ENDPOINTS.CONTENT_CATEGORIES_TREE);
-      return response.data?.data || [];
+      console.log('获取到响应:', response);
+      if (!response.data) {
+        console.warn('响应中没有data字段:', response);
+        return [];
+      }
+      if (!Array.isArray(response.data.data)) {
+        console.warn('data不是数组:', response.data);
+        return [];
+      }
+      return response.data.data;
     } catch (error) {
       console.error('获取分类树失败:', error);
       return [];
