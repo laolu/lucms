@@ -65,10 +65,6 @@ const data = {
           title: "统计",
           url: "/admin/stats",
         },
-        {
-          title: "设置",
-          url: "/admin/settings",
-        },
       ],
     },
     {
@@ -81,31 +77,39 @@ const data = {
           url: "/admin/content-categories",
         },
         {
+          title: "属性管理",
+          url: "/admin/content-attributes",
+        },
+        {
           title: "内容列表",
           url: "/admin/contents",
         },
       ],
     },
     {
-      title: "文档中心",
+      title: "运营管理",
       url: "#",
       icon: BookOpen,
       items: [
         {
-          title: "介绍",
-          url: "#",
+          title: "订单管理",
+          url: "/admin/orders",
         },
         {
-          title: "快速开始",
-          url: "#",
+          title: "广告管理",
+          url: "/admin/advertisements",
         },
         {
-          title: "教程",
-          url: "#",
+          title: "菜单管理",
+          url: "/admin/menus",
         },
         {
-          title: "更新日志",
-          url: "#",
+          title: "会员等级",
+          url: "/admin/vip-levels",
+        },
+        {
+          title: "会员管理",
+          url: "/admin/users",
         },
       ],
     },
@@ -133,53 +137,53 @@ const data = {
       ],
     },
   ],
-  projects: [
-    {
-      name: "设计工程",
-      url: "#",
-      icon: Frame,
-      items: [
-        {
-          name: "UI 设计",
-          url: "#ui-design"
-        },
-        {
-          name: "平面设计",
-          url: "#graphic-design"
-        }
-      ]
-    },
-    {
-      name: "销售营销",
-      url: "#",
-      icon: PieChart,
-      items: [
-        {
-          name: "数据分析",
-          url: "#data-analysis"
-        },
-        {
-          name: "市场调研",
-          url: "#market-research"
-        }
-      ]
-    },
-    {
-      name: "旅游项目",
-      url: "#",
-      icon: Map,
-      items: [
-        {
-          name: "景点规划",
-          url: "#attractions"
-        },
-        {
-          name: "路线设计",
-          url: "#routes"
-        }
-      ]
-    },
-  ],
+  // projects: [
+  //   {
+  //     name: "系统设置",
+  //     url: "#",
+  //     icon: Settings2,
+  //     items: [
+  //       {
+  //         name: "UI 设计",
+  //         url: "#ui-design"
+  //       },
+  //       {
+  //         name: "平面设计",
+  //         url: "#graphic-design"
+  //       }
+  //     ]
+  //   },
+  //   {
+  //     name: "销售营销",
+  //     url: "#",
+  //     icon: PieChart,
+  //     items: [
+  //       {
+  //         name: "数据分析",
+  //         url: "#data-analysis"
+  //       },
+  //       {
+  //         name: "市场调研",
+  //         url: "#market-research"
+  //       }
+  //     ]
+  //   },
+  //   {
+  //     name: "旅游项目",
+  //     url: "#",
+  //     icon: Map,
+  //     items: [
+  //       {
+  //         name: "景点规划",
+  //         url: "#attractions"
+  //       },
+  //       {
+  //         name: "路线设计",
+  //         url: "#routes"
+  //       }
+  //     ]
+  //   },
+  // ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -190,7 +194,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
