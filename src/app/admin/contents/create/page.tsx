@@ -70,12 +70,23 @@ export default function CreateContentPage() {
   // 加载分类详情
   const loadCategory = React.useCallback(async (categoryId: string) => {
     try {
-      const category = await contentCategoryService.getById(parseInt(categoryId))
-      setSelectedCategory(category)
+      const category = await contentCategoryService.getById(parseInt(categoryId));
+      setSelectedCategory(category);
+      
+      // 如果分类有关联的模型和属性，初始化属性值
+      if (category.model?.attributes) {
+        setFormData(prev => ({
+          ...prev,
+          attributeValues: category.model.attributes.map(modelAttr => ({
+            attributeId: modelAttr.attributeId,
+            valueId: modelAttr.attribute.values[0]?.id || 0
+          }))
+        }));
+      }
     } catch (error) {
-      toast.error('加载分类详情失败')
+      toast.error('加载分类详情失败');
     }
-  }, [])
+  }, []);
 
   // 加载属性列表
   const loadAttributes = React.useCallback(async () => {
@@ -239,8 +250,8 @@ export default function CreateContentPage() {
                   </SelectContent>
                 </Select>
                 {selectedCategory?.model && (
-                  <div className="space-y-4 mt-4 p-4 border rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-2">
+                  <div className="p-4 mt-4 space-y-4 rounded-lg border bg-muted/50">
+                    <div className="flex gap-2 items-center">
                       <Badge variant="outline" className="bg-primary/5">
                         {selectedCategory.model.name}
                       </Badge>
@@ -250,17 +261,22 @@ export default function CreateContentPage() {
                     </div>
                     
                     <div className="grid gap-4">
-                      {selectedCategory.model.attributes?.map((attr: any) => (
-                        <div key={attr.id} className="space-y-2">
-                          <Label>{attr.name}</Label>
+                      {selectedCategory.model.attributes?.map((attr) => (
+                        <div key={attr.attributeId} className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Label>{attr.name}</Label>
+                            <span className="text-xs text-muted-foreground">
+                              ({attr.type === 'SINGLE' ? '单选' : '多选'})
+                            </span>
+                          </div>
                           <Select
-                            value={formData.attributeValues.find(av => av.attributeId === attr.id)?.valueId.toString()}
+                            value={formData.attributeValues.find(av => av.attributeId === attr.attributeId)?.attributeValueId?.toString()}
                             onValueChange={(value) => {
                               setFormData(prev => ({
                                 ...prev,
                                 attributeValues: prev.attributeValues.map(av => 
-                                  av.attributeId === attr.id 
-                                    ? { ...av, valueId: parseInt(value) }
+                                  av.attributeId === attr.attributeId 
+                                    ? { ...av, attributeValueId: parseInt(value) }
                                     : av
                                 )
                               }))
@@ -270,7 +286,7 @@ export default function CreateContentPage() {
                               <SelectValue placeholder={`请选择${attr.name}`} />
                             </SelectTrigger>
                             <SelectContent>
-                              {attr.values?.map((value: any) => (
+                              {attr.values?.map((value) => (
                                 <SelectItem key={value.id} value={value.id.toString()}>
                                   {value.value}
                                 </SelectItem>

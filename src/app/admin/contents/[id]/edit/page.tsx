@@ -275,17 +275,22 @@ export default function EditContentPage({ params }: EditContentPageProps) {
                     </div>
                     
                     <div className="grid gap-4">
-                      {selectedCategory.model.attributes?.map((attr: any) => (
-                        <div key={attr.id} className="space-y-2">
-                          <Label>{attr.name}</Label>
+                      {selectedCategory.model.attributes?.map((attr) => (
+                        <div key={attr.attributeId} className="space-y-2">
+                          <div className="flex gap-2 items-center">
+                            <Label>{attr.name}</Label>
+                            <span className="text-xs text-muted-foreground">
+                              ({attr.type === 'single' ? '单选' : '多选'})
+                            </span>
+                          </div>
                           <Select
-                            value={formData.attributeValues.find(av => av.attributeId === attr.id)?.valueId.toString()}
+                            value={formData.attributeValues.find(av => av.attributeId === attr.attributeId)?.attributeValueId?.toString()}
                             onValueChange={(value) => {
                               setFormData(prev => ({
                                 ...prev,
                                 attributeValues: prev.attributeValues.map(av => 
-                                  av.attributeId === attr.id 
-                                    ? { ...av, valueId: parseInt(value) }
+                                  av.attributeId === attr.attributeId 
+                                    ? { ...av, attributeValueId: parseInt(value) }
                                     : av
                                 )
                               }))
@@ -295,7 +300,7 @@ export default function EditContentPage({ params }: EditContentPageProps) {
                               <SelectValue placeholder={`请选择${attr.name}`} />
                             </SelectTrigger>
                             <SelectContent>
-                              {attr.values?.map((value: any) => (
+                              {attr.values?.map((value) => (
                                 <SelectItem key={value.id} value={value.id.toString()}>
                                   {value.value}
                                 </SelectItem>

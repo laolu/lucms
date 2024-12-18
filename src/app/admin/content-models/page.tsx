@@ -9,17 +9,21 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { contentModelService } from '@/services/content-model';
 import { FileEdit, Plus, Search, Trash2 } from 'lucide-react';
+import type { ContentModel } from '@/services/content-model';
 
 export default function ContentModelsPage() {
-  const [models, setModels] = React.useState<any[]>([]);
+  const [models, setModels] = React.useState<ContentModel[]>([]);
   const [searchQuery, setSearchQuery] = React.useState('');
 
   // 加载模型数据
   const loadModels = React.useCallback(async () => {
     try {
+      console.log('开始加载模型列表');
       const data = await contentModelService.getAll();
+      console.log('获取到的模型数据:', data);
       setModels(data);
     } catch (error) {
+      console.error('加载模型失败:', error);
       toast.error('加载模型失败');
     }
   }, []);
@@ -35,6 +39,18 @@ export default function ContentModelsPage() {
       model.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [models, searchQuery]);
+
+  // 获取属性类型的显示文本
+  const getAttributeTypeText = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'single':
+        return '单选';
+      case 'multiple':
+        return '多选';
+      default:
+        return type || '未知';
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -78,13 +94,22 @@ export default function ContentModelsPage() {
                 <div className="text-sm text-muted-foreground">
                   {model.description || '暂无描述'}
                 </div>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {model.attributes?.map(({ attribute }) => (
-                    <Badge key={attribute.id} variant="outline">
-                      {attribute.name}
-                    </Badge>
-                  ))}
-                </div>
+                {model.attributes && model.attributes.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {model.attributes.map((attr) => (
+                      <Badge 
+                        key={attr.attributeId} 
+                        variant="outline" 
+                        className="flex items-center gap-1"
+                      >
+                        {attr.name}
+                        <span className="text-xs text-muted-foreground">
+                          ({getAttributeTypeText(attr.type)})
+                        </span>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2">
@@ -111,6 +136,7 @@ export default function ContentModelsPage() {
                         toast.success('删除成功');
                         loadModels();
                       } catch (error) {
+                        console.error('删除失败:', error);
                         toast.error('删除失败');
                       }
                     }
@@ -121,6 +147,12 @@ export default function ContentModelsPage() {
               </div>
             </div>
           ))}
+
+          {filteredModels.length === 0 && (
+            <div className="text-center py-6 text-muted-foreground">
+              {searchQuery ? '没有找到匹配的模型' : '暂无内容模型'}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

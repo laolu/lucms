@@ -17,11 +17,10 @@ export class ContentModel {
   @OneToMany(() => ContentCategory, category => category.model)
   categories: ContentCategory[];
 
-  @OneToMany(() => ContentModelAttribute, modelAttribute => modelAttribute.model, { eager: true })
+  @OneToMany(() => ContentModelAttribute, modelAttribute => modelAttribute.model, {
+    eager: true
+  })
   attributes: ContentModelAttribute[];
-
-  @OneToMany(() => ContentModelAttributeValue, attributeValue => attributeValue.model, { eager: true })
-  attributeValues: ContentModelAttributeValue[];
 
   @Column({ type: 'int', default: 0 })
   sort: number;

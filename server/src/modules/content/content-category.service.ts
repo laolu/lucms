@@ -50,10 +50,18 @@ export class ContentCategoryService {
   }
 
   async findOne(id: number): Promise<ContentCategory> {
-    const category = await this.categoryRepository.findOne({
-      where: { id },
-      relations: ['parent', 'children', 'model', 'model.attributes'],
-    });
+    const category = await this.categoryRepository
+      .createQueryBuilder('category')
+      .leftJoinAndSelect('category.model', 'model')
+      .leftJoinAndSelect('model.attributes', 'modelAttribute')
+      .leftJoinAndSelect('modelAttribute.attribute', 'attribute')
+      .leftJoinAndSelect('attribute.values', 'attributeValue')
+      .where('category.id = :id', { id })
+      .orderBy({
+        'modelAttribute.sort': 'ASC',
+        'attributeValue.sort': 'ASC'
+      })
+      .getOne();
 
     if (!category) {
       throw new NotFoundException('分类不存在');

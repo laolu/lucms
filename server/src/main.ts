@@ -53,7 +53,7 @@ async function bootstrap() {
   // 启用 CORS
   app.enableCors();
 
-  const port = process.env.APP_PORT || 3000;
+  const port = process.env.APP_PORT || 8080;
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
   console.log(`Swagger documentation is available at: http://localhost:${port}/docs`);

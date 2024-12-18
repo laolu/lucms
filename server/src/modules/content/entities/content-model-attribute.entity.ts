@@ -14,7 +14,7 @@ export class ContentModelAttribute {
   @JoinColumn({ name: 'modelId' })
   model: ContentModel;
 
-  @ManyToOne(() => ContentAttribute, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ContentAttribute, { onDelete: 'CASCADE', eager: true })
   @JoinColumn({ name: 'attributeId' })
   attribute: ContentAttribute;
 

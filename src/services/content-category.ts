@@ -1,20 +1,44 @@
 import client from '@/lib/api-client';
 import { API_ENDPOINTS } from '@/lib/api-config';
+import { AttributeType } from './content-attribute';
+
+export interface ContentModelAttributeValue {
+  id: number;
+  value: string;
+  sort: number;
+  isActive: boolean;
+}
+
+export interface ContentModelAttribute {
+  modelId: number;
+  attributeId: number;
+  name: string;
+  type: AttributeType;
+  values: ContentModelAttributeValue[];
+  sort: number;
+  isEnabled: boolean;
+}
+
+export interface ContentModel {
+  id: number;
+  name: string;
+  description: string;
+  attributes: ContentModelAttribute[];
+  sort: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface ContentCategory {
   id: number;
   name: string;
   description: string;
   parentId: number;
-  parent?: ContentCategory;
-  children?: ContentCategory[];
+  modelId: number | null;
   sort: number;
   isActive: boolean;
-  modelId: number | null;
-  model?: {
-    id: number;
-    name: string;
-  };
+  model?: ContentModel;
   createdAt: string;
   updatedAt: string;
 }

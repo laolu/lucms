@@ -21,29 +21,24 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { contentModelService } from '@/services/content-model';
 import { contentAttributeService } from '@/services/content-attribute';
-import type { ContentModel} from '@/services/content-model';
-import { ChevronDown, ChevronRight, Plus, X } from 'lucide-react';
+import type { ContentModel, ContentAttribute } from '@/services/content-model';
+import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   name: z.string().min(1, '请输入名称'),
   description: z.string().optional(),
-  attributeIds: z.array(z.number()),
-  attributeValues: z.array(z.object({
-    modelId: z.number().optional(),
-    attributeId: z.number(),
-    attributeValueId: z.number(),
-    isEnabled: z.boolean().optional(),
-    sort: z.number().optional()
-  })),
   sort: z.number().min(0).default(0),
   isActive: z.boolean().default(true),
+  attributeIds: z.array(z.number()),
+  attributeValues: z.array(z.object({
+    attributeId: z.number(),
+    attributeValueId: z.number(),
+  })),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -56,35 +51,19 @@ export function ModelForm({ model }: ModelFormProps) {
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
-  const [formData, setFormData] = React.useState<FormData | null>(null);
   const [attributes, setAttributes] = React.useState<ContentAttribute[]>([]);
-  const [selectedAttributeIds, setSelectedAttributeIds] = React.useState<number[]>(
-    model?.attributes?.map(attr => attr.attribute.id) || []
-  );
-  const [selectedValueIds, setSelectedValueIds] = React.useState<number[]>(
-    model?.attributeValues?.map(value => value.attributeValue.id) || []
-  );
-  const [selectedState, setSelectedState] = React.useState<{
-    attributeIds: number[];
-    valueIds: number[];
-    attributeValues: FormData['attributeValues'];
-  } | null>(null);
+  const [selectedAttributeIds, setSelectedAttributeIds] = React.useState<number[]>([]);
+  const [selectedValues, setSelectedValues] = React.useState<Map<number, number[]>>(new Map());
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: model?.name || '',
       description: model?.description || '',
-      attributeIds: model?.attributes?.map(attr => attr.attribute.id) || [],
-      attributeValues: model?.attributeValues?.map(value => ({
-        modelId: model?.id,
-        attributeId: value.attribute.id,
-        attributeValueId: value.attributeValue.id,
-        isEnabled: value.isEnabled,
-        sort: value.sort
-      })) || [],
       sort: model?.sort || 0,
       isActive: model?.isActive ?? true,
+      attributeIds: [],
+      attributeValues: [],
     },
   });
 
@@ -95,36 +74,41 @@ export function ModelForm({ model }: ModelFormProps) {
       console.log('加载的属性数据:', data);
       setAttributes(data);
 
-      // 如果是编辑模式，使用现有的选择
       if (model) {
         console.log('编辑模式，现有模型:', model);
-        const selectedAttrIds = model.attributes.map(attr => attr.attribute.id);
-        const selectedValIds = model.attributeValues.map(value => value.attributeValue.id);
-        console.log('选中的属性ID:', selectedAttrIds);
-        console.log('选中的属性值ID:', selectedValIds);
-        setSelectedAttributeIds(selectedAttrIds);
-        setSelectedValueIds(selectedValIds);
-        return;
+        // 设置已选择的属性
+        const attrIds = model.attributes.map(attr => attr.attributeId);
+        setSelectedAttributeIds(attrIds);
+
+        // 设置已选择的属性值
+        const valuesMap = new Map<number, number[]>();
+        model.attributes.forEach(attr => {
+          // 获取已选中的值
+          const checkedValues = attr.values
+            .filter(v => v.isChecked)
+            .map(v => v.id);
+          if (checkedValues.length > 0) {
+            valuesMap.set(attr.attributeId, checkedValues);
+          }
+        });
+        setSelectedValues(valuesMap);
+
+        // 更新表单数据
+        form.setValue('attributeIds', attrIds);
+        form.setValue('attributeValues', model.attributes.flatMap(attr => 
+          attr.values
+            .filter(v => v.isChecked)
+            .map(v => ({
+              attributeId: attr.attributeId,
+              attributeValueId: v.id,
+            }))
+        ));
+
+        console.log('已选择的属性:', attrIds);
+        console.log('已选择的属性值:', Array.from(valuesMap.entries()));
       }
-
-      // 如果是创建模式，默认全选所有属性和属性值
-      const allAttributeIds = data.map(attr => attr.id);
-      const allValueIds = data.flatMap(attr => attr.values.map(value => value.id));
-      const allAttributeValues = data.flatMap(attr => 
-        attr.values.map((value, index) => ({
-          modelId: model?.id,
-          attributeId: attr.id,
-          attributeValueId: value.id,
-          isEnabled: true,
-          sort: index
-        }))
-      );
-
-      setSelectedAttributeIds(allAttributeIds);
-      setSelectedValueIds(allValueIds);
-      form.setValue('attributeIds', allAttributeIds);
-      form.setValue('attributeValues', allAttributeValues);
     } catch (error) {
+      console.error('加载属性列表失败:', error);
       toast.error('加载属性列表失败');
     }
   }, [form, model]);
@@ -133,420 +117,249 @@ export function ModelForm({ model }: ModelFormProps) {
     loadAttributes();
   }, [loadAttributes]);
 
-  const handleSubmit = async (data: FormData) => {
-    // 保存当前的选择状态
-    setSelectedState({
-      attributeIds: selectedAttributeIds,
-      valueIds: selectedValueIds,
-      attributeValues: data.attributeValues
-    });
-    setFormData(data);
-    setShowConfirmDialog(true);
-  };
+  // 添加一个新的 useEffect 来监听 model 的变化
+  React.useEffect(() => {
+    if (model) {
+      // 设置已选择的属性
+      const attrIds = model.attributes.map(attr => attr.attributeId);
+      setSelectedAttributeIds(attrIds);
 
-  const handleDialogClose = () => {
-    if (!loading) {
-      // 如果取消，恢复之前的选择状态
-      if (selectedState) {
-        setSelectedAttributeIds(selectedState.attributeIds);
-        setSelectedValueIds(selectedState.valueIds);
-        form.setValue('attributeIds', selectedState.attributeIds);
-        form.setValue('attributeValues', selectedState.attributeValues);
-      }
-      setShowConfirmDialog(false);
+      // 设置已选择的属性值
+      const valuesMap = new Map<number, number[]>();
+      model.attributes.forEach(attr => {
+        const checkedValues = attr.values
+          .filter(v => v.isChecked)
+          .map(v => v.id);
+        valuesMap.set(attr.attributeId, checkedValues);
+      });
+      setSelectedValues(valuesMap);
+
+      // 更新表单数据
+      form.setValue('attributeIds', attrIds);
+      const attributeValues = model.attributes.flatMap(attr => 
+        attr.values
+          .filter(v => v.isChecked)
+          .map(v => ({
+            attributeId: attr.attributeId,
+            attributeValueId: v.id,
+          }))
+      );
+      form.setValue('attributeValues', attributeValues);
     }
-  };
+  }, [model, form]);
 
-  const onSubmit = async (data: FormData) => {
+  const handleSubmit = async (data: FormData) => {
     try {
       setLoading(true);
 
-      console.log('原始表单数据:', data);
-
       // 准备提交数据
       const submitData = {
-        ...(model ? { id: model.id } : {}), // 如果是更新模式，添加 id 字段
+        ...(model ? { id: model.id } : {}),
         name: data.name,
         description: data.description || '',
-        attributeIds: data.attributeIds || [],
-        attributeValues: data.attributeValues.map(value => ({
-          attributeId: value.attributeId,
-          attributeValueId: value.attributeValueId,
-          isEnabled: value.isEnabled ?? true,
-          sort: value.sort ?? 0
-        })),
         sort: data.sort || 0,
-        isActive: data.isActive ?? true
+        isActive: form.getValues('isActive'),
+        attributeIds: selectedAttributeIds,
+        attributeValues: Array.from(selectedValues.entries()).flatMap(([attributeId, valueIds]) => 
+          valueIds.map(valueId => ({
+            attributeId,
+            attributeValueId: valueId,
+            isChecked: true,
+          }))
+        ),
       };
 
+      console.log('提交数据:', submitData);
+
       if (model) {
-        // 更新模式
-        console.log('更新数据:', submitData);
         await contentModelService.update(model.id, submitData);
         toast.success('更新成功');
       } else {
-        // 创建模式
-        console.log('创建数据:', submitData);
         await contentModelService.create(submitData);
         toast.success('创建成功');
       }
-      
+
       router.push('/admin/content-models');
       router.refresh();
     } catch (error: any) {
       console.error('操作失败:', error);
-      const errorMessage = error.response?.data?.message || error.message || (model ? '更新失败' : '创建失败');
-      toast.error(errorMessage);
-      // 发生错误时不关闭对话框，让用户可以重试
+      toast.error(error.response?.data?.message || error.message || (model ? '更新失败' : '创建失败'));
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // 只有在成功时才重置状态和关闭对话框
-    setLoading(false);
-    setShowConfirmDialog(false);
-    setSelectedState(null);
   };
 
-  const handleAttributeChange = (attributeId: number, checked: boolean) => {
-    const attribute = attributes.find(attr => attr.id === attributeId);
+  const toggleAttribute = (attributeId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedAttributeIds(prev => [...prev, attributeId]);
+      // 对于单选属性，默认选中第一个值
+      const attribute = attributes.find(a => a.id === attributeId);
+      if (attribute && attribute.values.length > 0) {
+        if (attribute.type === 'single') {
+          setSelectedValues(prev => {
+            const newMap = new Map(prev);
+            newMap.set(attributeId, [attribute.values[0].id]);
+            return newMap;
+          });
+        }
+      }
+    } else {
+      setSelectedAttributeIds(prev => prev.filter(id => id !== attributeId));
+      setSelectedValues(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(attributeId);
+        return newMap;
+      });
+    }
+  };
+
+  const toggleAttributeValue = (attributeId: number, valueId: number, checked: boolean) => {
+    const attribute = attributes.find(a => a.id === attributeId);
     if (!attribute) return;
 
-    let newSelectedIds = [...selectedAttributeIds];
-    let newValueIds = [...selectedValueIds];
-    let newAttributeValues = form.getValues('attributeValues');
+    setSelectedValues(prev => {
+      const newMap = new Map(prev);
+      const currentValues = prev.get(attributeId) || [];
 
-    if (checked) {
-      // 选中属性
-      newSelectedIds = [...newSelectedIds, attributeId];
-      // 选中所有属性值
-      const attributeValueIds = attribute.values.map(value => value.id);
-      newValueIds = [...newValueIds, ...attributeValueIds];
-      // 添加属性值到表单
-      const newValues = attribute.values.map((value, index) => ({
-        modelId: model?.id || undefined,
-        attributeId: attribute.id,
-        attributeValueId: value.id,
-        isEnabled: true,
-        sort: newAttributeValues.length + index
-      }));
-      newAttributeValues = [...newAttributeValues, ...newValues];
-    } else {
-      // 取消选中属性
-      newSelectedIds = newSelectedIds.filter(id => id !== attributeId);
-      // 取消选中所有属性值
-      newValueIds = newValueIds.filter(id => 
-        !attribute.values.some(value => value.id === id)
-      );
-      // 从表单中移除属性值
-      newAttributeValues = newAttributeValues.filter(v => 
-        !attribute.values.some(value => value.id === v.attributeValueId)
-      );
-    }
-
-    setSelectedAttributeIds(newSelectedIds);
-    setSelectedValueIds(newValueIds);
-    form.setValue('attributeIds', newSelectedIds);
-    form.setValue('attributeValues', newAttributeValues);
-  };
-
-  const handleAttributeValueChange = (attributeId: number, valueId: number, checked: boolean) => {
-    const attribute = attributes.find(attr => attr.id === attributeId);
-    if (!attribute) return;
-
-    let newSelectedIds = [...selectedAttributeIds];
-    let newValueIds = [...selectedValueIds];
-    let newAttributeValues = form.getValues('attributeValues');
-
-    if (checked) {
-      // 选中属性值
-      if (!newSelectedIds.includes(attributeId)) {
-        newSelectedIds = [...newSelectedIds, attributeId];
+      if (checked) {
+        if (attribute.type === 'single') {
+          // 单选：替换现有值
+          newMap.set(attributeId, [valueId]);
+        } else {
+          // 多选：添加新值
+          newMap.set(attributeId, [...currentValues, valueId]);
+        }
+      } else {
+        // 取消选中：移除值
+        const newValues = currentValues.filter(id => id !== valueId);
+        if (newValues.length === 0) {
+          newMap.delete(attributeId);
+          // 如果没有选中的值，也取消选择属性
+          setSelectedAttributeIds(prev => prev.filter(id => id !== attributeId));
+        } else {
+          newMap.set(attributeId, newValues);
+        }
       }
-      newValueIds = [...newValueIds, valueId];
-      // 添加到表单
-      if (!newAttributeValues.some(v => v.attributeValueId === valueId)) {
-        newAttributeValues = [
-          ...newAttributeValues,
-          {
-            attributeId: attributeId,
-            attributeValueId: valueId,
-            isEnabled: true,
-            sort: newAttributeValues.length
-          }
-        ];
-      }
-    } else {
-      // 取消选中属性值
-      newValueIds = newValueIds.filter(id => id !== valueId);
-      // 从表单中移除
-      newAttributeValues = newAttributeValues.filter(v => v.attributeValueId !== valueId);
-      // 如果该属性没有任何选中的值，也取消选择该属性
-      const hasOtherValues = newValueIds.some(id => 
-        attribute.values.some(value => value.id === id)
-      );
-      if (!hasOtherValues) {
-        newSelectedIds = newSelectedIds.filter(id => id !== attributeId);
-      }
-    }
 
-    setSelectedAttributeIds(newSelectedIds);
-    setSelectedValueIds(newValueIds);
-    form.setValue('attributeIds', newSelectedIds);
-    form.setValue('attributeValues', newAttributeValues);
-  };
-
-  const handleAttributeAllValues = (attributeId: number, checked: boolean) => {
-    const attribute = attributes.find(attr => attr.id === attributeId);
-    if (!attribute) return;
-
-    let newSelectedIds = [...selectedAttributeIds];
-    let newValueIds = [...selectedValueIds];
-    let newAttributeValues = form.getValues('attributeValues');
-
-    if (checked) {
-      // 选中所有属性值
-      if (!newSelectedIds.includes(attributeId)) {
-        newSelectedIds = [...newSelectedIds, attributeId];
-      }
-      const attributeValueIds = attribute.values.map(value => value.id);
-      newValueIds = [
-        ...newValueIds.filter(id => !attributeValueIds.includes(id)),
-        ...attributeValueIds
-      ];
-      // 添加到表单
-      newAttributeValues = [
-        ...newAttributeValues.filter(v => !attributeValueIds.includes(v.attributeValueId)),
-        ...attribute.values.map((value, index) => ({
-          attributeId: attribute.id,
-          attributeValueId: value.id,
-          isEnabled: true,
-          sort: newAttributeValues.length + index
-        }))
-      ];
-    } else {
-      // 取消选中所有属性值
-      newValueIds = newValueIds.filter(id => 
-        !attribute.values.some(value => value.id === id)
-      );
-      // 从表单中移除
-      newAttributeValues = newAttributeValues.filter(v => 
-        !attribute.values.some(value => value.id === v.attributeValueId)
-      );
-      // 取消选择属性
-      newSelectedIds = newSelectedIds.filter(id => id !== attributeId);
-    }
-
-    setSelectedAttributeIds(newSelectedIds);
-    setSelectedValueIds(newValueIds);
-    form.setValue('attributeIds', newSelectedIds);
-    form.setValue('attributeValues', newAttributeValues);
-  };
-
-  const handleAllAttributes = (checked: boolean) => {
-    if (checked) {
-      const allAttributeIds = attributes.map(attr => attr.id);
-      const allValueIds = attributes.flatMap(attr => attr.values.map(value => value.id));
-      const allAttributeValues = attributes.flatMap(attr => 
-        attr.values.map((value, index) => ({
-          attributeId: attr.id,
-          attributeValueId: value.id,
-          isEnabled: true,
-          sort: index
-        }))
-      );
-
-      setSelectedAttributeIds(allAttributeIds);
-      setSelectedValueIds(allValueIds);
-      form.setValue('attributeIds', allAttributeIds);
-      form.setValue('attributeValues', allAttributeValues);
-    } else {
-      setSelectedAttributeIds([]);
-      setSelectedValueIds([]);
-      form.setValue('attributeIds', []);
-      form.setValue('attributeValues', []);
-    }
-  };
-
-  const isAttributeValueSelected = (valueId: number) => {
-    return selectedValueIds.includes(valueId);
+      return newMap;
+    });
   };
 
   return (
-    <>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>基本信息</CardTitle>
-            <CardDescription>设置内容模型的基本信息</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">名称</Label>
-              <Input
-                id="name"
-                {...form.register('name')}
-                placeholder="请输入模型名称"
-              />
-              {form.formState.errors.name && (
-                <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
-              )}
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="description">描述</Label>
-              <Textarea
-                id="description"
-                {...form.register('description')}
-                placeholder="请输入模型描述"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="sort">排序</Label>
-              <Input
-                id="sort"
-                type="number"
-                {...form.register('sort', { valueAsNumber: true })}
-              />
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <Switch
-                id="isActive"
-                checked={form.watch('isActive')}
-                onCheckedChange={(checked) => form.setValue('isActive', checked)}
-              />
-              <Label htmlFor="isActive">启用</Label>
-            </div>
-
-            {model && (
-              <div className="grid gap-4 pt-4 border-t">
-                <div className="grid gap-2">
-                  <Label className="text-muted-foreground">创建时间</Label>
-                  <div className="text-sm">
-                    {new Date(model.createdAt).toLocaleString('zh-CN', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                      hour12: false
-                    })}
-                  </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label className="text-muted-foreground">更新时间</Label>
-                  <div className="text-sm">
-                    {new Date(model.updatedAt).toLocaleString('zh-CN', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                      hour12: false
-                    })}
-                  </div>
-                </div>
-              </div>
+    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>基本信息</CardTitle>
+          <CardDescription>设置内容模型的基本信息</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">名称</Label>
+            <Input
+              id="name"
+              {...form.register('name')}
+              placeholder="请输入模型名称"
+            />
+            {form.formState.errors.name && (
+              <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
             )}
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>属性设置</CardTitle>
-            <CardDescription>选择并配置模型包含的属性</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="flex gap-2 items-center mb-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAllAttributes(true)}
-                >
-                  全选
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAllAttributes(false)}
-                >
-                  清空
-                </Button>
+          <div className="grid gap-2">
+            <Label htmlFor="description">描述</Label>
+            <Textarea
+              id="description"
+              {...form.register('description')}
+              placeholder="请输入模型描述"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="sort">排序</Label>
+            <Input
+              id="sort"
+              type="number"
+              {...form.register('sort', { valueAsNumber: true })}
+            />
+          </div>
+
+          <div className="flex gap-2 items-center">
+            <Switch
+              id="isActive"
+              checked={form.watch('isActive')}
+              onCheckedChange={(checked) => form.setValue('isActive', checked)}
+            />
+            <Label htmlFor="isActive">启用</Label>
+          </div>
+
+          {model && (
+            <div className="grid gap-4 pt-4 border-t">
+              <div className="grid gap-2">
+                <Label className="text-muted-foreground">创建时间</Label>
+                <div className="text-sm">
+                  {new Date(model.createdAt).toLocaleString('zh-CN')}
+                </div>
               </div>
+              <div className="grid gap-2">
+                <Label className="text-muted-foreground">更新时间</Label>
+                <div className="text-sm">
+                  {new Date(model.updatedAt).toLocaleString('zh-CN')}
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-              {attributes.map((attribute) => (
+      <Card>
+        <CardHeader>
+          <CardTitle>属性设置</CardTitle>
+          <CardDescription>选择并配置模型包含的属性</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {attributes.map((attribute) => {
+              const modelAttribute = model?.attributes.find(attr => attr.attributeId === attribute.id);
+              const isAttributeSelected = selectedAttributeIds.includes(attribute.id);
+              const selectedValueIds = selectedValues.get(attribute.id) || [];
+              
+              return (
                 <div 
-                  key={attribute.id} 
+                  key={attribute.id}
                   className={cn(
                     "rounded-lg border p-4 transition-colors",
-                    selectedAttributeIds.includes(attribute.id) && "bg-accent/50"
+                    isAttributeSelected && "bg-accent/50"
                   )}
                 >
-                  <div className="flex gap-4 items-center">
-                    <div className="flex flex-1 gap-2 items-center">
-                      <Checkbox
-                        id={`attribute-${attribute.id}`}
-                        checked={selectedAttributeIds.includes(attribute.id)}
-                        onCheckedChange={(checked) => handleAttributeChange(attribute.id, checked as boolean)}
-                      />
-                      <Label htmlFor={`attribute-${attribute.id}`} className="font-medium">
-                        {attribute.name}
-                      </Label>
-                      <Badge variant="secondary">
-                        {attribute.type === 'SINGLE' ? '单选' : '多选'}
-                      </Badge>
-                    </div>
-                    {selectedAttributeIds.includes(attribute.id) && (
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAttributeAllValues(attribute.id, true)}
-                        >
-                          全选
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAttributeAllValues(attribute.id, false)}
-                        >
-                          清空
-                        </Button>
-                      </div>
-                    )}
+                  <div className="flex gap-2 items-center">
+                    <Switch
+                      checked={isAttributeSelected}
+                      onCheckedChange={(checked) => toggleAttribute(attribute.id, checked)}
+                    />
+                    <span className="font-medium">{attribute.name}</span>
+                    <Badge variant="secondary">
+                      {attribute.type === 'single' ? '单选' : '多选'}
+                    </Badge>
                   </div>
-                  
-                  {selectedAttributeIds.includes(attribute.id) && (
+
+                  {isAttributeSelected && (
                     <div className="mt-4 ml-8">
-                      <div className="mb-2 text-sm text-muted-foreground">可用的属性值：</div>
+                      <div className="mb-2 text-sm text-muted-foreground">
+                        可选值：{attribute.type === 'single' ? '（单选）' : '（可多选）'}
+                      </div>
                       <div className="flex flex-wrap gap-2">
                         {attribute.values.map((value) => {
-                          const selected = isAttributeValueSelected(value.id);
+                          const isSelected = selectedValueIds.includes(value.id);
+                          
                           return (
                             <Badge
                               key={value.id}
-                              variant={selected ? "default" : "outline"}
-                              className="transition-colors cursor-pointer hover:opacity-80"
-                              onClick={() => handleAttributeValueChange(
-                                attribute.id,
-                                value.id,
-                                !selected
-                              )}
+                              variant={isSelected ? "default" : "outline"}
+                              className="cursor-pointer hover:opacity-80"
+                              onClick={() => toggleAttributeValue(attribute.id, value.id, !isSelected)}
                             >
                               {value.value}
-                              {selected && (
-                                <X className="ml-1 w-3 h-3" />
-                              )}
+                              {isSelected && <X className="ml-1 w-3 h-3" />}
                             </Badge>
                           );
                         })}
@@ -554,65 +367,25 @@ export function ModelForm({ model }: ModelFormProps) {
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="flex gap-4 justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={loading}
-          >
-            取消
-          </Button>
-          <Button type="submit" disabled={loading}>
-            {loading ? '提交中...' : (model ? '更新' : '创建')}
-          </Button>
-        </div>
-      </form>
-
-      <AlertDialog 
-        open={showConfirmDialog} 
-        onOpenChange={(open) => {
-          if (!open && !loading) {
-            handleDialogClose();
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {model ? '确认更新内容模型' : '确认创建内容模型'}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {model 
-                ? '您确定要更新这个内容模型吗？更新后将立即生效。'
-                : '您确定要创建这个内容模型吗？创建后将立即生效。'
-              }
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel 
-              onClick={handleDialogClose}
-              disabled={loading}
-            >
-              取消
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => formData && onSubmit(formData)}
-              disabled={loading}
-            >
-              {loading 
-                ? (model ? '更新中...' : '创建中...') 
-                : (model ? '确认更新' : '确认创建')
-              }
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+      <div className="flex gap-4 justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.back()}
+          disabled={loading}
+        >
+          取消
+        </Button>
+        <Button type="submit" disabled={loading}>
+          {loading ? '提交中...' : (model ? '更新' : '创建')}
+        </Button>
+      </div>
+    </form>
   );
 } 
