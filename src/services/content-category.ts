@@ -5,7 +5,7 @@ export interface ContentCategory {
   id: number;
   name: string;
   description: string;
-  parentId: number | null;
+  parentId: number;
   parent?: ContentCategory;
   children?: ContentCategory[];
   sort: number;
@@ -43,15 +43,8 @@ export const contentCategoryService = {
   // 获取分类树
   getTree: async () => {
     try {
-      console.log('开始请求分类树数据');
       const response = await client.get<ApiResponse<ContentCategory[]>>(API_ENDPOINTS.CONTENT_CATEGORIES_TREE);
-      console.log('获取到响应:', response);
-      if (!response.data) {
-        console.warn('响应中没有data字段:', response);
-        return [];
-      }
-      if (!Array.isArray(response.data.data)) {
-        console.warn('data不是数组:', response.data);
+      if (!response.data?.data || !Array.isArray(response.data.data)) {
         return [];
       }
       return response.data.data;
@@ -95,6 +88,11 @@ export const contentCategoryService = {
   // 更新分类
   update: async (id: number, data: Partial<CreateCategoryDto>) => {
     try {
+      // 确保 parentId 不为 null
+      if (data.parentId === null || data.parentId === undefined) {
+        data.parentId = 0;
+      }
+
       const response = await client.put<ApiResponse<ContentCategory>>(
         API_ENDPOINTS.CONTENT_CATEGORY_DETAIL(id),
         data
@@ -127,8 +125,11 @@ export const contentCategoryService = {
   },
 
   // 移动分类（更改父级）
-  move: async (id: number, parentId: number) => {
-    const response = await client.patch<ApiResponse<ContentCategory>>(API_ENDPOINTS.CONTENT_CATEGORY_MOVE(id), { parentId });
+  move: async (id: number, parentId: number | null) => {
+    const response = await client.patch<ApiResponse<ContentCategory>>(
+      API_ENDPOINTS.CONTENT_CATEGORY_MOVE(id), 
+      { parentId: parentId || 0 }
+    );
     return response.data?.data;
   },
 

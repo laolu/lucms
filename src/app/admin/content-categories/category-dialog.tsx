@@ -75,7 +75,7 @@ export function CategoryDialog({
         description: initialData.description,
         sort: initialData.sort,
         isActive: initialData.isActive,
-        parentId: initialData.parentId,
+        parentId: initialData.parentId || 0,
         modelId: initialData.modelId?.toString() || '',
       })
     } else {
@@ -84,7 +84,7 @@ export function CategoryDialog({
         description: '',
         sort: 0,
         isActive: true,
-        parentId: parentId,
+        parentId: parentId || 0,
         modelId: '',
       })
     }
@@ -92,8 +92,7 @@ export function CategoryDialog({
 
   const buildCategoryOptions = (items: any[], level = 0): React.ReactNode[] => {
     if (!Array.isArray(items)) {
-      console.warn('Expected items to be an array:', items)
-      return []
+      return [];
     }
     
     return items.flatMap((item) => {
@@ -114,11 +113,17 @@ export function CategoryDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit({
-      ...formData,
-      parentId: formData.parentId === "none" ? 0 : Number(formData.parentId),
+    // 确保所有字段都有正确的类型
+    const submitData = {
+      name: formData.name,
+      description: formData.description,
+      sort: Number(formData.sort),
+      isActive: formData.isActive,
+      parentId: Number(formData.parentId) || 0,  // 确保是数字
       modelId: formData.modelId ? Number(formData.modelId) : null
-    })
+    };
+    
+    onSubmit(submitData);
   }
 
   return (
@@ -132,28 +137,26 @@ export function CategoryDialog({
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            {!initialData && (
-              <div className="grid gap-2">
-                <Label htmlFor="parentId">父分类</Label>
-                <Select
-                  value={formData.parentId?.toString() || "0"}
-                  onValueChange={(value) => 
-                    setFormData({ 
-                      ...formData, 
-                      parentId: value === "none" ? 0 : parseInt(value) 
-                    })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="选择父分类（可选）" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">无父分类</SelectItem>
-                    {buildCategoryOptions(categories)}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="grid gap-2">
+              <Label htmlFor="parentId">父分类</Label>
+              <Select
+                value={formData.parentId?.toString() || "0"}
+                onValueChange={(value) => 
+                  setFormData({ 
+                    ...formData, 
+                    parentId: parseInt(value) || 0 
+                  })
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="选择父分类（可选）" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">无父分类</SelectItem>
+                  {buildCategoryOptions(categories.filter(c => c.id !== initialData?.id))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="grid gap-2">
               <Label htmlFor="name">分类名称</Label>

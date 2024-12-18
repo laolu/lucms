@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ContentCategory } from './entities/content-category.entity';
@@ -7,8 +7,6 @@ import { ContentModel } from './entities/content-model.entity';
 
 @Injectable()
 export class ContentCategoryService {
-  private readonly logger = new Logger(ContentCategoryService.name);
-
   constructor(
     @InjectRepository(ContentCategory)
     private categoryRepository: Repository<ContentCategory>,
@@ -27,7 +25,11 @@ export class ContentCategoryService {
       }
     }
 
-    const category = this.categoryRepository.create(createDto);
+    // 确保 parentId 有默认值 0
+    const category = this.categoryRepository.create({
+      ...createDto,
+      parentId: createDto.parentId ?? 0
+    });
     return await this.categoryRepository.save(category);
   }
 
@@ -61,7 +63,11 @@ export class ContentCategoryService {
   }
 
   async update(id: number, updateDto: Partial<CreateCategoryDto>): Promise<ContentCategory> {
-    const category = await this.findOne(id);
+    console.log('更新分类，接收到的数据:', updateDto);
+    console.log('parentId 类型:', typeof updateDto.parentId);
+    console.log('parentId 值:', updateDto.parentId);
+
+    const existingCategory = await this.findOne(id);
 
     // 如果要更新模型ID，验证模型是否存在
     if (updateDto.modelId) {
@@ -73,8 +79,25 @@ export class ContentCategoryService {
       }
     }
 
-    Object.assign(category, updateDto);
-    return await this.categoryRepository.save(category);
+    // 准备更新数据
+    const updateData = {
+      name: updateDto.name ?? existingCategory.name,
+      description: updateDto.description ?? existingCategory.description,
+      sort: updateDto.sort ?? existingCategory.sort,
+      isActive: updateDto.isActive ?? existingCategory.isActive,
+      modelId: updateDto.modelId ?? existingCategory.modelId,
+      parentId: updateDto.parentId ?? existingCategory.parentId ?? 0, // 确保有值
+    };
+
+    console.log('准备更新的数据:', updateData);
+    
+    // 使用 update 方法更新数据
+    await this.categoryRepository.update(id, updateData);
+
+    // 重新获取更新后的分类
+    const updatedCategory = await this.findOne(id);
+    console.log('更新后的分类:', updatedCategory);
+    return updatedCategory;
   }
 
   async remove(id: number): Promise<void> {
@@ -103,7 +126,7 @@ export class ContentCategoryService {
       category.parentId = parent.id;
     } else {
       category.parent = null;
-      category.parentId = null;
+      category.parentId = 0;
     }
 
     return await this.categoryRepository.save(category);
@@ -117,7 +140,7 @@ export class ContentCategoryService {
   private buildTree(categories: ContentCategory[], parentId: number | null = null): ContentCategory[] {
     return categories
       .filter(category => 
-        parentId === null ? category.parentId === 0 || !category.parentId : category.parentId === parentId
+        parentId === null ? category.parentId === 0 : category.parentId === parentId
       )
       .map(category => ({
         ...category,

@@ -13,13 +13,13 @@ export class ContentCategory {
   @Column({ nullable: true })
   description: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'int', nullable: true, default: 0 })
   parentId: number;
 
   @Column({ nullable: true })
   modelId: number;
 
-  @ManyToOne(() => ContentCategory, category => category.children)
+  @ManyToOne(() => ContentCategory, category => category.children, { onDelete: 'SET NULL' })
   parent: ContentCategory;
 
   @OneToMany(() => ContentCategory, category => category.parent)
