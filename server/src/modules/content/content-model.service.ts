@@ -151,46 +151,61 @@ export class ContentModelService {
     try {
       this.logger.log(`开始更新内容模型: ${id}, ${JSON.stringify(updateDto)}`);
       const model = await this.findOne(id);
-
+  
       // 1. 验证属性是否存在
+      this.logger.log(`验证属性: ${JSON.stringify(updateDto.attributeIds)}`);
       const attributes = await this.attributeRepository.findByIds(updateDto.attributeIds);
+      this.logger.log(`找到的属性: ${JSON.stringify(attributes)}`);
       if (attributes.length !== updateDto.attributeIds.length) {
         throw new NotFoundException('部分属性不存在');
       }
-
+  
       // 2. 验证属性值是否存在
       const attributeValueIds = updateDto.attributeValues.map(av => av.attributeValueId);
+      this.logger.log(`验证属性值: ${JSON.stringify(attributeValueIds)}`);
       const attributeValues = await this.attributeValueRepository.findByIds(attributeValueIds);
+      this.logger.log(`找到的属性值: ${JSON.stringify(attributeValues)}`);
       if (attributeValues.length !== attributeValueIds.length) {
         throw new NotFoundException('部分属性值不存在');
       }
-
+  
       // 3. 更新基本信息
-      Object.assign(model, {
+      this.logger.log(`更新前的模型信息: ${JSON.stringify(model)}`);
+      const modelToSave = {
+        id: id,
         name: updateDto.name,
         description: updateDto.description,
         sort: updateDto.sort,
         isActive: updateDto.isActive
-      });
+      };
+      this.logger.log(`准备保存的模型信息: ${JSON.stringify(modelToSave)}`);
 
       // 4. 保存模型
-      await this.modelRepository.save(model);
-
+      const savedModel = await this.modelRepository.save(modelToSave);
+      this.logger.log(`保存模型结果: ${JSON.stringify(savedModel)}`);
+  
       // 5. 更新属性关联
       await this.modelAttributeRepository.delete({ modelId: id });
+      this.logger.log(`已删除旧的属性关联`);
+      
       const modelAttributes = updateDto.attributeIds.map(attributeId => ({
         modelId: id,
         attributeId
       }));
-      await this.modelAttributeRepository
+      this.logger.log(`准备插入的属性关联: ${JSON.stringify(modelAttributes)}`);
+      
+      const attributeResult = await this.modelAttributeRepository
         .createQueryBuilder()
         .insert()
         .into('content_model_attributes')
         .values(modelAttributes)
         .execute();
-
+      this.logger.log(`属性关联插入结果: ${JSON.stringify(attributeResult)}`);
+  
       // 6. 更新属性值关联
       await this.modelAttributeValueRepository.delete({ modelId: id });
+      this.logger.log(`已删除旧的属性值关联`);
+      
       const modelAttributeValues = updateDto.attributeValues.map(av => ({
         modelId: id,
         attributeId: av.attributeId,
@@ -198,15 +213,21 @@ export class ContentModelService {
         isEnabled: av.isEnabled ?? true,
         sort: av.sort ?? 0
       }));
-      await this.modelAttributeValueRepository
+      this.logger.log(`准备插入的属性值关联: ${JSON.stringify(modelAttributeValues)}`);
+      
+      const valueResult = await this.modelAttributeValueRepository
         .createQueryBuilder()
         .insert()
         .into('content_model_attribute_values')
         .values(modelAttributeValues)
         .execute();
-
+      this.logger.log(`属性值关联插入结果: ${JSON.stringify(valueResult)}`);
+  
       this.logger.log(`更新内容模型成功: ${id}`);
-      return this.findOne(id);
+      const updatedModel = await this.findOne(id);
+      this.logger.log(`最终更新结果: ${JSON.stringify(updatedModel)}`);
+      return updatedModel;
+      
     } catch (error) {
       this.logger.error(`更新内容模型失败: ${error.message}`, error.stack);
       throw error;
