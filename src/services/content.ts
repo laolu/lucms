@@ -32,15 +32,30 @@ export interface Content {
 }
 
 export interface ContentCreateInput {
-  title: string
-  content: string
-  categoryId: number
-  isActive: boolean
-  sort?: number
-  attributeValues: Array<{
-    attributeId: number
-    valueId: number
-  }>
+  title: string;
+  content: string;
+  categoryId: number;
+  description?: string;
+  isActive?: boolean;
+  sort?: number;
+  thumbnail?: string;
+  images?: string[];
+  coverImage?: string;
+  bannerImage?: string;
+  price?: number;
+  originalPrice?: number;
+  isFree?: boolean;
+  isVipFree?: boolean;
+  vipPrice?: number;
+  downloadUrl?: string;
+  downloadPassword?: string;
+  extractPassword?: string;
+  tags?: string[];
+  meta?: Record<string, any>;
+  source?: string;
+  author?: string;
+  publishedAt?: string | null;
+  attributeValueIds: number[];
 }
 
 export interface ContentUpdateInput extends Partial<ContentCreateInput> {
@@ -91,13 +106,18 @@ export const contentService = {
   },
 
   // 创建内容
-  create: async (data: any) => {
+  create: async (data: ContentCreateInput) => {
     try {
-      const response = await client.post<ApiResponse<any>>(
+      console.log('发送创建请求，数据:', data);  // 添加日志
+      const response = await client.post<ApiResponse<Content>>(
         API_ENDPOINTS.CONTENTS,
         data
       );
-      return response.data?.data;
+      console.log('创建请求响应:', response.data);  // 添加日志
+      if (!response.data?.data) {
+        throw new Error('创建内容失败: 服务器未返回数据');
+      }
+      return response.data.data;
     } catch (error) {
       console.error('创建内容失败:', error);
       throw error;

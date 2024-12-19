@@ -17,6 +17,11 @@ export class CreateContentDto {
   @IsNumber()
   categoryId: number;
 
+  @ApiPropertyOptional({ description: '描述', example: '这是文章的描述...' })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
   @ApiPropertyOptional({ description: '是否激活', example: true })
   @IsOptional()
   @IsBoolean()

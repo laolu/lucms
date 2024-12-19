@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, Like, QueryFailedError, In } from 'typeorm';
 import { Content } from './entities/content.entity';
 import { ContentAttributeValue } from './entities/content-attribute-value.entity';
 import { ContentAttributeRelation } from './entities/content-attribute-relation.entity';
@@ -10,11 +10,11 @@ import { CreateContentDto } from './dto/create-content.dto';
 export class ContentService {
   constructor(
     @InjectRepository(Content)
-    private contentRepository: Repository<Content>,
+    private readonly contentRepository: Repository<Content>,
     @InjectRepository(ContentAttributeValue)
-    private attributeValueRepository: Repository<ContentAttributeValue>,
+    private readonly attributeValueRepository: Repository<ContentAttributeValue>,
     @InjectRepository(ContentAttributeRelation)
-    private attributeRelationRepository: Repository<ContentAttributeRelation>,
+    private readonly attributeRelationRepository: Repository<ContentAttributeRelation>,
   ) {}
 
   async findAll(query: {
@@ -63,32 +63,106 @@ export class ContentService {
     };
   }
 
-  async create(createDto: CreateContentDto): Promise<Content> {
-    // 创建内容
-    const content = this.contentRepository.create({
-      title: createDto.title,
-      content: createDto.content,
-      isActive: createDto.isActive,
-      sort: createDto.sort,
-    });
+  async create(createContentDto: CreateContentDto) {
+    try {
+      // 验证必填字段
+      if (!createContentDto.categoryId) {
+        throw new BadRequestException('分类ID不能为空');
+      }
 
-    const savedContent = await this.contentRepository.save(content);
-
-    // 处理属性值关联
-    if (createDto.attributeValueIds && createDto.attributeValueIds.length > 0) {
-      const attributeValues = await this.attributeValueRepository.findByIds(createDto.attributeValueIds);
-      
-      const relations = attributeValues.map(value => {
-        return this.attributeRelationRepository.create({
-          content: savedContent,
-          attributeValue: value,
-        });
+      // 创建内容实例
+      const content = this.contentRepository.create({
+        title: createContentDto.title,
+        content: createContentDto.content,
+        categoryId: createContentDto.categoryId,
+        description: createContentDto.description,
+        isActive: createContentDto.isActive ?? true,
+        sort: createContentDto.sort ?? 0,
+        thumbnail: createContentDto.thumbnail,
+        images: createContentDto.images || [],
+        coverImage: createContentDto.coverImage,
+        bannerImage: createContentDto.bannerImage,
+        price: createContentDto.price ?? 0,
+        originalPrice: createContentDto.originalPrice ?? 0,
+        isFree: createContentDto.isFree ?? false,
+        isVipFree: createContentDto.isVipFree ?? false,
+        vipPrice: createContentDto.vipPrice ?? 0,
+        downloadUrl: createContentDto.downloadUrl,
+        downloadPassword: createContentDto.downloadPassword,
+        extractPassword: createContentDto.extractPassword,
+        viewCount: 0,
+        commentCount: 0,
+        likeCount: 0,
+        favoriteCount: 0,
+        shareCount: 0,
+        tags: createContentDto.tags || [],
+        meta: createContentDto.meta || {},
+        source: createContentDto.source,
+        author: createContentDto.author,
+        publishedAt: createContentDto.publishedAt ? new Date(createContentDto.publishedAt) : null
       });
 
-      await this.attributeRelationRepository.save(relations);
-    }
+      // 保存内容
+      const savedContent = await this.contentRepository.save(content);
 
-    return this.findOne(savedContent.id);
+      // 如果有属性值，保存属性值关联
+      if (createContentDto.attributeValueIds?.length) {
+        // 使用 In 操作符查找属性值
+        const attributeValues = await this.attributeValueRepository.find({
+          where: {
+            id: In(createContentDto.attributeValueIds)
+          }
+        });
+        
+        const relations = attributeValues.map(value => {
+          return this.attributeRelationRepository.create({
+            content: savedContent,
+            attributeValue: value,
+          });
+        });
+
+        await this.attributeRelationRepository.save(relations);
+      }
+
+      // 返回完整的内容信息
+      return this.findOne(savedContent.id);
+
+    } catch (error) {
+      // 详细的错误日志
+      console.error('创建内容失败:', {
+        error,
+        dto: createContentDto,
+        message: error.message,
+        stack: error.stack,
+      });
+
+      if (error instanceof QueryFailedError) {
+        throw new BadRequestException('创建内容失败：数据库错误');
+      }
+
+      throw error;
+    }
+  }
+
+  // 保存属性值关联
+  private async saveAttributeValues(contentId: number, attributeValueIds: number[]) {
+    try {
+      // 创建属性值关联
+      const values = attributeValueIds.map(valueId => ({
+        contentId,
+        attributeValueId: valueId,
+      }));
+
+      await this.contentAttributeValueRepository
+        .createQueryBuilder()
+        .insert()
+        .into(ContentAttributeValue)
+        .values(values)
+        .execute();
+    } catch (error) {
+      console.error('保存属性值关联失败:', error);
+      throw new BadRequestException('保存属性值关联失败');
+    }
   }
 
   async findOne(id: number): Promise<Content> {

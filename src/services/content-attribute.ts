@@ -79,4 +79,17 @@ export const contentAttributeService = {
   delete: async (id: number) => {
     await client.delete(API_ENDPOINTS.CONTENT_ATTRIBUTE_DETAIL(id));
   },
+
+  // 根据分类ID获取属性列表
+  getByCategoryId: async (categoryId: number) => {
+    try {
+      const response = await client.get<ApiResponse<ContentAttribute[]>>(
+        API_ENDPOINTS.CONTENT_CATEGORY_ATTRIBUTES(categoryId)
+      );
+      return response.data?.data || [];
+    } catch (error) {
+      console.error('获取分类属性失败:', error);
+      return [];
+    }
+  },
 }; 
