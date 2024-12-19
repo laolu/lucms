@@ -5,7 +5,7 @@ import { ContentModel } from './entities/content-model.entity';
 import { ContentAttribute } from './entities/content-attribute.entity';
 import { ContentAttributeValue } from './entities/content-attribute-value.entity';
 import { ContentModelAttribute } from './entities/content-model-attribute.entity';
-import { CreateContentModelDto, UpdateContentModelDto } from './dto/content-model.dto';
+import { CreateContentModelDto, UpdateContentModelDto, ModelAttributeValueDto } from './dto/content-model.dto';
 
 @Injectable()
 export class ContentModelService {
@@ -280,6 +280,113 @@ export class ContentModelService {
       return updatedModel;
     } catch (error) {
       this.logger.error(`更新内容模型状态失败: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  async getModelAttributes(modelId: number) {
+    try {
+      this.logger.log(`开始获取内容模型属性: ${modelId}`);
+      
+      const attributes = await this.modelAttributeRepository
+        .createQueryBuilder('ma')
+        .leftJoinAndSelect('ma.attribute', 'a')
+        .where('ma.modelId = :modelId', { modelId })
+        .getMany();
+
+      return attributes;
+    } catch (error) {
+      this.logger.error(`获取内容模型属性失败: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  async updateModelAttributes(modelId: number, attributeIds: number[]) {
+    try {
+      this.logger.log(`开始更新内容模型属性: ${modelId}`);
+
+      // 删除现有的属性关联
+      await this.modelAttributeRepository
+        .createQueryBuilder()
+        .delete()
+        .where('modelId = :modelId', { modelId })
+        .execute();
+
+      // 创建新的属性关联
+      if (attributeIds.length > 0) {
+        const modelAttributes = attributeIds.map(attributeId => ({
+          modelId,
+          attributeId
+        }));
+
+        await this.modelAttributeRepository
+          .createQueryBuilder()
+          .insert()
+          .into('content_model_attributes')
+          .values(modelAttributes)
+          .execute();
+      }
+
+      return this.getModelAttributes(modelId);
+    } catch (error) {
+      this.logger.error(`更新内容模型属性失败: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  async getModelAttributeValues(modelId: number) {
+    try {
+      this.logger.log(`开始获取内容模型属性值: ${modelId}`);
+      
+      const attributeValues = await this.attributeValueRepository
+        .createQueryBuilder('av')
+        .leftJoin('content_model_attribute_values', 'mav', 'mav.attributeValueId = av.id')
+        .where('mav.modelId = :modelId', { modelId })
+        .getMany();
+
+      return attributeValues;
+    } catch (error) {
+      this.logger.error(`获取内容模型属性值失败: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  async updateModelAttributeValues(modelId: number, attributeValues: ModelAttributeValueDto[]) {
+    try {
+      this.logger.log(`开始更新内容模型属性值: ${modelId}`);
+
+      // 开启事务
+      await this.attributeValueRepository.manager.transaction(async transactionalEntityManager => {
+        // 删除现有的属性值关联
+        await transactionalEntityManager
+          .createQueryBuilder()
+          .delete()
+          .from('content_model_attribute_values')
+          .where('modelId = :modelId', { modelId })
+          .execute();
+
+        // 创建新的属性值关联
+        if (attributeValues.length > 0) {
+          const modelAttributeValues = attributeValues.map(av => ({
+            modelId,
+            attributeId: av.attributeId,
+            attributeValueId: av.attributeValueId,
+            isEnabled: av.isEnabled ?? true,
+            sort: av.sort ?? 0
+          }));
+
+          await transactionalEntityManager
+            .createQueryBuilder()
+            .insert()
+            .into('content_model_attribute_values')
+            .values(modelAttributeValues)
+            .execute();
+        }
+      });
+
+      return this.getModelAttributeValues(modelId);
+    } catch (error) {
+      this.logger.error(`更新内容模型属性值失败: ${error.message}`, error.stack);
       throw error;
     }
   }
