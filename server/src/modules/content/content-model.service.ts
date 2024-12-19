@@ -256,21 +256,16 @@ export class ContentModelService {
     try {
       this.logger.log(`开始获取内容模型属性: ${modelId}`);
       
-      // 获取所有属性，并标记是否被选中
-      const attributes = await this.attributeRepository
-        .createQueryBuilder('a')
-        .leftJoin('content_model_attributes', 'ma', 'ma.attributeId = a.id AND ma.modelId = :modelId', { modelId })
-        .select([
-          'a.*',
-          'CASE WHEN ma.modelId IS NOT NULL THEN TRUE ELSE FALSE END as "isSelected"'
-        ])
-        .getRawMany();
+      // 获取已选择的属性ID列表
+      const selectedAttributes = await this.modelAttributeRepository.find({
+        where: { modelId }
+      });
 
-      // 转换 isSelected 为布尔值
-      return attributes.map(attr => ({
-        ...attr,
-        isSelected: Boolean(attr.isSelected)
-      }));
+      // 只返回属性ID列表
+      const selectedAttributeIds = selectedAttributes.map(sa => sa.attributeId);
+      this.logger.log('已选择的属性ID:', selectedAttributeIds);
+
+      return selectedAttributeIds;
     } catch (error) {
       this.logger.error(`获取内容模型属性失败: ${error.message}`, error.stack);
       throw error;
@@ -320,21 +315,16 @@ export class ContentModelService {
     try {
       this.logger.log(`开始获取内容模型属性值: ${modelId}`);
       
-      // 获取所有属性值，并标记是否被选中
-      const attributeValues = await this.attributeValueRepository
-        .createQueryBuilder('av')
-        .leftJoin('content_model_attribute_values', 'mav', 'mav.attributeValueId = av.id AND mav.modelId = :modelId', { modelId })
-        .select([
-          'av.*',
-          'CASE WHEN mav.modelId IS NOT NULL THEN TRUE ELSE FALSE END as "isSelected"'
-        ])
-        .getRawMany();
+      // 直接从关联表获取已选择的属性值
+      const selectedValues = await this.attributeValueRepository.manager.query(`
+        SELECT attributeId, attributeValueId 
+        FROM content_model_attribute_values 
+        WHERE modelId = ?
+      `, [modelId]);
 
-      // 转换 isSelected 为布尔值
-      return attributeValues.map(value => ({
-        ...value,
-        isSelected: Boolean(value.isSelected)
-      }));
+      this.logger.log('获取到的属性值:', selectedValues);
+
+      return selectedValues;
     } catch (error) {
       this.logger.error(`获取内容模型属性值失败: ${error.message}`, error.stack);
       throw error;

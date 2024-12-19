@@ -69,68 +69,48 @@ export function ModelForm({ model }: ModelFormProps) {
       const modelData = await contentModelService.getById(model.id);
       console.log('modelData:', modelData);
       
-      // 2. 获取属性的选中状态
-      const attributesData = await contentModelService.getModelAttributes(model.id);
-      console.log('attributesData:', attributesData);
+      // 2. 获取已选择的属性ID列表
+      const selectedAttributeIds = await contentModelService.getModelAttributes(model.id);
+      console.log('已选择的属性ID:', selectedAttributeIds);
       
-      // 3. 获取属性值的选中状态
-      const attributeValuesData = await contentModelService.getModelAttributeValues(model.id);
-      console.log('attributeValuesData:', attributeValuesData);
-      
-      // 4. 合并数据
-      console.log('开始合并数据');
-      console.log('modelData.attributes:', modelData?.attributes);
-      console.log('attributesData:', attributesData);
-      console.log('attributeValuesData:', attributeValuesData);
+      // 3. 获取已选择的属性值
+      const selectedAttributeValues = await contentModelService.getModelAttributeValues(model.id);
+      console.log('已选择的属性值:', selectedAttributeValues);
 
       if (!modelData?.attributes) {
         console.error('modelData.attributes 不存在');
         return;
       }
 
-      const mergedAttributes = modelData.attributes.map(attr => {
-        console.log('处理属性:', attr);
-        const attributeData = attributesData.find(a => a.id === attr.attributeId);
-        const merged = {
-          id: attr.attributeId,
-          attributeId: attr.attributeId,
-          attributeName: attr.attributeName,
-          type: attr.attributeType as 'single' | 'multiple',
-          isSelected: attributeData?.isSelected || false,
-          values: attr.values.map(value => {
-            const valueData = attributeValuesData.find(v => v.id === value.id);
-            return {
-              id: value.id,
-              value: value.value,
-              isSelected: valueData?.isSelected || false
-            };
-          })
-        };
-        console.log('合并后的属性:', merged);
-        return merged;
-      });
+      // 处理属性数据
+      const mergedAttributes = modelData.attributes.map(attr => ({
+        id: attr.attributeId,
+        attributeId: attr.attributeId,
+        attributeName: attr.attributeName,
+        type: attr.attributeType as 'single' | 'multiple',
+        isSelected: selectedAttributeIds.includes(attr.attributeId),
+        values: attr.values.map(value => ({
+          id: value.id,
+          value: value.value,
+          isSelected: selectedAttributeValues.some(av => 
+            av.attributeId === attr.attributeId && 
+            av.attributeValueId === value.id
+          )
+        }))
+      }));
       
       console.log('最终合并的属性:', mergedAttributes);
       setAttributes(mergedAttributes);
       
-      // 设置已选择的属性和属性值
-      const selectedAttrIds = attributesData
-        .filter(attr => attr.isSelected)
-        .map(attr => attr.id);
-      setSelectedAttributeIds(selectedAttrIds);
+      // 设置已选择的属性ID
+      setSelectedAttributeIds(selectedAttributeIds);
       
+      // 设置已选择的属性值
       const valuesMap = new Map<number, number[]>();
-      attributeValuesData
-        .filter(v => v.isSelected)
-        .forEach(v => {
-          const attr = modelData.attributes.find(a => 
-            a.values.some(av => av.id === v.id)
-          );
-          if (attr) {
-            const current = valuesMap.get(attr.attributeId) || [];
-            valuesMap.set(attr.attributeId, [...current, v.id]);
-          }
-        });
+      selectedAttributeValues.forEach(av => {
+        const current = valuesMap.get(av.attributeId) || [];
+        valuesMap.set(av.attributeId, [...current, av.attributeValueId]);
+      });
       setSelectedValues(valuesMap);
     } catch (error) {
       console.error('加载数据失败:', error);
@@ -176,9 +156,17 @@ export function ModelForm({ model }: ModelFormProps) {
     try {
       setLoading(true);
       
-      // 只处理选中的属性的属性值
+      // 获取当前显示的属性列表
+      const currentAttributes = attributes.filter(attr => attr.isSelected);
+      console.log('当前选中的属性:', currentAttributes);
+      
+      // 只处理当前显示的属性的ID
+      const attributeIds = currentAttributes.map(attr => attr.attributeId);
+      console.log('要提交的属性ID:', attributeIds);
+      
+      // 只处理当前显示的属性的属性值
       const attributeValues = Array.from(selectedValues.entries())
-        .filter(([attributeId]) => selectedAttributeIds.includes(attributeId))
+        .filter(([attributeId]) => attributeIds.includes(attributeId))
         .flatMap(([attributeId, valueIds]) => 
           valueIds.map(valueId => ({
             attributeId: Number(attributeId),
@@ -186,7 +174,7 @@ export function ModelForm({ model }: ModelFormProps) {
           }))
         );
 
-      console.log('处理后的属性值:', attributeValues);
+      console.log('要提交的属性值:', attributeValues);
 
       // 构建完整的更新数据
       const updateData = {
@@ -194,7 +182,7 @@ export function ModelForm({ model }: ModelFormProps) {
         description: formData.description || '',
         sort: Number(formData.sort) || 0,
         isActive: Boolean(formData.isActive),
-        attributeIds: selectedAttributeIds.map(Number),
+        attributeIds: attributeIds,
         attributeValues: attributeValues
       };
 
@@ -229,16 +217,17 @@ export function ModelForm({ model }: ModelFormProps) {
     // 更新选中的属性ID列表
     if (checked) {
       setSelectedAttributeIds(prev => [...prev, attributeId]);
-      // 对于单选属性，默认选中第一个值
+      
+      // 获取属性及其值
       const attribute = attributes.find(a => a.attributeId === attributeId);
       if (attribute && attribute.values.length > 0) {
-        if (attribute.type === 'single') {
-          setSelectedValues(prev => {
-            const newMap = new Map(prev);
-            newMap.set(attributeId, [attribute.values[0].id]);
-            return newMap;
-          });
-        }
+        // 选中所有属性值
+        const valueIds = attribute.values.map(v => v.id);
+        setSelectedValues(prev => {
+          const newMap = new Map(prev);
+          newMap.set(attributeId, valueIds);
+          return newMap;
+        });
       }
     } else {
       // 取消选择时，清除所有相关数据
@@ -256,26 +245,24 @@ export function ModelForm({ model }: ModelFormProps) {
         return {
           ...attr,
           isSelected: checked,
-          // 如果取消选择，同时清除所有值的选中状态
+          // 更新所有值的选中状态
           values: attr.values.map(v => ({
             ...v,
-            isSelected: checked ? v.isSelected : false
+            isSelected: checked  // 根据属性的选中状态设置值的选中状态
           }))
         };
       }
       return attr;
     }));
-    
-    console.log('更新后的状态:', {
-      selectedAttributeIds: selectedAttributeIds.filter(id => id !== attributeId),
-      selectedValues: new Map([...selectedValues].filter(([key]) => key !== attributeId))
-    });
   };
 
   const toggleAttributeValue = (attributeId: number, valueId: number, checked: boolean) => {
+    console.log('切换属性值状态:', { attributeId, valueId, checked });
+    
     const attribute = attributes.find(a => a.attributeId === attributeId);
     if (!attribute) return;
 
+    // 更新选中的值
     setSelectedValues(prev => {
       const newMap = new Map(prev);
       const currentValues = prev.get(attributeId) || [];
@@ -286,32 +273,64 @@ export function ModelForm({ model }: ModelFormProps) {
           newMap.set(attributeId, [valueId]);
         } else {
           // 多选：添加新值
-          newMap.set(attributeId, [...currentValues, valueId]);
+          if (!currentValues.includes(valueId)) {
+            newMap.set(attributeId, [...currentValues, valueId]);
+          }
         }
       } else {
         // 取消选中：移除值
         const newValues = currentValues.filter(id => id !== valueId);
         if (newValues.length === 0) {
           newMap.delete(attributeId);
-          // 如果没有选中的值，也取消选择属性
+          // 如果没有选中的值，自动取消选择属性
           setSelectedAttributeIds(prev => prev.filter(id => id !== attributeId));
-        } else {
-          newMap.set(attributeId, newValues);
+          // 更新属性的选中状态
+          setAttributes(prev => prev.map(attr => {
+            if (attr.attributeId === attributeId) {
+              return {
+                ...attr,
+                isSelected: false,
+                values: attr.values.map(v => ({
+                  ...v,
+                  isSelected: false
+                }))
+              };
+            }
+            return attr;
+          }));
+          return newMap;
         }
+        newMap.set(attributeId, newValues);
       }
 
       return newMap;
     });
 
-    // 更新属性的选中状态
+    // 更新属性值的选中状态
     setAttributes(prev => prev.map(attr => {
       if (attr.attributeId === attributeId) {
+        const updatedValues = attr.values.map(value => ({
+          ...value,
+          isSelected: attribute.type === 'single' 
+            ? value.id === valueId && checked
+            : value.id === valueId ? checked : value.isSelected
+        }));
+
+        // 检查是否所有值都被取消选择
+        const hasSelectedValues = updatedValues.some(v => v.isSelected);
+        if (!hasSelectedValues) {
+          // 如果没有选中的值，自动取消选择属性
+          setSelectedAttributeIds(prev => prev.filter(id => id !== attributeId));
+          return {
+            ...attr,
+            isSelected: false,
+            values: updatedValues
+          };
+        }
+
         return {
           ...attr,
-          values: attr.values.map(value => ({
-            ...value,
-            isSelected: value.id === valueId ? checked : value.isSelected
-          }))
+          values: updatedValues
         };
       }
       return attr;
