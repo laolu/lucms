@@ -138,6 +138,21 @@ export class ContentModelController {
     }
   }
 
+  @Get(':id/attributes-with-values')
+  @ApiOperation({ summary: '获取内容模型的属性和属性值（包含排序和选中状态）' })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getModelAttributesWithValues(@Param('id') id: string) {
+    try {
+      this.logger.log(`获取内容模型属性和属性值请求: ${id}`);
+      const result = await this.modelService.getModelAttributesWithValues(+id);
+      this.logger.log(`获取内容模型属性和属性值成功: ${id}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`获取内容模型属性和属性值失败: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
   @Put(':id/attribute-values')
   @ApiOperation({ summary: '更新内容模型的属性值' })
   @ApiResponse({ status: 200, description: '更新成功' })

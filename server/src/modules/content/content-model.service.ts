@@ -374,4 +374,55 @@ export class ContentModelService {
       throw error;
     }
   }
+
+  async getModelAttributesWithValues(modelId: number) {
+    try {
+      this.logger.log(`开始获取内容模型属性和属性值: ${modelId}`);
+      
+      // 1. 获取模型关联的属性和属性值
+      const result = await this.modelAttributeRepository
+        .createQueryBuilder('modelAttribute')
+        .leftJoinAndSelect('modelAttribute.attribute', 'attribute')
+        .leftJoinAndSelect('attribute.values', 'attributeValue')
+        .where('modelAttribute.modelId = :modelId', { modelId })
+        .orderBy('attribute.sort', 'ASC')
+        .orderBy('attributeValue.sort', 'ASC')
+        .getMany();
+
+      // 2. 获取已选择的属性值
+      const selectedValues = await this.attributeValueRepository.manager.query(`
+        SELECT attributeId, attributeValueId 
+        FROM content_model_attribute_values 
+        WHERE modelId = ?
+      `, [modelId]);
+
+      // 3. 转换数据结构
+      const attributes = result.map(modelAttribute => {
+        const { attribute } = modelAttribute;
+        const values = attribute.values.map(value => ({
+          id: value.id,
+          value: value.value,
+          sort: value.sort,
+          isSelected: selectedValues.some(sv => 
+            sv.attributeId === attribute.id && 
+            sv.attributeValueId === value.id
+          )
+        }));
+
+        return {
+          attributeId: attribute.id,
+          attributeName: attribute.name,
+          type: attribute.type,
+          sort: attribute.sort,
+          values
+        };
+      });
+
+      this.logger.log(`获取内容模型属性和属性值成功: ${modelId}`);
+      return attributes;
+    } catch (error) {
+      this.logger.error(`获取内容模型属性和属性值失败: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
 } 
