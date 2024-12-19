@@ -139,16 +139,10 @@ export class ContentModelService {
           a.name as "attributeName",
           a.type as "attributeType",
           av.id as "attributeValueId",
-          av.value as "attributeValue",
-          CASE 
-            WHEN cmav.attributeValueId IS NOT NULL THEN 1 
-            ELSE 0 
-          END as "isChecked"
+          av.value as "attributeValue"
         FROM content_attributes a
         LEFT JOIN content_attribute_values av ON a.id = av.attributeId
-        LEFT JOIN content_model_attribute_values cmav ON a.id = cmav.attributeId AND av.id = cmav.attributeValueId
-        where cmav.modelId = ?
-      `, [id]);
+      `);
 
       // 转换属性数据
       const attributesMap = new Map<number, any>();
@@ -156,7 +150,7 @@ export class ContentModelService {
         if (!attributesMap.has(row.attributeId)) {
           attributesMap.set(row.attributeId, {
             attributeId: row.attributeId,
-            name: row.attributeName,
+            attributeName: row.attributeName,
             type: row.attributeType,
             values: []
           });
@@ -168,8 +162,7 @@ export class ContentModelService {
           if (!existingValue) {
             attribute.values.push({
               id: row.attributeValueId,
-              value: row.attributeValue,
-              isChecked: row.isChecked === 1
+              value: row.attributeValue
             });
           }
         }
@@ -199,15 +192,7 @@ export class ContentModelService {
         throw new NotFoundException('内容模型不存在');
       }
 
-      // 2. 验证属性是否存在
-      if (updateDto.attributeIds) {
-        const attributes = await this.attributeRepository.findByIds(updateDto.attributeIds);
-        if (attributes.length !== updateDto.attributeIds.length) {
-          throw new NotFoundException('部分属性不存在');
-        }
-      }
-
-      // 3. 更新模型基本信息
+      // 2. 更新基本信息
       await this.modelRepository.update(id, {
         name: updateDto.name,
         description: updateDto.description,
@@ -215,33 +200,16 @@ export class ContentModelService {
         isActive: updateDto.isActive
       });
 
-      // 4. 如果提供了新的属性列表，更新属性关联
-      if (updateDto.attributeIds) {
-        // 删除现有的属性关联
-        await this.modelAttributeRepository
-          .createQueryBuilder()
-          .delete()
-          .where('modelId = :modelId', { modelId: id })
-          .execute();
+      // 3. 更新属性关联
+      await this.updateModelAttributes(id, updateDto.attributeIds);
 
-        // 创建新的属性关联
-        if (updateDto.attributeIds.length > 0) {
-          const modelAttributes = updateDto.attributeIds.map(attributeId => ({
-            modelId: id,
-            attributeId: attributeId
-          }));
+      // 4. 更新属性值关联
+      await this.updateModelAttributeValues(id, updateDto.attributeValues);
 
-          await this.modelAttributeRepository
-            .createQueryBuilder()
-            .insert()
-            .into('content_model_attributes')
-            .values(modelAttributes)
-            .execute();
-        }
-      }
-
+      // 5. 返回更新后的数据
+      const updatedModel = await this.findOne(id);
       this.logger.log(`内容模型更新成功: ${id}`);
-      return this.findOne(id);
+      return updatedModel;
     } catch (error) {
       this.logger.error(`更新内容模型失败: ${error.message}`, error.stack);
       throw error;
@@ -288,13 +256,21 @@ export class ContentModelService {
     try {
       this.logger.log(`开始获取内容模型属性: ${modelId}`);
       
-      const attributes = await this.modelAttributeRepository
-        .createQueryBuilder('ma')
-        .leftJoinAndSelect('ma.attribute', 'a')
-        .where('ma.modelId = :modelId', { modelId })
-        .getMany();
+      // 获取所有属性，并标记是否被选中
+      const attributes = await this.attributeRepository
+        .createQueryBuilder('a')
+        .leftJoin('content_model_attributes', 'ma', 'ma.attributeId = a.id AND ma.modelId = :modelId', { modelId })
+        .select([
+          'a.*',
+          'CASE WHEN ma.modelId IS NOT NULL THEN TRUE ELSE FALSE END as "isSelected"'
+        ])
+        .getRawMany();
 
-      return attributes;
+      // 转换 isSelected 为布尔值
+      return attributes.map(attr => ({
+        ...attr,
+        isSelected: Boolean(attr.isSelected)
+      }));
     } catch (error) {
       this.logger.error(`获取内容模型属性失败: ${error.message}`, error.stack);
       throw error;
@@ -303,14 +279,16 @@ export class ContentModelService {
 
   async updateModelAttributes(modelId: number, attributeIds: number[]) {
     try {
-      this.logger.log(`开始更新内容模型属性: ${modelId}`);
+      this.logger.log(`开始更新内容模型属性: ${modelId}, attributeIds: ${JSON.stringify(attributeIds)}`);
 
       // 删除现有的属性关联
-      await this.modelAttributeRepository
+      const deleteResult = await this.modelAttributeRepository
         .createQueryBuilder()
         .delete()
         .where('modelId = :modelId', { modelId })
         .execute();
+      
+      this.logger.log(`删除现有属性关联结果:`, deleteResult);
 
       // 创建新的属性关联
       if (attributeIds.length > 0) {
@@ -319,15 +297,19 @@ export class ContentModelService {
           attributeId
         }));
 
-        await this.modelAttributeRepository
+        const insertResult = await this.modelAttributeRepository
           .createQueryBuilder()
           .insert()
           .into('content_model_attributes')
           .values(modelAttributes)
           .execute();
+          
+        this.logger.log(`插入新属性关联结果:`, insertResult);
       }
 
-      return this.getModelAttributes(modelId);
+      const result = await this.getModelAttributes(modelId);
+      this.logger.log(`更新后的属性状态:`, result);
+      return result;
     } catch (error) {
       this.logger.error(`更新内容模型属性失败: ${error.message}`, error.stack);
       throw error;
@@ -338,13 +320,21 @@ export class ContentModelService {
     try {
       this.logger.log(`开始获取内容模型属性值: ${modelId}`);
       
+      // 获取所有属性值，并标记是否被选中
       const attributeValues = await this.attributeValueRepository
         .createQueryBuilder('av')
-        .leftJoin('content_model_attribute_values', 'mav', 'mav.attributeValueId = av.id')
-        .where('mav.modelId = :modelId', { modelId })
-        .getMany();
+        .leftJoin('content_model_attribute_values', 'mav', 'mav.attributeValueId = av.id AND mav.modelId = :modelId', { modelId })
+        .select([
+          'av.*',
+          'CASE WHEN mav.modelId IS NOT NULL THEN TRUE ELSE FALSE END as "isSelected"'
+        ])
+        .getRawMany();
 
-      return attributeValues;
+      // 转换 isSelected 为布尔值
+      return attributeValues.map(value => ({
+        ...value,
+        isSelected: Boolean(value.isSelected)
+      }));
     } catch (error) {
       this.logger.error(`获取内容模型属性值失败: ${error.message}`, error.stack);
       throw error;
@@ -353,38 +343,42 @@ export class ContentModelService {
 
   async updateModelAttributeValues(modelId: number, attributeValues: ModelAttributeValueDto[]) {
     try {
-      this.logger.log(`开始更新内容模型属性值: ${modelId}`);
+      this.logger.log(`开始更新内容模型属性值: ${modelId}, attributeValues: ${JSON.stringify(attributeValues)}`);
 
       // 开启事务
       await this.attributeValueRepository.manager.transaction(async transactionalEntityManager => {
         // 删除现有的属性值关联
-        await transactionalEntityManager
+        const deleteResult = await transactionalEntityManager
           .createQueryBuilder()
           .delete()
           .from('content_model_attribute_values')
           .where('modelId = :modelId', { modelId })
           .execute();
+          
+        this.logger.log(`删除现有属性值关联结果:`, deleteResult);
 
         // 创建新的属性值关联
         if (attributeValues.length > 0) {
           const modelAttributeValues = attributeValues.map(av => ({
             modelId,
             attributeId: av.attributeId,
-            attributeValueId: av.attributeValueId,
-            isEnabled: av.isEnabled ?? true,
-            sort: av.sort ?? 0
+            attributeValueId: av.attributeValueId
           }));
 
-          await transactionalEntityManager
+          const insertResult = await transactionalEntityManager
             .createQueryBuilder()
             .insert()
             .into('content_model_attribute_values')
             .values(modelAttributeValues)
             .execute();
+            
+          this.logger.log(`插入新属性值关联结果:`, insertResult);
         }
       });
 
-      return this.getModelAttributeValues(modelId);
+      const result = await this.getModelAttributeValues(modelId);
+      this.logger.log(`更新后的属性值状态:`, result);
+      return result;
     } catch (error) {
       this.logger.error(`更新内容模型属性值失败: ${error.message}`, error.stack);
       throw error;

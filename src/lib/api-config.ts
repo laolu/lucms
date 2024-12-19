@@ -117,4 +117,5 @@ export const API_ENDPOINTS = {
   CONTENT_MODELS: '/content-models',
   CONTENT_MODEL_DETAIL: (id: number) => `/content-models/${id}`,
   CONTENT_MODEL_ATTRIBUTES: (id: number) => `/content-models/${id}/attributes`,
+  CONTENT_MODEL_ATTRIBUTE_VALUES: (id: number) => `/content-models/${id}/attribute-values`,
 } as const; 

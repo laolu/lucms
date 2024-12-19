@@ -9,16 +9,6 @@ export class ModelAttributeValueDto {
   @ApiProperty({ description: '属性值ID', example: 1 })
   @IsNumber()
   attributeValueId: number;
-
-  @ApiPropertyOptional({ description: '是否启用', example: true })
-  @IsOptional()
-  @IsBoolean()
-  isEnabled?: boolean;
-
-  @ApiPropertyOptional({ description: '排序顺序', example: 0 })
-  @IsOptional()
-  @IsNumber()
-  sort?: number;
 }
 
 export class CreateContentModelDto {
@@ -53,8 +43,5 @@ export class CreateContentModelDto {
 }
 
 export class UpdateContentModelDto extends CreateContentModelDto {
-  @ApiProperty({ description: '模型ID' })
-  @IsNotEmpty()
-  @IsNumber()
-  id: number;
+  // 移除 id 字段的要求，因为它已经在 URL 中了
 } 
