@@ -148,7 +148,7 @@ export const contentCategoryService = {
     return response.data?.data;
   },
 
-  // 移动分类（更改父级）
+  // 移动分类（更改级）
   move: async (id: number, parentId: number | null) => {
     const response = await client.patch<ApiResponse<ContentCategory>>(
       API_ENDPOINTS.CONTENT_CATEGORY_MOVE(id), 
@@ -166,5 +166,15 @@ export const contentCategoryService = {
       console.error('获取属性列表失败:', error);
       return [];
     }
-  }
+  },
+
+  async getContentTree() {
+    try {
+      const response = await client.get<ApiResponse<ContentCategory[]>>(API_ENDPOINTS.CONTENT_CATEGORIES_CONTENT_TREE);
+      return response.data?.data || [];
+    } catch (error) {
+      console.error('获取内容分类树失败:', error);
+      throw error;
+    }
+  },
 }; 

@@ -51,6 +51,7 @@ export const API_ENDPOINTS = {
   CONTENT_CATEGORY_MOVE: (id: number) => `/content-categories/${id}/move`,
   CONTENT_CATEGORY_ATTRIBUTES: (id: number) => `/content-categories/${id}/attributes`,
   CONTENT_CATEGORY_ATTRIBUTE_VALUES: (id: number) => `/content-categories/${id}/attribute-values`,
+  CONTENT_CATEGORIES_CONTENT_TREE: '/content-categories/content-tree',
 
   // Content Attributes
   CONTENT_ATTRIBUTES: '/content-attributes',

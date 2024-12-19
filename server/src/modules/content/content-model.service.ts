@@ -380,46 +380,60 @@ export class ContentModelService {
       this.logger.log(`开始获取内容模型属性和属性值: ${modelId}`);
       
       // 1. 获取模型关联的属性和属性值
-      const result = await this.modelAttributeRepository
-        .createQueryBuilder('modelAttribute')
-        .leftJoinAndSelect('modelAttribute.attribute', 'attribute')
-        .leftJoinAndSelect('attribute.values', 'attributeValue')
-        .where('modelAttribute.modelId = :modelId', { modelId })
-        .orderBy('attribute.sort', 'ASC')
-        .orderBy('attributeValue.sort', 'ASC')
-        .getMany();
-
-      // 2. 获取已选择的属性值
-      const selectedValues = await this.attributeValueRepository.manager.query(`
-        SELECT attributeId, attributeValueId 
-        FROM content_model_attribute_values 
-        WHERE modelId = ?
+      const attributes = await this.modelRepository.query(`
+        SELECT 
+          ma.modelId,
+          a.id as attributeId,
+          a.name as attributeName,
+          a.type as attributeType,
+          av.id as valueId,
+          av.value,
+          CASE 
+            WHEN mav.attributeValueId IS NOT NULL THEN true 
+            ELSE false 
+          END as isChecked
+        FROM content_model_attributes ma
+        LEFT JOIN content_attributes a ON ma.attributeId = a.id
+        LEFT JOIN content_attribute_values av ON a.id = av.attributeId
+        LEFT JOIN content_model_attribute_values mav ON (
+          mav.modelId = ma.modelId 
+          AND mav.attributeId = a.id 
+          AND mav.attributeValueId = av.id
+        )
+        WHERE ma.modelId = ?
+        ORDER BY a.id, av.id
       `, [modelId]);
 
-      // 3. 转换数据结构
-      const attributes = result.map(modelAttribute => {
-        const { attribute } = modelAttribute;
-        const values = attribute.values.map(value => ({
-          id: value.id,
-          value: value.value,
-          sort: value.sort,
-          isSelected: selectedValues.some(sv => 
-            sv.attributeId === attribute.id && 
-            sv.attributeValueId === value.id
-          )
-        }));
+      // 2. 转换数据结构
+      const attributesMap = new Map();
+      
+      attributes.forEach(row => {
+        if (!attributesMap.has(row.attributeId)) {
+          attributesMap.set(row.attributeId, {
+            modelId: row.modelId,
+            attributeId: row.attributeId,
+            attributeName: row.attributeName,
+            attributeType: row.attributeType,
+            values: []
+          });
+        }
 
-        return {
-          attributeId: attribute.id,
-          attributeName: attribute.name,
-          type: attribute.type,
-          sort: attribute.sort,
-          values
-        };
+        if (row.valueId) {
+          const attribute = attributesMap.get(row.attributeId);
+          // 避免重复添加相同的值
+          if (!attribute.values.some(v => v.id === row.valueId)) {
+            attribute.values.push({
+              id: row.valueId,
+              value: row.value,
+              isChecked: row.isChecked
+            });
+          }
+        }
       });
 
+      const result = Array.from(attributesMap.values());
       this.logger.log(`获取内容模型属性和属性值成功: ${modelId}`);
-      return attributes;
+      return result;
     } catch (error) {
       this.logger.error(`获取内容模型属性和属性值失败: ${error.message}`, error.stack);
       throw error;

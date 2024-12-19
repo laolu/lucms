@@ -34,8 +34,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { ModelAttributes } from './model-attributes';
+import { Loader2 } from 'lucide-react';
 
-export function ContentForm() {
+interface ContentFormProps {
+  id?: string;
+}
+
+export function ContentForm({ id }: ContentFormProps) {
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
   const [categories, setCategories] = React.useState<any[]>([]);
@@ -69,32 +75,33 @@ export function ContentForm() {
   });
 
   // 加载分类列表
-  const loadCategories = React.useCallback(async () => {
-      try {
-        const data = await contentCategoryService.getTree();
-        setCategories(data);
-      } catch (error) {
-      toast.error('加载分类列表失败');
-      }
+  const fetchCategories = React.useCallback(async () => {
+    try {
+      const data = await contentCategoryService.getContentTree();
+      setCategories(data);
+    } catch (error) {
+      console.error('获取分类出错:', error);
+      toast.error('获取分类失败');
+    }
   }, []);
 
   // 加载分类详情
   const loadCategory = React.useCallback(async (categoryId: string) => {
     try {
       const category = await contentCategoryService.getById(parseInt(categoryId));
+      if (!category) {
+        setSelectedCategory(null);
+        return;
+      }
       setSelectedCategory(category);
       
-      // 如果分类有关联的模型和属性，初始化属性值
-      if (category.model?.attributes) {
-        setFormData(prev => ({
-          ...prev,
-          attributeValues: category.model.attributes.map(modelAttr => ({
-            attributeId: modelAttr.attributeId,
-            valueId: modelAttr.attribute.values[0]?.id || 0
-          }))
-        }));
-      }
+      // 清空属性值，让用户手动选择
+      setFormData(prev => ({
+        ...prev,
+        attributeValues: []
+      }));
     } catch (error) {
+      console.error('加载分类详情失败:', error);
       toast.error('加载分类详情失败');
     }
   }, []);
@@ -105,24 +112,52 @@ export function ContentForm() {
     try {
       const data = await contentAttributeService.getByCategoryId(parseInt(formData.categoryId));
       setAttributes(data);
-      // 如果是首次加载分类的属性，初始化属性值
+      
       if (!formData.attributeValues.length) {
+        const attributeValues = data
+          .filter((attr: any) => attr.values.some((v: any) => v.isChecked))
+          .flatMap((attr: any) => 
+            attr.values
+              .filter((v: any) => v.isChecked)
+              .map((v: any) => ({
+                attributeId: attr.id,
+                valueId: v.id
+              }))
+          );
+
         setFormData(prev => ({
-      ...prev,
-          attributeValues: data.map((attr: any) => ({
-            attributeId: attr.id,
-            valueId: attr.values[0]?.id || 0
-          }))
+          ...prev,
+          attributeValues
         }));
       }
     } catch (error) {
+      console.error('加载属性列表失败:', error);
       toast.error('加载属性列表失败');
     }
-  }, [formData.categoryId, formData.attributeValues.length]);
+  }, [formData.categoryId]);
+
+  // 加载内容详情
+  const loadContent = React.useCallback(async () => {
+    if (!id) return;
+    try {
+      const data = await contentService.getById(parseInt(id));
+      setFormData({
+        ...data,
+        categoryId: data.categoryId.toString(),
+        publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString().split('T')[0] : '',
+        images: data.images || [],
+        tags: data.tags || [],
+        attributeValues: data.attributeValues || []
+      });
+    } catch (error) {
+      console.error('加载内容失败:', error);
+      toast.error('加载内容失败');
+    }
+  }, [id]);
 
   React.useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
+    fetchCategories();
+  }, [fetchCategories]);
 
   React.useEffect(() => {
     if (formData.categoryId) {
@@ -131,9 +166,15 @@ export function ContentForm() {
     }
   }, [formData.categoryId, loadCategory, loadAttributes]);
 
+  React.useEffect(() => {
+    loadContent();
+  }, [loadContent]);
+
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 表单验证
     if (!formData.title.trim()) {
       toast.error('请输入标题');
       return;
@@ -149,18 +190,35 @@ export function ContentForm() {
 
     try {
       setLoading(true);
-      await contentService.create({
+      
+      const submitData = {
         ...formData,
         categoryId: parseInt(formData.categoryId),
         price: Number(formData.price),
         originalPrice: Number(formData.originalPrice),
         vipPrice: Number(formData.vipPrice),
         publishedAt: formData.publishedAt ? new Date(formData.publishedAt).toISOString() : null
-      });
-      toast.success('创建成功');
+      };
+
+      console.log('提交的数据:', submitData);
+
+      if (id) {
+        // 更新
+        await contentService.update({
+          id: parseInt(id),
+          ...submitData,
+        });
+        toast.success('更新成功');
+      } else {
+        // 创建
+        await contentService.create(submitData);
+        toast.success('创建成功');
+      }
+      
       router.push('/admin/contents');
     } catch (error) {
-      toast.error('创建失败');
+      console.error('提交失败:', error);
+      toast.error(id ? '更新失败' : '创建失败');
     } finally {
       setLoading(false);
     }
@@ -179,52 +237,109 @@ export function ContentForm() {
   };
 
   // 构建分类选项
-  const buildCategoryOptions = (items: any[], level = 0): React.ReactNode[] => {
-    return items.flatMap((item) => {
+  const buildCategoryOptions = (items: any[], level = 0): React.ReactElement[] => {
+    if (!Array.isArray(items)) {
+      return [];
+    }
+
+    const options = items.reduce((acc: React.ReactElement[], item) => {
       const prefix = '\u00A0'.repeat(level * 4);
-      const options = [
-        <SelectItem key={item.id} value={item.id.toString()}>
-          {prefix + item.name}
-        </SelectItem>
-      ];
+      const value = item.id?.toString();
       
-      if (item.children?.length) {
-        options.push(...buildCategoryOptions(item.children, level + 1));
+      if (!value) {
+        return acc;
+      }
+
+      acc.push(
+        <SelectItem key={value} value={value}>
+          {prefix + (item.name || '未命名分类')}
+        </SelectItem>
+      );
+
+      if (Array.isArray(item.children) && item.children.length > 0) {
+        acc.push(...buildCategoryOptions(item.children, level + 1));
+      }
+
+      return acc;
+    }, []);
+
+    return options;
+  };
+
+  // 处理属性值变更
+  const handleAttributeValueChange = (attributeId: number, valueId: number) => {
+    setFormData(prev => {
+      // 找到当前属性
+      const attribute = selectedCategory?.model?.attributes?.find(
+        attr => attr.id === attributeId
+      );
+
+      if (!attribute) {
+        return prev;
+      }
+
+      // 获取当前属性之外的其他属性值
+      const otherValues = prev.attributeValues.filter(av => av.attributeId !== attributeId);
+      
+      // 如果是单选属性，直接替换值
+      if (attribute.type === 'single') {
+        return {
+          ...prev,
+          attributeValues: [...otherValues, { attributeId, valueId }]
+        };
       }
       
-      return options;
+      // 如果是多选属性，切换值的选中状态
+      const currentValues = prev.attributeValues.filter(av => av.attributeId === attributeId);
+      const existingValue = currentValues.find(av => av.valueId === valueId);
+      
+      if (existingValue) {
+        // 如果值已存在，则移除它
+        return {
+          ...prev,
+          attributeValues: prev.attributeValues.filter(
+            av => !(av.attributeId === attributeId && av.valueId === valueId)
+          )
+        };
+      } else {
+        // 如果值不存在，则添加到当前属性的值列表中
+        return {
+          ...prev,
+          attributeValues: [...prev.attributeValues, { attributeId, valueId }]
+        };
+      }
     });
+  };
+
+  // 在分类选择变更时的处理
+  const handleCategoryChange = (value: string) => {
+    if (!value || value === 'no-category') {
+      setFormData(prev => ({ ...prev, categoryId: '', attributeValues: [] }));
+      setSelectedCategory(null);
+      return;
+    }
+
+    setFormData(prev => ({ ...prev, categoryId: value }));
+    loadCategory(value);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-end items-center">
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.back()}>
-            取消
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button disabled={loading}>
-                {loading ? '创建中...' : '创建'}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>确认创建</AlertDialogTitle>
-                <AlertDialogDescription>
-                  确定要创建这个内容吗？创建后可以在列表中查看和编辑。
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>取消</AlertDialogCancel>
-                <AlertDialogAction onClick={handleSubmit}>
-                  确认
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
+        <Button 
+          type="submit" 
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {id ? '更新中...' : '创建中...'}
+            </>
+          ) : (
+            id ? '更新' : '创建'
+          )}
+        </Button>
       </div>
 
       <Tabs defaultValue="basic" className="space-y-4">
@@ -238,97 +353,88 @@ export function ContentForm() {
         </TabsList>
 
         <TabsContent value="basic" className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>基本信息</CardTitle>
-            <CardDescription>设置内容的基本信息</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">标题</Label>
-              <Input
-                id="title"
+          <Card>
+            <CardHeader>
+              <CardTitle>基本信息</CardTitle>
+              <CardDescription>设置内容的基本信息</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="title">标题</Label>
+                <Input
+                  id="title"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   placeholder="请输入标题"
-              />
-            </div>
+                />
+              </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="description">描述</Label>
-              <Textarea
-                id="description"
+              <div className="grid gap-2">
+                <Label htmlFor="category">分类</Label>
+                <Select
+                  value={formData.categoryId}
+                  onValueChange={handleCategoryChange}
+                >
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="请选分类" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories && categories.length > 0 ? (
+                      buildCategoryOptions(categories)
+                    ) : (
+                      <SelectItem value="no-category" disabled>
+                        暂无分类
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                {formData.categoryId && selectedCategory && (
+                  <div className="text-sm text-gray-500">
+                    {selectedCategory.model ? (
+                      `已选择分类: ${selectedCategory.name} (${selectedCategory.model.name})`
+                    ) : (
+                      `已选择分类: ${selectedCategory.name}`
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {selectedCategory?.model ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>模型属性</CardTitle>
+                    <CardDescription>
+                      {selectedCategory.model.name}
+                      {selectedCategory.model.description && (
+                        <span className="ml-2 text-gray-400">
+                          ({selectedCategory.model.description})
+                        </span>
+                      )}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ModelAttributes
+                      model={selectedCategory.model}
+                      attributeValues={formData.attributeValues}
+                      onAttributeValueChange={handleAttributeValueChange}
+                    />
+                  </CardContent>
+                </Card>
+              ) : formData.categoryId ? (
+                <div className="text-sm text-gray-500">该分类未关联型</div>
+              ) : null}
+
+              <div className="grid gap-2">
+                <Label htmlFor="description">描述</Label>
+                <Textarea
+                  id="description"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="请输入描述"
-              />
-            </div>
+                />
+              </div>
 
-            <div className="grid gap-2">
-                <Label htmlFor="category">分类</Label>
-              <Select
-                  value={formData.categoryId}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
-              >
-                <SelectTrigger>
-                    <SelectValue placeholder="选择分类" />
-                </SelectTrigger>
-                <SelectContent>
-                    {buildCategoryOptions(categories)}
-                  </SelectContent>
-                </Select>
-                {selectedCategory?.model && (
-                  <div className="p-4 mt-4 space-y-4 rounded-lg border bg-muted/50">
-                    <div className="flex gap-2 items-center">
-                      <Badge variant="outline" className="bg-primary/5">
-                        {selectedCategory.model.name}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {selectedCategory.model.description || '暂无描述'}
-                      </span>
-                    </div>
-                    
-                    <div className="grid gap-4">
-                      {selectedCategory.model.attributes?.map((attr) => (
-                        <div key={attr.attributeId} className="space-y-2">
-                          <div className="flex gap-2 items-center">
-                            <Label>{attr.name}</Label>
-                            <span className="text-xs text-muted-foreground">
-                              ({attr.type === 'SINGLE' ? '单选' : '多选'})
-                            </span>
-                          </div>
-                          <Select
-                            value={formData.attributeValues.find(av => av.attributeId === attr.attributeId)?.attributeValueId?.toString()}
-                            onValueChange={(value) => {
-                              setFormData(prev => ({
-                                ...prev,
-                                attributeValues: prev.attributeValues.map(av => 
-                                  av.attributeId === attr.attributeId 
-                                    ? { ...av, attributeValueId: parseInt(value) }
-                                    : av
-                                )
-                              }));
-                            }}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder={`请选择${attr.name}`} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {attr.values?.map((value) => (
-                                <SelectItem key={value.id} value={value.id.toString()}>
-                                  {value.value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-              )}
-            </div>
-
-            <div className="grid gap-2">
+              <div className="grid gap-2">
                 <Label htmlFor="author">作者</Label>
                 <Input
                   id="author"
@@ -350,34 +456,34 @@ export function ContentForm() {
 
               <div className="grid gap-2">
                 <Label htmlFor="publishedAt">发布时间</Label>
-              <Input
+                <Input
                   id="publishedAt"
                   type="date"
                   value={formData.publishedAt}
                   onChange={(e) => setFormData(prev => ({ ...prev, publishedAt: e.target.value }))}
-              />
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <Switch
-                id="isActive"
-                  checked={formData.isActive}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
                 />
-                <Label htmlFor="isActive">立即发布</Label>
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="sort">排序</Label>
+                <Label htmlFor="sort">序</Label>
                 <Input
                   id="sort"
                   type="number"
                   value={formData.sort}
                   onChange={(e) => setFormData(prev => ({ ...prev, sort: parseInt(e.target.value) || 0 }))}
                 />
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+
+              <div className="flex gap-2 items-center">
+                <Switch
+                  id="isActive"
+                  checked={formData.isActive}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
+                />
+                <Label htmlFor="isActive">启用</Label>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="content">
@@ -428,19 +534,19 @@ export function ContentForm() {
                   id="bannerImage"
                   value={formData.bannerImage}
                   onChange={(e) => setFormData(prev => ({ ...prev, bannerImage: e.target.value }))}
-                  placeholder="请输入横幅图URL"
+                  placeholder="输入横幅图URL"
                 />
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="images">图片集</Label>
+                <Label htmlFor="images">图片</Label>
                 <Textarea
                   id="images"
                   value={formData.images.join('\n')}
                   onChange={(e) => handleImagesChange(e.target.value)}
-                  placeholder="请输入图片URL，每行一个"
+                  placeholder="请输入图片URL，行一"
                 />
-                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -569,44 +675,7 @@ export function ContentForm() {
                   onChange={(e) => handleTagsChange(e.target.value)}
                   placeholder="请输入标签，用逗号分隔"
                 />
-        </div>
-
-              {attributes.length > 0 && (
-                <div className="grid gap-4">
-                  <Label>属性</Label>
-                  <div className="grid gap-4">
-                    {attributes.map((attr: any) => (
-                      <div key={attr.id} className="grid gap-2">
-                        <Label>{attr.name}</Label>
-                        <Select
-                          value={formData.attributeValues.find(v => v.attributeId === attr.id)?.valueId.toString()}
-                          onValueChange={(value) => {
-                            setFormData(prev => ({
-                              ...prev,
-                              attributeValues: prev.attributeValues.map(v => 
-                                v.attributeId === attr.id
-                                  ? { ...v, valueId: parseInt(value) }
-                                  : v
-                              )
-                            }));
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder={`选择${attr.name}`} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {attr.values.map((value: any) => (
-                              <SelectItem key={value.id} value={value.id.toString()}>
-                                {value.value}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    ))}
-                  </div>
               </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>

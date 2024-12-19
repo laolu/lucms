@@ -91,9 +91,17 @@ export const contentService = {
   },
 
   // 创建内容
-  create: async (input: ContentCreateInput) => {
-    const response = await client.post<ApiResponse<Content>>(API_ENDPOINTS.CONTENTS, input)
-    return response.data?.data
+  create: async (data: any) => {
+    try {
+      const response = await client.post<ApiResponse<any>>(
+        API_ENDPOINTS.CONTENTS,
+        data
+      );
+      return response.data?.data;
+    } catch (error) {
+      console.error('创建内容失败:', error);
+      throw error;
+    }
   },
 
   // 更新内容

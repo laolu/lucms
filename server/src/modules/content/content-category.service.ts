@@ -34,40 +34,86 @@ export class ContentCategoryService {
   }
 
   async findAll(): Promise<ContentCategory[]> {
-    const categories = await this.categoryRepository.find({
-      relations: ['parent', 'children', 'model'],
-      order: {
-        sort: 'ASC',
-        createdAt: 'DESC',
-      }
-    });
-    
-    if (!categories || categories.length === 0) {
+    const query = `
+      SELECT 
+        c.*,
+        m.id as model_id,
+        m.name as model_name,
+        m.description as model_description
+      FROM content_categories c
+      LEFT JOIN content_models m ON c.modelId = m.id
+      ORDER BY c.sort ASC, c.createdAt DESC
+    `;
+
+    const results = await this.categoryRepository.query(query);
+    if (!results || results.length === 0) {
       return [];
     }
-    
+
+    // 转换结果为所需的数据结构
+    const categories = results.map(row => ({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      parentId: row.parentId,
+      modelId: row.modelId,
+      sort: row.sort,
+      isActive: row.isActive,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      model: row.model_id ? {
+        id: row.model_id,
+        name: row.model_name,
+        description: row.model_description
+      } : null
+    }));
+
+    console.log('查询到的分类列表:', JSON.stringify(categories, null, 2));
     return categories;
   }
 
   async findOne(id: number): Promise<ContentCategory> {
-    const category = await this.categoryRepository
-      .createQueryBuilder('category')
-      .leftJoinAndSelect('category.model', 'model')
-      .leftJoinAndSelect('model.attributes', 'modelAttribute')
-      .leftJoinAndSelect('modelAttribute.attribute', 'attribute')
-      .leftJoinAndSelect('attribute.values', 'attributeValue')
-      .where('category.id = :id', { id })
-      .orderBy({
-        'modelAttribute.sort': 'ASC',
-        'attributeValue.sort': 'ASC'
-      })
-      .getOne();
+    const basicQuery = `
+      SELECT 
+        c.*,
+        m.id as model_id,
+        m.name as model_name,
+        m.description as model_description
+      FROM content_categories c
+      LEFT JOIN content_models m ON c.modelId = m.id
+      WHERE c.id = ?
+    `;
 
+    const [category] = await this.categoryRepository.query(basicQuery, [id]);
+    
     if (!category) {
       throw new NotFoundException('分类不存在');
     }
 
-    return category;
+    // 转换为 ContentCategory 类型
+    const contentCategory = new ContentCategory();
+    Object.assign(contentCategory, {
+      id: category.id,
+      name: category.name,
+      description: category.description,
+      parentId: category.parentId,
+      modelId: category.modelId,
+      sort: category.sort,
+      isActive: category.isActive,
+      createdAt: category.createdAt,
+      updatedAt: category.updatedAt,
+      parent: null,
+      children: [],
+      contents: [],
+      model: null
+    });
+
+    // 如果分类关联了模型，获取模型详细信息
+    if (category.modelId) {
+      contentCategory.model = await this.getCategoryModel(id);
+    }
+
+    return contentCategory;
   }
 
   async update(id: number, updateDto: Partial<CreateCategoryDto>): Promise<ContentCategory> {
@@ -102,7 +148,7 @@ export class ContentCategoryService {
     // 使用 update 方法更新数据
     await this.categoryRepository.update(id, updateData);
 
-    // 重新获取更新后的分类
+    // 重新获更新后的分类
     const updatedCategory = await this.findOne(id);
     console.log('更新后的分类:', updatedCategory);
     return updatedCategory;
@@ -141,18 +187,157 @@ export class ContentCategoryService {
   }
 
   async getTree(): Promise<ContentCategory[]> {
-    const categories = await this.findAll();
+    // 首先获取所有分类
+    const query = `
+      SELECT 
+        c.id,
+        c.name,
+        c.description,
+        c.parentId,
+        c.modelId,
+        c.sort,
+        c.isActive,
+        c.createdAt,
+        c.updatedAt,
+        m.id as model_id,
+        m.name as model_name,
+        m.description as model_description
+      FROM content_categories c
+      LEFT JOIN content_models m ON c.modelId = m.id
+      ORDER BY c.sort ASC, c.createdAt DESC
+    `;
+
+    const results = await this.categoryRepository.query(query);
+    if (!results || results.length === 0) {
+      return [];
+    }
+
+    // 转换结果为所需的数据结构
+    const categories = results.map(row => ({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      parentId: row.parentId,
+      modelId: row.modelId,
+      sort: row.sort,
+      isActive: row.isActive,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      children: [],
+      model: row.model_id ? {
+        id: row.model_id,
+        name: row.model_name,
+        description: row.model_description
+      } : null
+    }));
+
     return this.buildTree(categories);
   }
 
-  private buildTree(categories: ContentCategory[], parentId: number | null = null): ContentCategory[] {
-    return categories
-      .filter(category => 
-        parentId === null ? category.parentId === 0 : category.parentId === parentId
-      )
-      .map(category => ({
-        ...category,
-        children: this.buildTree(categories, category.id)
+  // 获取分类关联的模型信息
+  async getCategoryModel(id: number): Promise<any> {
+    const query = `
+      SELECT 
+        m.id,
+        m.name,
+        m.description,
+        m.sort,
+        m.isActive,
+        m.createdAt,
+        m.updatedAt,
+        ma.attributeId,
+        a.name as attributeName,
+        a.type as attributeType,
+        a.sort as attributeSort,
+        av.id as valueId,
+        av.value,
+        av.sort as valueSort
+      FROM content_categories c
+      JOIN content_models m ON c.modelId = m.id
+      LEFT JOIN content_model_attributes ma ON m.id = ma.modelId
+      LEFT JOIN content_attributes a ON ma.attributeId = a.id
+      LEFT JOIN content_attribute_values av ON a.id = av.attributeId
+      WHERE c.id = ?
+      ORDER BY a.sort ASC, av.sort ASC
+    `;
+
+    const results = await this.categoryRepository.query(query, [id]);
+    if (!results || results.length === 0) {
+      return null;
+    }
+
+    // 构建模型数据结构
+    const model = {
+      id: results[0].id,
+      name: results[0].name,
+      description: results[0].description,
+      sort: results[0].sort,
+      isActive: results[0].isActive,
+      createdAt: results[0].createdAt,
+      updatedAt: results[0].updatedAt,
+      attributes: []
+    };
+
+    // 处理属性和值
+    const attributesMap = new Map();
+    results.forEach(row => {
+      if (row.attributeId && !attributesMap.has(row.attributeId)) {
+        attributesMap.set(row.attributeId, {
+          id: row.attributeId,
+          name: row.attributeName,
+          type: row.attributeType,
+          sort: row.attributeSort,
+          values: []
+        });
+      }
+
+      if (row.valueId) {
+        const attribute = attributesMap.get(row.attributeId);
+        if (attribute && !attribute.values.some(v => v.id === row.valueId)) {
+          attribute.values.push({
+            id: row.valueId,
+            value: row.value,
+            isChecked: row.isChecked,
+            sort: row.valueSort
+          });
+        }
+      }
+    });
+
+    // 将属性添加到模型中并排序
+    model.attributes = Array.from(attributesMap.values())
+      .sort((a, b) => a.sort - b.sort);
+
+    // 对每个属性的值进行排序
+    model.attributes.forEach(attr => {
+      attr.values.sort((a, b) => a.sort - b.sort);
+    });
+
+    console.log('分类关联的模型:', JSON.stringify(model, null, 2));
+    return model;
+  }
+
+  private buildTree(items: ContentCategory[], parentId: number = 0): ContentCategory[] {
+    return items
+      .filter(item => item.parentId === parentId)
+      .map(item => ({
+        ...item,
+        children: this.buildTree(items, item.id)
       }));
+  }
+
+  async getContentTree(): Promise<ContentCategory[]> {
+    // 获取所有启用的分类
+    const categories = await this.categoryRepository.find({
+      where: { isActive: true }, // 注意：这里应该使用 isActive 而不是 status
+      order: {
+        sort: 'ASC',
+        createdAt: 'DESC',
+      },
+      relations: ['model'], // 如果需要加载关联的模型信息
+    });
+
+    // 转换为树形结构
+    return this.buildTree(categories);
   }
 } 

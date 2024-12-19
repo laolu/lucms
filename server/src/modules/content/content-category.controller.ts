@@ -36,6 +36,17 @@ export class ContentCategoryController {
     return await this.categoryService.getTree();
   }
 
+  @Get('content-tree')
+  @ApiOperation({ summary: '获取用于内容关联的分类树' })
+  @ApiResponse({ 
+    status: 200, 
+    description: '获取成功', 
+    type: [ContentCategory],
+  })
+  async getContentTree(): Promise<ContentCategory[]> {
+    return await this.categoryService.getContentTree();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: '获取指定分类' })
   @ApiParam({ name: 'id', description: '分类ID' })
