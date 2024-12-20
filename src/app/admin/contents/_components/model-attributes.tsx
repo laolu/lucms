@@ -43,6 +43,11 @@ export function ModelAttributes({
   attributeValues,
   onAttributeValueChange,
 }: ModelAttributesProps) {
+  console.log('ModelAttributes 渲染:', {
+    model,
+    attributeValues
+  });
+
   if (!model?.attributes?.length) {
     return null;
   }
@@ -51,50 +56,57 @@ export function ModelAttributes({
     <div className="space-y-4">
       {model.attributes
         .sort((a, b) => a.sort - b.sort)
-        .map((attribute) => (
-          <Card key={attribute.id} className="border border-gray-200">
-            <CardContent className="p-4">
-              <div className="flex gap-2 items-center mb-3">
-                <Label className="text-base font-medium">{attribute.name}</Label>
-                <span className="px-2 py-0.5 text-xs text-gray-600 bg-gray-100 rounded-full">
-                  {attribute.type === 'single' ? '单选' : '多选'}
-                </span>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                {attribute.values
-                  .sort((a, b) => a.sort - b.sort)
-                  .map((value) => {
-                    const isSelected = attributeValues.some(
-                      av => av.attributeId === attribute.id && av.valueId === value.id
-                    );
-                    
-                    return (
-                      <Badge
-                        key={value.id}
-                        variant={isSelected ? "default" : "outline"}
-                        className={`
-                          cursor-pointer hover:opacity-80 transition-all
-                          ${isSelected ? 'shadow-sm' : ''}
-                          ${attribute.type === 'single' ? 'rounded-full' : 'rounded-md'}
-                        `}
-                        onClick={() => onAttributeValueChange(attribute.id, value.id)}
-                      >
-                        {value.value}
-                      </Badge>
-                    );
-                  })}
-              </div>
+        .map((attribute) => {
+          console.log('渲染属性:', {
+            attribute,
+            selectedValues: attributeValues.filter(av => av.attributeId === attribute.id)
+          });
+          
+          return (
+            <Card key={attribute.id} className="border border-gray-200">
+              <CardContent className="p-4">
+                <div className="flex gap-2 items-center mb-3">
+                  <Label className="text-base font-medium">{attribute.name}</Label>
+                  <span className="px-2 py-0.5 text-xs text-gray-600 bg-gray-100 rounded-full">
+                    {attribute.type === 'single' ? '单选' : '多选'}
+                  </span>
+                </div>
+                
+                <div className="flex flex-wrap gap-2">
+                  {attribute.values
+                    .sort((a, b) => a.sort - b.sort)
+                    .map((value) => {
+                      const isSelected = attributeValues.some(
+                        av => av.attributeId === attribute.id && av.valueId === value.id
+                      );
+                      
+                      console.log('渲染属性值:', {
+                        attributeId: attribute.id,
+                        valueId: value.id,
+                        value: value.value,
+                        isSelected
+                      });
 
-              <div className="mt-2 text-xs text-gray-500">
-                {attribute.type === 'single' 
-                  ? '请选择一个选项' 
-                  : '可以选择多个选项'
-                }
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                      return (
+                        <Badge
+                          key={value.id}
+                          variant={isSelected ? "default" : "outline"}
+                          className={`
+                            cursor-pointer hover:opacity-80 transition-all
+                            ${isSelected ? 'shadow-sm' : ''}
+                            ${attribute.type === 'single' ? 'rounded-full' : 'rounded-md'}
+                          `}
+                          onClick={() => onAttributeValueChange(attribute.id, value.id)}
+                        >
+                          {value.value}
+                        </Badge>
+                      );
+                    })}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
     </div>
   );
 } 

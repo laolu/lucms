@@ -98,4 +98,12 @@ export class ContentController {
   async incrementViewCount(@Param('id') id: number): Promise<void> {
     await this.contentService.incrementViewCount(id);
   }
+
+  @Get(':id/attribute-values')
+  @ApiOperation({ summary: '获取内容的属性值关联' })
+  @ApiParam({ name: 'id', description: '内容ID' })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getAttributeValues(@Param('id') id: number) {
+    return await this.contentService.getContentAttributeValues(id);
+  }
 } 

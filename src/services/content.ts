@@ -126,7 +126,8 @@ export const contentService = {
 
   // 更新内容
   update: async (input: ContentUpdateInput) => {
-    const response = await client.patch<ApiResponse<Content>>(API_ENDPOINTS.CONTENT_DETAIL(input.id), input)
+    const { id, ...updateData } = input;
+    const response = await client.put<ApiResponse<Content>>(API_ENDPOINTS.CONTENT_DETAIL(id), updateData)
     return response.data?.data
   },
 
@@ -150,5 +151,16 @@ export const contentService = {
   // 增加浏览量
   view: async (id: number) => {
     await client.post(API_ENDPOINTS.CONTENT_VIEW(id))
+  },
+
+  // 获取内容的属性值关联
+  async getAttributeValues(id: number) {
+    try {
+      const response = await client.get<ApiResponse<any[]>>(API_ENDPOINTS.CONTENT_ATTRIBUTE_VALUES(id));
+      return response.data?.data || [];
+    } catch (error) {
+      console.error('获取内容属性值关联失败:', error);
+      throw error;
+    }
   }
 } 

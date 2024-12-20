@@ -72,6 +72,7 @@ export const API_ENDPOINTS = {
   CONTENT_UNFAVORITE: (id: number) => `/contents/${id}/unfavorite`,
   CONTENT_SHARE: (id: number) => `/contents/${id}/share`,
   CONTENT_REPORT: (id: number) => `/contents/${id}/report`,
+  CONTENT_ATTRIBUTE_VALUES: (id: number) => `/contents/${id}/attribute-values`,
   UPLOAD_IMAGE: '/resources/upload/image',
 
   // Users

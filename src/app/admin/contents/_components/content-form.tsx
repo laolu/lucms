@@ -15,7 +15,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { QuillEditor as Editor } from '@/components/editor/quill-editor';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -93,35 +92,53 @@ export function ContentForm({ id }: ContentFormProps) {
       }
       setSelectedCategory(category);
       
-      // 清空属性值，让用户手动选择
-      setFormData(prev => ({
-        ...prev,
-        attributeValues: []
-      }));
+      // 如果是编辑模式，不要清空属性值
+      if (!id) {
+        setFormData(prev => ({
+          ...prev,
+          attributeValues: []
+        }));
+      }
     } catch (error) {
       console.error('加载分类详情失败:', error);
       toast.error('加载分类详情失败');
     }
-  }, []);
+  }, [id]);
 
   // 加载内容详情
   const loadContent = React.useCallback(async () => {
     if (!id) return;
     try {
-      const data = await contentService.getById(parseInt(id));
+      const [data, attributeValues] = await Promise.all([
+        contentService.getById(parseInt(id)),
+        contentService.getAttributeValues(parseInt(id))
+      ]);
+
+      console.log('加载的内容数据:', data);
+      console.log('加载的属性值:', attributeValues);
+
+      // 设置基本信息
       setFormData({
         ...data,
         categoryId: data.categoryId.toString(),
         publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString().split('T')[0] : '',
         images: data.images || [],
         tags: data.tags || [],
-        attributeValues: data.attributeValues || []
+        attributeValues: attributeValues.map(av => ({
+          attributeId: av.attributeId,
+          valueId: av.valueId
+        }))
       });
+
+      // 加载分类信息
+      if (data.categoryId) {
+        await loadCategory(data.categoryId.toString());
+      }
     } catch (error) {
       console.error('加载内容失败:', error);
       toast.error('加载内容失败');
     }
-  }, [id]);
+  }, [id, loadCategory]);
 
   React.useEffect(() => {
     fetchCategories();

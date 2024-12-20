@@ -194,4 +194,30 @@ export class ContentService {
   async incrementViewCount(id: number): Promise<void> {
     await this.contentRepository.increment({ id }, 'viewCount', 1);
   }
+
+  async getContentAttributeValues(id: number) {
+    try {
+      // 只获取已选择的属性值关联
+      const relations = await this.attributeRelationRepository
+        .createQueryBuilder('relation')
+        .leftJoinAndSelect('relation.attributeValue', 'attributeValue')
+        .leftJoinAndSelect('attributeValue.attribute', 'attribute')
+        .where('relation.content = :id', { id })
+        .getMany();
+
+      // 转换为更易于前端使用的格式
+      const result = relations.map(relation => ({
+        attributeId: relation.attributeValue.attribute.id,
+        attributeName: relation.attributeValue.attribute.name,
+        attributeType: relation.attributeValue.attribute.type,
+        valueId: relation.attributeValue.id,
+        value: relation.attributeValue.value
+      }));
+
+      return result;
+    } catch (error) {
+      console.error('获取内容属性值关联失败:', error);
+      throw new BadRequestException('获取内容属性值关联失败');
+    }
+  }
 } 
