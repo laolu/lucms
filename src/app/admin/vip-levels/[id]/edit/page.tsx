@@ -4,7 +4,7 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 import { VipLevelForm } from '../../_components/vip-level-form'
-import { vipLevelService, type CreateVipLevelData } from '@/services/vip-level.service'
+import { vipLevelService, type CreateVipLevelData } from '@/services/vip-level'
 
 interface EditVipLevelPageProps {
   params: {
@@ -61,7 +61,7 @@ export default function EditVipLevelPage({ params }: EditVipLevelPageProps) {
   }
 
   return (
-    <div className="container py-8 space-y-8">
+    <div className="space-y-8">
       <div className="flex justify-between">
         <h1 className="text-2xl font-bold">编辑VIP等级</h1>
       </div>

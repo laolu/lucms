@@ -32,7 +32,7 @@ export default function CreateVipLevelPage() {
   }
 
   return (
-    <div className="container py-8 space-y-8">
+    <div className="space-y-8">
       <div className="flex justify-between">
         <h1 className="text-2xl font-bold">新建VIP等级</h1>
       </div>

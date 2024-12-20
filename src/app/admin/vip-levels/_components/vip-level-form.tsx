@@ -6,7 +6,17 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { type CreateVipLevelData } from '@/services/vip-level.service'
+import { type CreateVipLevelData } from '@/services/vip-level'
+
+const defaultFormData: CreateVipLevelData = {
+  name: '',
+  description: '',
+  price: 0,
+  duration: 30,
+  benefits: [],
+  isActive: true,
+  sort: 0
+}
 
 interface VipLevelFormProps {
   initialData?: CreateVipLevelData
@@ -17,22 +27,21 @@ interface VipLevelFormProps {
 }
 
 export function VipLevelForm({
-  initialData = {
-    name: '',
-    description: '',
-    price: 0,
-    duration: 30,
-    benefits: [],
-    isActive: true,
-    sort: 0
-  },
+  initialData,
   onSubmit,
   submitText = '保存',
   saving = false,
   onCancel
 }: VipLevelFormProps) {
-  const [formData, setFormData] = React.useState<CreateVipLevelData>(initialData)
-  const [benefitsText, setBenefitsText] = React.useState(initialData.benefits.join('\n'))
+  const [formData, setFormData] = React.useState<CreateVipLevelData>(initialData || defaultFormData)
+  const [benefitsText, setBenefitsText] = React.useState((initialData?.benefits || []).join('\n'))
+
+  React.useEffect(() => {
+    if (initialData) {
+      setFormData(initialData)
+      setBenefitsText((initialData.benefits || []).join('\n'))
+    }
+  }, [initialData])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

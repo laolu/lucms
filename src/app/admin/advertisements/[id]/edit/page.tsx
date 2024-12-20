@@ -48,15 +48,15 @@ export default function EditAdvertisementPage({ params }: { params: { id: string
   }
 
   if (loading) {
-    return <div className="p-6">加载中...</div>
+    return <div>加载中...</div>
   }
 
   if (!initialData) {
-    return <div className="p-6">广告位不存在</div>
+    return <div>广告位不存在</div>
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">编辑广告位</h1>
         <Button variant="outline" onClick={() => router.push('/admin/advertisements')}>

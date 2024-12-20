@@ -47,13 +47,23 @@ class VipLevelService {
       console.log('获取VIP等级列表响应:', data);
       return data.data.items;
     } catch (error) {
-      console.error('获取VIP等级列表失败:', error);
+      console.error('��取VIP等级列表失败:', error);
       throw error;
     }
   }
 
   async getById(id: number) {
-    return client.get<VipLevel>(API_ENDPOINTS.VIP_LEVEL_DETAIL(id))
+    try {
+      console.log('发送获取VIP等级详情请求，ID:', id);
+      const { data } = await client.get<{ code: number; message: string; data: VipLevel }>(
+        API_ENDPOINTS.VIP_LEVEL_DETAIL(id)
+      );
+      console.log('获取VIP等级详情响应:', data);
+      return data.data;
+    } catch (error) {
+      console.error('获取VIP等级详情失败:', error);
+      throw error;
+    }
   }
 
   async create(data: CreateVipLevelData) {
