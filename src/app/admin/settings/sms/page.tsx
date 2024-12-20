@@ -8,14 +8,14 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { RotateCw, Send } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { RotateCw } from 'lucide-react'
 import { settingService, type SystemConfig } from '@/services/setting'
 
 export default function SmsSettingsPage() {
   const { toast } = useToast()
   const [configs, setConfigs] = React.useState<SystemConfig[]>([])
   const [loading, setLoading] = React.useState(false)
-  const [testingSms, setTestingSms] = React.useState(false)
 
   // 获取配置
   const fetchConfigs = async () => {
@@ -50,27 +50,6 @@ export default function SmsSettingsPage() {
         title: "错误",
         description: "保存失败"
       })
-    }
-  }
-
-  // 测试短信配置
-  const testSmsConfig = async () => {
-    try {
-      setTestingSms(true)
-      await settingService.testSmsConfig()
-      toast({
-        title: "成功",
-        description: "测试短信已发送"
-      })
-    } catch (error) {
-      console.error('测试短信发送失败:', error)
-      toast({
-        variant: "destructive",
-        title: "错误",
-        description: "测试短信发送失败"
-      })
-    } finally {
-      setTestingSms(false)
     }
   }
 
@@ -130,6 +109,11 @@ export default function SmsSettingsPage() {
     }
   }
 
+  // 按短信服务商分组配置
+  const getConfigsByProvider = (provider: string) => {
+    return configs.filter(config => config.key.startsWith(`sms.${provider}.`))
+  }
+
   React.useEffect(() => {
     fetchConfigs()
   }, [])
@@ -146,36 +130,48 @@ export default function SmsSettingsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">短信设置</h1>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={testSmsConfig}
-            disabled={testingSms}
-          >
-            <Send className={`mr-2 h-4 w-4 ${testingSms ? 'animate-pulse' : ''}`} />
-            发送测试短信
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => fetchConfigs()}
-            disabled={loading}
-          >
-            <RotateCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            刷新
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          onClick={() => fetchConfigs()}
+          disabled={loading}
+        >
+          <RotateCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          刷新
+        </Button>
       </div>
 
-      <Card>
-        <CardContent className="space-y-4 pt-6">
-          {configs.map((config) => (
-            <div key={config.key} className="grid gap-2">
-              <Label>{config.description}</Label>
-              {renderConfigField(config)}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="aliyun">
+        <TabsList>
+          <TabsTrigger value="aliyun">阿里云短信</TabsTrigger>
+          <TabsTrigger value="tencent">腾讯云短信</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="aliyun">
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              {getConfigsByProvider('aliyun').map((config) => (
+                <div key={config.key} className="grid gap-2">
+                  <Label>{config.description}</Label>
+                  {renderConfigField(config)}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="tencent">
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              {getConfigsByProvider('tencent').map((config) => (
+                <div key={config.key} className="grid gap-2">
+                  <Label>{config.description}</Label>
+                  {renderConfigField(config)}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 } 

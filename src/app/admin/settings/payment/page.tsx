@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RotateCw } from 'lucide-react'
 import { settingService, type SystemConfig } from '@/services/setting'
 
@@ -108,6 +109,11 @@ export default function PaymentSettingsPage() {
     }
   }
 
+  // 按支付方式分组配置
+  const getConfigsByProvider = (provider: string) => {
+    return configs.filter(config => config.key.startsWith(`payment.${provider}.`))
+  }
+
   React.useEffect(() => {
     fetchConfigs()
   }, [])
@@ -134,16 +140,38 @@ export default function PaymentSettingsPage() {
         </Button>
       </div>
 
-      <Card>
-        <CardContent className="space-y-4 pt-6">
-          {configs.map((config) => (
-            <div key={config.key} className="grid gap-2">
-              <Label>{config.description}</Label>
-              {renderConfigField(config)}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="alipay">
+        <TabsList>
+          <TabsTrigger value="alipay">支付宝</TabsTrigger>
+          <TabsTrigger value="wechat">微信支付</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="alipay">
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              {getConfigsByProvider('alipay').map((config) => (
+                <div key={config.key} className="grid gap-2">
+                  <Label>{config.description}</Label>
+                  {renderConfigField(config)}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="wechat">
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              {getConfigsByProvider('wechat').map((config) => (
+                <div key={config.key} className="grid gap-2">
+                  <Label>{config.description}</Label>
+                  {renderConfigField(config)}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 } 

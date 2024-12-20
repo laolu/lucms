@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RotateCw, Send } from 'lucide-react'
 import { settingService, type SystemConfig } from '@/services/setting'
 
@@ -130,6 +131,11 @@ export default function EmailSettingsPage() {
     }
   }
 
+  // 获取指定厂家的配置
+  const getProviderConfigs = (provider: string) => {
+    return configs.filter(config => config.key.startsWith(`email.${provider}.`))
+  }
+
   React.useEffect(() => {
     fetchConfigs()
   }, [])
@@ -166,16 +172,52 @@ export default function EmailSettingsPage() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="space-y-4 pt-6">
-          {configs.map((config) => (
-            <div key={config.key} className="grid gap-2">
-              <Label>{config.description}</Label>
-              {renderConfigField(config)}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="smtp">
+        <TabsList>
+          <TabsTrigger value="smtp">SMTP</TabsTrigger>
+          <TabsTrigger value="aliyun">阿里云</TabsTrigger>
+          <TabsTrigger value="tencent">腾讯云</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="smtp">
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              {getProviderConfigs('smtp').map((config) => (
+                <div key={config.key} className="grid gap-2">
+                  <Label>{config.description}</Label>
+                  {renderConfigField(config)}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="aliyun">
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              {getProviderConfigs('aliyun').map((config) => (
+                <div key={config.key} className="grid gap-2">
+                  <Label>{config.description}</Label>
+                  {renderConfigField(config)}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="tencent">
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              {getProviderConfigs('tencent').map((config) => (
+                <div key={config.key} className="grid gap-2">
+                  <Label>{config.description}</Label>
+                  {renderConfigField(config)}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 } 

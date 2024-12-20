@@ -8,10 +8,11 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RotateCw } from 'lucide-react'
 import { settingService, type SystemConfig } from '@/services/setting'
 
-export default function OauthSettingsPage() {
+export default function OAuthSettingsPage() {
   const { toast } = useToast()
   const [configs, setConfigs] = React.useState<SystemConfig[]>([])
   const [loading, setLoading] = React.useState(false)
@@ -108,6 +109,11 @@ export default function OauthSettingsPage() {
     }
   }
 
+  // 按登录方式分组配置
+  const getConfigsByProvider = (provider: string) => {
+    return configs.filter(config => config.key.startsWith(`oauth.${provider}.`))
+  }
+
   React.useEffect(() => {
     fetchConfigs()
   }, [])
@@ -134,16 +140,52 @@ export default function OauthSettingsPage() {
         </Button>
       </div>
 
-      <Card>
-        <CardContent className="space-y-4 pt-6">
-          {configs.map((config) => (
-            <div key={config.key} className="grid gap-2">
-              <Label>{config.description}</Label>
-              {renderConfigField(config)}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="qq">
+        <TabsList>
+          <TabsTrigger value="qq">QQ登录</TabsTrigger>
+          <TabsTrigger value="wechat">微信登录</TabsTrigger>
+          <TabsTrigger value="weibo">微博登录</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="qq">
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              {getConfigsByProvider('qq').map((config) => (
+                <div key={config.key} className="grid gap-2">
+                  <Label>{config.description}</Label>
+                  {renderConfigField(config)}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="wechat">
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              {getConfigsByProvider('wechat').map((config) => (
+                <div key={config.key} className="grid gap-2">
+                  <Label>{config.description}</Label>
+                  {renderConfigField(config)}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="weibo">
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              {getConfigsByProvider('weibo').map((config) => (
+                <div key={config.key} className="grid gap-2">
+                  <Label>{config.description}</Label>
+                  {renderConfigField(config)}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 } 
