@@ -35,7 +35,7 @@ export default function VipLevelsPage() {
       const { data } = await vipLevelService.getAll({
         search: searchQuery
       })
-      setVipLevels(data?.items || [])
+      setVipLevels(data.items || [])
     } catch (error) {
       console.error('获取VIP等级列表失败:', error)
       toast({

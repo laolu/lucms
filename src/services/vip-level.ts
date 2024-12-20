@@ -27,8 +27,7 @@ export interface CreateVipLevelData {
 export interface UpdateVipLevelData extends Partial<CreateVipLevelData> {}
 
 export interface GetVipLevelsParams {
-  page?: number
-  pageSize?: number
+  search?: string
 }
 
 export interface GetVipLevelsResponse {
@@ -38,7 +37,15 @@ export interface GetVipLevelsResponse {
 
 class VipLevelService {
   async getAll(params: GetVipLevelsParams = {}) {
-    return client.get<GetVipLevelsResponse>(API_ENDPOINTS.VIP_LEVELS, { params })
+    try {
+      console.log('发送获取VIP等级列表请求，参数:', params);
+      const response = await client.get<GetVipLevelsResponse>(API_ENDPOINTS.VIP_LEVELS, { params });
+      console.log('获取VIP等级列表响应:', response.data);
+      return response;
+    } catch (error) {
+      console.error('获取VIP等级列表失败:', error);
+      throw error;
+    }
   }
 
   async getById(id: number) {
@@ -46,7 +53,15 @@ class VipLevelService {
   }
 
   async create(data: CreateVipLevelData) {
-    return client.post<VipLevel>(API_ENDPOINTS.VIP_LEVELS, data)
+    try {
+      console.log('发送创建VIP等级请求，数据:', data);
+      const response = await client.post<VipLevel>(API_ENDPOINTS.VIP_LEVELS, data);
+      console.log('创建VIP等级响应:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('创建VIP等级失败:', error);
+      throw error;
+    }
   }
 
   async update(id: number, data: UpdateVipLevelData) {
