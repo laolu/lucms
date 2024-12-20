@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { contentModelService } from '@/services/content-model';
+import { contentAttributeService } from '@/services/content-attribute';
 import type { ContentModel, ContentAttribute, UpdateContentModelDto } from '@/services/content-model';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -62,56 +63,72 @@ export function ModelForm({ model }: ModelFormProps) {
 
   // 加载数据
   const loadData = React.useCallback(async () => {
-    if (!model) return;
-
     try {
-      // 1. 获取所有属性和属性值（从 findOne 获取）
-      const modelData = await contentModelService.getById(model.id);
-      console.log('modelData:', modelData);
-      
-      // 2. 获取已选择的属性ID列表
-      const selectedAttributeIds = await contentModelService.getModelAttributes(model.id);
-      console.log('已选择的属性ID:', selectedAttributeIds);
-      
-      // 3. 获取已选择的属性值
-      const selectedAttributeValues = await contentModelService.getModelAttributeValues(model.id);
-      console.log('已选择的属性值:', selectedAttributeValues);
+      if (model) {
+        // 编辑模式：获取模型相关数据
+        const modelData = await contentModelService.getById(model.id);
+        console.log('modelData:', modelData);
+        
+        const selectedAttributeIds = await contentModelService.getModelAttributes(model.id);
+        console.log('已选择的属性ID:', selectedAttributeIds);
+        
+        const selectedAttributeValues = await contentModelService.getModelAttributeValues(model.id);
+        console.log('已选择的属性值:', selectedAttributeValues);
 
-      if (!modelData?.attributes) {
-        console.error('modelData.attributes 不存在');
-        return;
+        if (!modelData?.attributes) {
+          console.error('modelData.attributes 不存在');
+          return;
+        }
+
+        const mergedAttributes = modelData.attributes.map(attr => ({
+          id: attr.attributeId,
+          attributeId: attr.attributeId,
+          attributeName: attr.attributeName,
+          type: attr.attributeType as 'single' | 'multiple',
+          isSelected: selectedAttributeIds.includes(attr.attributeId),
+          values: attr.values.map(value => ({
+            id: value.id,
+            value: value.value,
+            isSelected: selectedAttributeValues.some(av => 
+              av.attributeId === attr.attributeId && 
+              av.attributeValueId === value.id
+            )
+          }))
+        }));
+        
+        console.log('最终合并的属性:', mergedAttributes);
+        setAttributes(mergedAttributes);
+        
+        setSelectedAttributeIds(selectedAttributeIds);
+        
+        const valuesMap = new Map<number, number[]>();
+        selectedAttributeValues.forEach(av => {
+          const current = valuesMap.get(av.attributeId) || [];
+          valuesMap.set(av.attributeId, [...current, av.attributeValueId]);
+        });
+        setSelectedValues(valuesMap);
+      } else {
+        // 创建模式：加载所有可用属性
+        console.log('创建模式：开始加载所有属性');
+        const allAttributes = await contentAttributeService.getAll();
+        console.log('获取到的所有属性:', allAttributes);
+        
+        const formattedAttributes = allAttributes.map(attr => ({
+          id: attr.id,
+          attributeId: attr.id,
+          attributeName: attr.name,
+          type: attr.type,
+          isSelected: false,
+          values: attr.values.map(value => ({
+            id: value.id,
+            value: value.value,
+            isSelected: false
+          }))
+        }));
+        
+        console.log('格式化后的属性:', formattedAttributes);
+        setAttributes(formattedAttributes);
       }
-
-      // 处理属性数据
-      const mergedAttributes = modelData.attributes.map(attr => ({
-        id: attr.attributeId,
-        attributeId: attr.attributeId,
-        attributeName: attr.attributeName,
-        type: attr.attributeType as 'single' | 'multiple',
-        isSelected: selectedAttributeIds.includes(attr.attributeId),
-        values: attr.values.map(value => ({
-          id: value.id,
-          value: value.value,
-          isSelected: selectedAttributeValues.some(av => 
-            av.attributeId === attr.attributeId && 
-            av.attributeValueId === value.id
-          )
-        }))
-      }));
-      
-      console.log('最终合并的属性:', mergedAttributes);
-      setAttributes(mergedAttributes);
-      
-      // 设置已选择的属性ID
-      setSelectedAttributeIds(selectedAttributeIds);
-      
-      // 设置已选择的属性值
-      const valuesMap = new Map<number, number[]>();
-      selectedAttributeValues.forEach(av => {
-        const current = valuesMap.get(av.attributeId) || [];
-        valuesMap.set(av.attributeId, [...current, av.attributeValueId]);
-      });
-      setSelectedValues(valuesMap);
     } catch (error) {
       console.error('加载数据失败:', error);
       toast.error('加载数据失败');
@@ -151,7 +168,7 @@ export function ModelForm({ model }: ModelFormProps) {
       selectedAttributeIds,
       selectedValues
     });
-    if (!model || !formData) return;
+    if (!formData) return;
 
     try {
       setLoading(true);
@@ -176,8 +193,8 @@ export function ModelForm({ model }: ModelFormProps) {
 
       console.log('要提交的属性值:', attributeValues);
 
-      // 构建完整的更新数据
-      const updateData = {
+      // 构建完整的数据
+      const submitData = {
         name: formData.name,
         description: formData.description || '',
         sort: Number(formData.sort) || 0,
@@ -186,10 +203,18 @@ export function ModelForm({ model }: ModelFormProps) {
         attributeValues: attributeValues
       };
 
-      console.log('提交更新数据:', updateData);
-      await contentModelService.update(model.id, updateData);
+      console.log('提交数据:', submitData);
       
-      toast.success('更新成功');
+      if (model) {
+        // 更新模式
+        await contentModelService.update(model.id, submitData);
+        toast.success('更新成功');
+      } else {
+        // 创建模式
+        await contentModelService.create(submitData);
+        toast.success('创建成功');
+      }
+      
       setShowConfirmDialog(false);
       setFormData(null);
       setLoading(false);
@@ -197,8 +222,8 @@ export function ModelForm({ model }: ModelFormProps) {
       router.replace('/admin/content-models');
       router.refresh();
     } catch (error) {
-      console.error('更新失败:', error);
-      toast.error('更新失败');
+      console.error(model ? '更新失败:' : '创建失败:', error);
+      toast.error(model ? '更新失败' : '创建失败');
       setLoading(false);
       setShowConfirmDialog(false);
     }
