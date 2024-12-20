@@ -123,20 +123,28 @@ const data = {
       icon: Settings2,
       items: [
         {
-          title: "基本设置",
-          url: "/admin/settings",
+          title: "基础设置",
+          url: "/admin/settings/basic",
         },
         {
-          title: "团队管理",
-          url: "/admin/teams",
+          title: "邮件设置",
+          url: "/admin/settings/email",
         },
         {
-          title: "账单管理",
-          url: "/admin/billing",
+          title: "存储设置",
+          url: "/admin/settings/storage",
         },
         {
-          title: "限制管理",
-          url: "/admin/limits",
+          title: "短信设置",
+          url: "/admin/settings/sms",
+        },
+        {
+          title: "支付设置",
+          url: "/admin/settings/payment",
+        },
+        {
+          title: "第三方登录",
+          url: "/admin/settings/oauth",
         },
       ],
     },
