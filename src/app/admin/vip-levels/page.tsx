@@ -32,10 +32,11 @@ export default function VipLevelsPage() {
   const fetchVipLevels = React.useCallback(async () => {
     try {
       setLoading(true)
-      const { data } = await vipLevelService.getAll({
+      const data = await vipLevelService.getAll({
         search: searchQuery
       })
-      setVipLevels(data.items || [])
+      console.log('VIP等级列表数据:', data)
+      setVipLevels(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('获取VIP等级列表失败:', error)
       toast({

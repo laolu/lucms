@@ -31,17 +31,21 @@ export interface GetVipLevelsParams {
 }
 
 export interface GetVipLevelsResponse {
-  items: VipLevel[]
-  total: number
+  code: number
+  message: string
+  data: {
+    items: VipLevel[]
+    total: number
+  }
 }
 
 class VipLevelService {
   async getAll(params: GetVipLevelsParams = {}) {
     try {
       console.log('发送获取VIP等级列表请求，参数:', params);
-      const response = await client.get<GetVipLevelsResponse>(API_ENDPOINTS.VIP_LEVELS, { params });
-      console.log('获取VIP等级列表响应:', response.data);
-      return response;
+      const { data } = await client.get<GetVipLevelsResponse>(API_ENDPOINTS.VIP_LEVELS, { params });
+      console.log('获取VIP等级列表响应:', data);
+      return data.data.items;
     } catch (error) {
       console.error('获取VIP等级列表失败:', error);
       throw error;
