@@ -22,7 +22,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { contentService } from '@/services/content';
 import { contentCategoryService } from '@/services/content-category';
-import { contentAttributeService } from '@/services/content-attribute';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +44,6 @@ export function ContentForm({ id }: ContentFormProps) {
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
   const [categories, setCategories] = React.useState<any[]>([]);
-  const [attributes, setAttributes] = React.useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = React.useState<any>(null);
   const [formData, setFormData] = React.useState({
     title: '',
@@ -106,24 +104,6 @@ export function ContentForm({ id }: ContentFormProps) {
     }
   }, []);
 
-  // 加载属性列表
-  const loadAttributes = React.useCallback(async () => {
-    if (!formData.categoryId) return;
-    try {
-      const data = await contentAttributeService.getByCategoryId(parseInt(formData.categoryId));
-      setAttributes(data);
-      
-      // 清空属性值，让用户手动选择
-      setFormData(prev => ({
-        ...prev,
-        attributeValues: []
-      }));
-    } catch (error) {
-      console.error('加载属性列表失败:', error);
-      toast.error('加载属性列表失败');
-    }
-  }, [formData.categoryId]);
-
   // 加载内容详情
   const loadContent = React.useCallback(async () => {
     if (!id) return;
@@ -150,9 +130,8 @@ export function ContentForm({ id }: ContentFormProps) {
   React.useEffect(() => {
     if (formData.categoryId) {
       loadCategory(formData.categoryId);
-      loadAttributes();
     }
-  }, [formData.categoryId, loadCategory, loadAttributes]);
+  }, [formData.categoryId, loadCategory]);
 
   React.useEffect(() => {
     loadContent();
@@ -356,7 +335,7 @@ export function ContentForm({ id }: ContentFormProps) {
       }} 
       className="space-y-6"
     >
-      <div className="flex justify-end items-center gap-2">
+      <div className="flex gap-2 justify-end items-center">
         <Button 
           variant="outline" 
           type="button"
@@ -370,7 +349,7 @@ export function ContentForm({ id }: ContentFormProps) {
         >
           {loading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 w-4 h-4 animate-spin" />
               {id ? '更新中...' : '创建中...'}
             </>
           ) : (
@@ -661,7 +640,7 @@ export function ContentForm({ id }: ContentFormProps) {
               id="downloadUrl"
               value={formData.downloadUrl}
               onChange={(e) => setFormData(prev => ({ ...prev, downloadUrl: e.target.value }))}
-              placeholder="请��入下载链接"
+              placeholder="请输入下载链接"
             />
           </div>
 

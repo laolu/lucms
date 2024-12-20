@@ -2,7 +2,7 @@ import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } fro
 import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from '../../guards/admin.guard';
 import { ContentService } from './content.service';
-import { CreateContentDto } from './dto/create-content.dto';
+import { CreateContentDto } from './dto/content.dto';
 import { Content } from './entities/content.entity';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { PaginationDto } from '@/common/dto/pagination.dto';

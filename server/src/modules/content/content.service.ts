@@ -4,7 +4,7 @@ import { Repository, Like, QueryFailedError, In } from 'typeorm';
 import { Content } from './entities/content.entity';
 import { ContentAttributeValue } from './entities/content-attribute-value.entity';
 import { ContentAttributeRelation } from './entities/content-attribute-relation.entity';
-import { CreateContentDto } from './dto/create-content.dto';
+import { CreateContentDto } from './dto/content.dto';
 
 @Injectable()
 export class ContentService {
@@ -72,33 +72,12 @@ export class ContentService {
 
       // 创建内容实例
       const content = this.contentRepository.create({
-        title: createContentDto.title,
-        content: createContentDto.content,
-        categoryId: createContentDto.categoryId,
-        description: createContentDto.description,
-        isActive: createContentDto.isActive ?? true,
-        sort: createContentDto.sort ?? 0,
-        thumbnail: createContentDto.thumbnail,
-        images: createContentDto.images || [],
-        coverImage: createContentDto.coverImage,
-        bannerImage: createContentDto.bannerImage,
-        price: createContentDto.price ?? 0,
-        originalPrice: createContentDto.originalPrice ?? 0,
-        isFree: createContentDto.isFree ?? false,
-        isVipFree: createContentDto.isVipFree ?? false,
-        vipPrice: createContentDto.vipPrice ?? 0,
-        downloadUrl: createContentDto.downloadUrl,
-        downloadPassword: createContentDto.downloadPassword,
-        extractPassword: createContentDto.extractPassword,
+        ...createContentDto,
         viewCount: 0,
         commentCount: 0,
         likeCount: 0,
         favoriteCount: 0,
         shareCount: 0,
-        tags: createContentDto.tags || [],
-        meta: createContentDto.meta || {},
-        source: createContentDto.source,
-        author: createContentDto.author,
         publishedAt: createContentDto.publishedAt ? new Date(createContentDto.publishedAt) : null
       });
 
@@ -148,17 +127,14 @@ export class ContentService {
   private async saveAttributeValues(contentId: number, attributeValueIds: number[]) {
     try {
       // 创建属性值关联
-      const values = attributeValueIds.map(valueId => ({
-        contentId,
-        attributeValueId: valueId,
-      }));
+      const relations = attributeValueIds.map(valueId => {
+        return this.attributeRelationRepository.create({
+          content: { id: contentId } as Content,
+          attributeValue: { id: valueId } as ContentAttributeValue,
+        });
+      });
 
-      await this.contentAttributeValueRepository
-        .createQueryBuilder()
-        .insert()
-        .into(ContentAttributeValue)
-        .values(values)
-        .execute();
+      await this.attributeRelationRepository.save(relations);
     } catch (error) {
       console.error('保存属性值关联失败:', error);
       throw new BadRequestException('保存属性值关联失败');
