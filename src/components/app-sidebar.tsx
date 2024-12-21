@@ -12,6 +12,8 @@ import {
   PieChart,
   Settings2,
   SquareTerminal,
+  Users,
+  Box,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -26,7 +28,6 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-// This is sample data.
 const data = {
   user: {
     name: "Admin",
@@ -39,31 +40,17 @@ const data = {
       logo: GalleryVerticalEnd,
       plan: "企业版",
     },
-    {
-      name: "LuCMS Corp.",
-      logo: AudioWaveform,
-      plan: "专业版",
-    },
-    {
-      name: "LuCMS Inc.",
-      logo: Command,
-      plan: "免费版",
-    },
   ],
   navMain: [
     {
       title: "仪表盘",
-      url: "/admin",
+      url: "/admin/dashboard",
       icon: SquareTerminal,
       isActive: true,
       items: [
         {
           title: "概览",
-          url: "/admin",
-        },
-        {
-          title: "统计",
-          url: "/admin/stats",
+          url: "/admin/dashboard",
         },
       ],
     },
@@ -77,16 +64,38 @@ const data = {
           url: "/admin/content-categories",
         },
         {
-          title: "属性管理",
-          url: "/admin/content-attributes",
+          title: "内容列表",
+          url: "/admin/contents",
         },
+      ],
+    },
+    {
+      title: "模型管理",
+      url: "/admin/content-models",
+      icon: Box,
+      items: [
         {
-          title: "模型管理",
+          title: "模型列表",
           url: "/admin/content-models",
         },
         {
-          title: "内容列表",
-          url: "/admin/contents",
+          title: "属性管理",
+          url: "/admin/content-attributes",
+        },
+      ],
+    },
+    {
+      title: "会员管理",
+      url: "#",
+      icon: Users,
+      items: [
+        {
+          title: "会员列表",
+          url: "/admin/users",
+        },
+        {
+          title: "会员等级",
+          url: "/admin/vip-levels",
         },
       ],
     },
@@ -108,12 +117,8 @@ const data = {
           url: "/admin/menus",
         },
         {
-          title: "会员等级",
-          url: "/admin/vip-levels",
-        },
-        {
-          title: "会员管理",
-          url: "/admin/users",
+          title: "友情链接",
+          url: "/admin/friend-links",
         },
       ],
     },
@@ -149,69 +154,20 @@ const data = {
       ],
     },
   ],
-  // projects: [
-  //   {
-  //     name: "系统设置",
-  //     url: "#",
-  //     icon: Settings2,
-  //     items: [
-  //       {
-  //         name: "UI 设计",
-  //         url: "#ui-design"
-  //       },
-  //       {
-  //         name: "平面设计",
-  //         url: "#graphic-design"
-  //       }
-  //     ]
-  //   },
-  //   {
-  //     name: "销售营销",
-  //     url: "#",
-  //     icon: PieChart,
-  //     items: [
-  //       {
-  //         name: "数据分析",
-  //         url: "#data-analysis"
-  //       },
-  //       {
-  //         name: "市场调研",
-  //         url: "#market-research"
-  //       }
-  //     ]
-  //   },
-  //   {
-  //     name: "旅游项目",
-  //     url: "#",
-  //     icon: Map,
-  //     items: [
-  //       {
-  //         name: "景点规划",
-  //         url: "#attractions"
-  //       },
-  //       {
-  //         name: "路线设计",
-  //         url: "#routes"
-  //       }
-  //     ]
-  //   },
-  // ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   )
 } 

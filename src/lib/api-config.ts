@@ -120,4 +120,10 @@ export const API_ENDPOINTS = {
   CONTENT_MODEL_DETAIL: (id: number) => `/content-models/${id}`,
   CONTENT_MODEL_ATTRIBUTES: (id: number) => `/content-models/${id}/attributes`,
   CONTENT_MODEL_ATTRIBUTE_VALUES: (id: number) => `/content-models/${id}/attribute-values`,
+
+  // Friend Links
+  FRIEND_LINKS: '/friend-links',
+  FRIEND_LINK_DETAIL: (id: number) => `/friend-links/${id}`,
+  FRIEND_LINK_TOGGLE_VISIBLE: (id: number) => `/friend-links/${id}/toggle-visible`,
+  FRIEND_LINK_SORT: (id: number) => `/friend-links/${id}/sort`,
 } as const; 

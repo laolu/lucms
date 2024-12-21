@@ -19,6 +19,7 @@ import { AppService } from './app.service';
 import { JwtModule } from '@nestjs/jwt';
 import jwtConfig from './config/jwt.config';
 import { ConfigModule as SystemConfigModule } from './modules/config/config.module';
+import { FriendLinkModule } from './modules/friend-link/friend-link.module';
 
 @Module({
   imports: [
@@ -48,7 +49,8 @@ import { ConfigModule as SystemConfigModule } from './modules/config/config.modu
     AdvertisementModule,
     SystemConfigModule,
     MenuModule,
-    OrderModule
+    OrderModule,
+    FriendLinkModule,
   ],
   controllers: [AppController],
   providers: [AppService],
