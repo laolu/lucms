@@ -117,6 +117,10 @@ const data = {
           url: "/admin/menus",
         },
         {
+          title: "文章管理",
+          url: "/admin/articles",
+        },
+        {
           title: "友情链接",
           url: "/admin/friend-links",
         },

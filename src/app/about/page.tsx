@@ -2,10 +2,10 @@ import { Card } from '@/components/ui/card';
 import { pageService } from '@/services/page';
 import { useQuery } from '@tanstack/react-query';
 
-export default function PrivacyPage() {
+export default function AboutPage() {
   const { data: config, isLoading } = useQuery({
-    queryKey: ['pageConfig', 'privacy'],
-    queryFn: pageService.getPrivacyConfig,
+    queryKey: ['pageConfig', 'about'],
+    queryFn: pageService.getAboutConfig,
   });
 
   if (isLoading) {

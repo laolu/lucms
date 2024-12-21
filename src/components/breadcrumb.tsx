@@ -17,6 +17,12 @@ const breadcrumbMap: { [key: string]: string } = {
   'payment': '支付设置',
   'oauth': '第三方登录',
   
+  // 运营管理
+  'pages': '页面管理',
+  'advertisements': '广告管理',
+  'menus': '菜单管理',
+  'friend-links': '友情链接',
+  
   // 内容管理
   'content-categories': '内容分类',
   'content-models': '内容模型',
@@ -34,7 +40,6 @@ const breadcrumbMap: { [key: string]: string } = {
   'payments': '支付记录',
   
   // 广告管理
-  'advertisements': '广告管理',
   'ad-spaces': '广告位管理',
   
   // 会员管理

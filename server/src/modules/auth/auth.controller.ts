@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -25,6 +25,9 @@ export class AuthController {
       loginDto.email || loginDto.phone,
       loginDto.password
     );
+    if (!user) {
+      throw new UnauthorizedException('用户名或密码错误');
+    }
     return this.authService.login(user);
   }
 
@@ -73,7 +76,7 @@ export class AuthController {
   @ApiOperation({ summary: '验证验证码' })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
-  @ApiResponse({ status: 200, description: '验证码���证成功' })
+  @ApiResponse({ status: 200, description: '验证码证成功' })
   async verifyCode(@Request() req, @Body() verifyCodeDto: VerifyCodeDto) {
     return await this.authService.verifyCode(req.user.id, verifyCodeDto);
   }

@@ -97,10 +97,13 @@ export const API_ENDPOINTS = {
   CONFIGS_STORAGE: '/configs/storage',
   CONFIGS_SMS: '/configs/sms',
   CONFIGS_PAYMENT: '/configs/payment',
-  CONFIGS_OAUTH: '/configs/oauth',
+  CONFIGS_OAUTH: '/api/admin/configs/oauth',
   CONFIGS_SECURITY: '/configs/security',
   CONFIGS_CACHE: '/configs/cache',
   CONFIGS_REFRESH: '/configs/refresh',
+  CONFIGS_ABOUT: '/api/admin/configs/page/about',
+  CONFIGS_TERMS: '/api/admin/configs/page/terms',
+  CONFIGS_PRIVACY: '/api/admin/configs/page/privacy',
 
   // Advertisements
   ADVERTISEMENTS: '/advertisements',
@@ -126,4 +129,12 @@ export const API_ENDPOINTS = {
   FRIEND_LINK_DETAIL: (id: number) => `/friend-links/${id}`,
   FRIEND_LINK_TOGGLE_VISIBLE: (id: number) => `/friend-links/${id}/toggle-visible`,
   FRIEND_LINK_SORT: (id: number) => `/friend-links/${id}/sort`,
+
+  // Articles
+  ARTICLES: '/api/admin/articles',
+  ARTICLE_DETAIL: (id: number) => `/api/admin/articles/${id}`,
+  ARTICLE_CATEGORIES: '/api/admin/articles/categories',
+  ARTICLE_CATEGORY_DETAIL: (id: number) => `/api/admin/articles/categories/${id}`,
+  ARTICLES_BY_CATEGORY: (categoryId: number) => `/api/admin/articles/by-category/${categoryId}`,
+  ARTICLE_INCREMENT_VIEW: (id: number) => `/api/admin/articles/${id}/increment-view`,
 } as const; 

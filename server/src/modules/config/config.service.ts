@@ -7,19 +7,19 @@ import { SystemConfig } from './entities/system-config.entity';
 export class ConfigService {
   constructor(
     @InjectRepository(SystemConfig)
-    private readonly configRepository: Repository<SystemConfig>,
+    private readonly systemConfigRepository: Repository<SystemConfig>,
   ) {}
 
   // 获取所有配置
   async findAll(): Promise<SystemConfig[]> {
-    return await this.configRepository.find({
+    return await this.systemConfigRepository.find({
       order: { sort: 'ASC' },
     });
   }
 
   // 根据分组获取配置
   async findByGroup(group: string): Promise<SystemConfig[]> {
-    return await this.configRepository.find({
+    return await this.systemConfigRepository.find({
       where: {
         key: Like(`${group}%`),
         isActive: true
@@ -30,7 +30,7 @@ export class ConfigService {
 
   // 根据键名获取配置
   async findByKey(key: string): Promise<SystemConfig> {
-    return await this.configRepository.findOne({
+    return await this.systemConfigRepository.findOne({
       where: { key },
     });
   }
@@ -43,7 +43,7 @@ export class ConfigService {
     }
 
     config.value = value;
-    return await this.configRepository.save(config);
+    return await this.systemConfigRepository.save(config);
   }
 
   // 测试邮件配置

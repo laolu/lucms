@@ -20,6 +20,7 @@ import { JwtModule } from '@nestjs/jwt';
 import jwtConfig from './config/jwt.config';
 import { ConfigModule as SystemConfigModule } from './modules/config/config.module';
 import { FriendLinkModule } from './modules/friend-link/friend-link.module';
+import { ArticleModule } from './modules/article/article.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { FriendLinkModule } from './modules/friend-link/friend-link.module';
     MenuModule,
     OrderModule,
     FriendLinkModule,
+    ArticleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

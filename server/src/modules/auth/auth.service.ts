@@ -23,17 +23,41 @@ export class AuthService {
 
   async validateUser(username: string, password: string): Promise<any> {
     const user = await this.usersService.findByPhoneOrEmail(username);
-    if (user && await bcrypt.compare(password, user.password)) {
-      const { password, ...result } = user;
-      return result;
+    if (!user) {
+      return null;
     }
-    return null;
+
+    // 检查用户是否被锁定
+    if (user.lockoutUntil && moment(user.lockoutUntil).isAfter(moment())) {
+      throw new UnauthorizedException('账号已被锁定，请稍后再试');
+    }
+
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      // 增加登录尝试次数
+      const loginAttempts = (user.loginAttempts || 0) + 1;
+      await this.usersService.update(user.id, { loginAttempts });
+      
+      // 如果达到最大尝试次数，锁定账户
+      if (loginAttempts >= 5) {
+        await this.usersService.update(user.id, {
+          loginAttempts: 0,
+          lockoutUntil: moment().add(1, 'hour').toDate()
+        });
+        throw new UnauthorizedException('登录尝试次数过多，账号已被锁定1小时');
+      }
+      
+      return null;
+    }
+
+    const { password: _, ...result } = user;
+    return result;
   }
 
   async login(user: User) {
     // 检查用户是否被锁定
     if (user.lockoutUntil && moment(user.lockoutUntil).isAfter(moment())) {
-      throw new UnauthorizedException('Account is locked. Please try again later.');
+      throw new UnauthorizedException('账号已被锁定，请稍后再试');
     }
 
     // 检查登录尝试次数
@@ -43,8 +67,15 @@ export class AuthService {
         loginAttempts: 0,
         lockoutUntil: moment().add(1, 'hour').toDate()
       });
-      throw new UnauthorizedException('Too many login attempts. Account is locked for 1 hour.');
+      throw new UnauthorizedException('登录尝试次数过多，账号已被锁定1小时');
     }
+
+    // 登录成功，重置登录尝试次数
+    await this.usersService.update(user.id, {
+      loginAttempts: 0,
+      lockoutUntil: null,
+      lastLoginAt: new Date()
+    });
 
     const payload = {
       username: user.username,
@@ -116,7 +147,7 @@ export class AuthService {
       resetPasswordTokenExpiredAt: moment().add(1, 'hour').toDate()
     });
 
-    // 发送重置密码验证码
+    // 发送重置密码验���码
     if (user.phone) {
       await this.smsService.sendPasswordResetCode(user.phone);
     }
@@ -177,7 +208,7 @@ export class AuthService {
     }
 
     // 验证验证码
-    // TODO: ��现邮箱验证码验证逻辑
+    // TODO: 现邮箱验证码验证逻辑
 
     await this.usersService.update(user.id, {
       verificationCode: null,
