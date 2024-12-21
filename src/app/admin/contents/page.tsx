@@ -62,6 +62,7 @@ import { toast } from "sonner"
 import { contentService } from '@/services/content'
 import { contentCategoryService } from '@/services/content-category'
 import { formatDate, cn } from '@/lib/utils'
+import Link from 'next/link'
 
 // 排序选项
 const SORT_OPTIONS = [
@@ -286,27 +287,13 @@ export default function ContentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold tracking-tight">内容管理</h1>
-        <div className="flex gap-2 items-center">
-          {selectedItems.length > 0 && (
-            <>
-              <Button variant="outline" onClick={() => handleBatchToggleStatus(true)}>
-                批量发布
-              </Button>
-              <Button variant="outline" onClick={() => handleBatchToggleStatus(false)}>
-                批量下架
-              </Button>
-              <Button variant="destructive" onClick={handleBatchDelete}>
-                批量删除
-              </Button>
-            </>
-          )}
-          <Button onClick={handleCreate}>
-            <Plus className="mr-2 w-4 h-4" />
-            创建内容
-          </Button>
-        </div>
+      <div className="flex justify-end items-center">
+        <Button asChild>
+          <Link href="/admin/contents/create">
+            <Plus className="mr-2 h-4 w-4" />
+            新建
+          </Link>
+        </Button>
       </div>
 
       <div className="flex flex-wrap gap-4 items-center">

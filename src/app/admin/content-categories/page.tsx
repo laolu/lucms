@@ -297,11 +297,10 @@ export default function ContentCategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold tracking-tight">内容分类管理</h1>
+      <div className="flex justify-end items-center">
         <Button onClick={handleAddCategory}>
-          <Plus className="mr-2 w-4 h-4" />
-          添加分类
+          <Plus className="mr-2 h-4 w-4" />
+          新建
         </Button>
       </div>
 

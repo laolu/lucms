@@ -54,12 +54,11 @@ export default function ContentModelsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold tracking-tight">内容模型管理</h1>
+      <div className="flex justify-end items-center">
         <Button asChild>
           <Link href="/admin/content-models/create">
-            <Plus className="mr-2 w-4 h-4" />
-            添加模型
+            <Plus className="mr-2 h-4 w-4" />
+            新建
           </Link>
         </Button>
       </div>

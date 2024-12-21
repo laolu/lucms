@@ -42,6 +42,7 @@ import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, EyeOff, ArrowUpDown 
 import { toast } from "sonner"
 import { menuService, type Menu } from '@/services/menu'
 import { formatDate } from '@/lib/utils'
+import Link from 'next/link'
 
 export default function MenusPage() {
   const router = useRouter()
@@ -134,11 +135,12 @@ export default function MenusPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">导航菜单管理</h1>
-        <Button onClick={handleCreate}>
-          <Plus className="w-4 h-4 mr-2" />
-          创建菜单
+      <div className="flex justify-end items-center">
+        <Button asChild>
+          <Link href="/admin/menus/create">
+            <Plus className="mr-2 h-4 w-4" />
+            新建
+          </Link>
         </Button>
       </div>
 

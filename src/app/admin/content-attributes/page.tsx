@@ -57,7 +57,7 @@ export default function ContentAttributesPage() {
     try {
       if (editingAttribute) {
         await contentAttributeService.update(editingAttribute.id, data);
-        toast.success('属性已更新');
+        toast.success('属���已更新');
       } else {
         await contentAttributeService.create(data);
         toast.success('属性已添加');
@@ -92,11 +92,10 @@ export default function ContentAttributesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">内容属性管理</h1>
+      <div className="flex justify-end items-center">
         <Button onClick={handleAddAttribute}>
-          <Plus className="w-4 h-4 mr-2" />
-          添加属性
+          <Plus className="mr-2 h-4 w-4" />
+          新建
         </Button>
       </div>
 

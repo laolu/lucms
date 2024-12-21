@@ -51,6 +51,7 @@ import { Plus, Search, MoreHorizontal, Pencil, Trash2, Ban, CheckCircle, ArrowUp
 import { toast } from "sonner"
 import { advertisementService, type Advertisement, type AdListResponse, type AdPosition } from '@/services/advertisement'
 import { formatDate } from '@/lib/utils'
+import Link from 'next/link'
 
 const AD_POSITIONS: { label: string; value: AdPosition }[] = [
   { label: '首页横幅', value: 'HOME_BANNER' },
@@ -170,11 +171,12 @@ export default function AdvertisementsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">广告位管理</h1>
-        <Button onClick={handleCreate}>
-          <Plus className="w-4 h-4 mr-2" />
-          创建广告位
+      <div className="flex justify-end items-center">
+        <Button asChild>
+          <Link href="/admin/advertisements/create">
+            <Plus className="mr-2 h-4 w-4" />
+            新建
+          </Link>
         </Button>
       </div>
 
