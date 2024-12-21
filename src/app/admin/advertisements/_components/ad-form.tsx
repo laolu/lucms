@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -13,6 +14,10 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { type AdPosition } from '@/services/advertisement'
+import { FileUpload } from "@/components/ui/file-upload"
+import { toast } from "sonner"
+import client from '@/lib/api-client'
+import { API_ENDPOINTS } from '@/lib/api-config'
 
 export const AD_POSITIONS: { label: string; value: AdPosition }[] = [
   { label: '首页横幅', value: 'HOME_BANNER' },
@@ -57,11 +62,48 @@ export function AdForm({
   saving = false,
   onCancel
 }: AdFormProps) {
+  const router = useRouter()
   const [formData, setFormData] = React.useState<AdFormData>(initialData)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     await onSubmit(formData)
+  }
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      const token = localStorage.getItem('access_token')
+      if (!token) {
+        toast.error('请先登录')
+        router.push('/auth/login?redirectUrl=' + encodeURIComponent(window.location.pathname))
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const response = await client.post(API_ENDPOINTS.UPLOAD, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        },
+      })
+      
+      if (!response.data?.data?.url) {
+        throw new Error('上传失败')
+      }
+      
+      setFormData(prev => ({ ...prev, imageUrl: response.data.data.url }))
+      toast.success('图片上传成功')
+    } catch (error: any) {
+      console.error('上传失败:', error)
+      if (error.response?.status === 401) {
+        toast.error('登录已过期，请重新登录')
+        router.push('/auth/login?redirectUrl=' + encodeURIComponent(window.location.pathname))
+      } else {
+        toast.error(error.response?.data?.message || '图片上传失败')
+      }
+    }
   }
 
   return (
@@ -78,13 +120,23 @@ export function AdForm({
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="imageUrl">图片链接</Label>
-          <Input
-            id="imageUrl"
-            value={formData.imageUrl}
-            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-            required
+          <Label>广告图片</Label>
+          <FileUpload
+            value={formData.imageUrl ? [formData.imageUrl] : []}
+            onChange={(files) => files[0] && handleImageUpload(files[0])}
+            onRemove={() => setFormData({ ...formData, imageUrl: '' })}
+            accept="image/*"
+            maxSize={5 * 1024 * 1024}
           />
+          {formData.imageUrl && (
+            <div className="mt-2">
+              <img
+                src={formData.imageUrl}
+                alt="广告图片预览"
+                className="max-w-[200px] rounded-md"
+              />
+            </div>
+          )}
         </div>
 
         <div className="grid gap-2">

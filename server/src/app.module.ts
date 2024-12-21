@@ -21,6 +21,7 @@ import jwtConfig from './config/jwt.config';
 import { ConfigModule as SystemConfigModule } from './modules/config/config.module';
 import { FriendLinkModule } from './modules/friend-link/friend-link.module';
 import { ArticleModule } from './modules/article/article.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { ArticleModule } from './modules/article/article.module';
     OrderModule,
     FriendLinkModule,
     ArticleModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
