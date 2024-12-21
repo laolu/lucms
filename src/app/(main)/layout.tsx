@@ -1,5 +1,6 @@
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+'use client'
+
+import { SiteFooter } from '@/components/site-footer'
 
 export default function MainLayout({
   children,
@@ -7,10 +8,9 @@ export default function MainLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="relative flex flex-col min-h-screen">
-      <Header />
+    <div className="flex min-h-screen flex-col">
       <main className="flex-1">{children}</main>
-      <Footer />
+      <SiteFooter />
     </div>
   )
 } 

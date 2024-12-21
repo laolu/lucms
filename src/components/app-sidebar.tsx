@@ -55,51 +55,6 @@ const data = {
       ],
     },
     {
-      title: "内容管理",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "内容分类",
-          url: "/admin/content-categories",
-        },
-        {
-          title: "内容列表",
-          url: "/admin/contents",
-        },
-      ],
-    },
-    {
-      title: "模型管理",
-      url: "/admin/content-models",
-      icon: Box,
-      items: [
-        {
-          title: "模型列表",
-          url: "/admin/content-models",
-        },
-        {
-          title: "属性管理",
-          url: "/admin/content-attributes",
-        },
-      ],
-    },
-    {
-      title: "会员管理",
-      url: "#",
-      icon: Users,
-      items: [
-        {
-          title: "会员列表",
-          url: "/admin/users",
-        },
-        {
-          title: "会员等级",
-          url: "/admin/vip-levels",
-        },
-      ],
-    },
-    {
       title: "运营管理",
       url: "#",
       icon: BookOpen,
@@ -123,6 +78,51 @@ const data = {
         {
           title: "友情链接",
           url: "/admin/friend-links",
+        },
+      ],
+    },
+    {
+      title: "内容管理",
+      url: "#",
+      icon: Bot,
+      items: [
+        {
+          title: "内容分类",
+          url: "/admin/content-categories",
+        },
+        {
+          title: "内容列表",
+          url: "/admin/contents",
+        },
+      ],
+    },
+    {
+      title: "会员管理",
+      url: "#",
+      icon: Users,
+      items: [
+        {
+          title: "会员列表",
+          url: "/admin/users",
+        },
+        {
+          title: "会员等级",
+          url: "/admin/vip-levels",
+        },
+      ],
+    },
+    {
+      title: "模型管理",
+      url: "/admin/content-models",
+      icon: Box,
+      items: [
+        {
+          title: "模型列表",
+          url: "/admin/content-models",
+        },
+        {
+          title: "属性管理",
+          url: "/admin/content-attributes",
         },
       ],
     },
@@ -160,9 +160,13 @@ const data = {
   ],
 }
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  variant?: "sidebar" | "floating" | "inset"
+}
+
+export function AppSidebar({ variant = "sidebar" }: AppSidebarProps) {
   return (
-    <Sidebar>
+    <Sidebar variant={variant}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>

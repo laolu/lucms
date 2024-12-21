@@ -6,7 +6,6 @@ import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/contexts/auth-context'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './globals.css'
-import { SiteFooter } from '@/components/site-footer';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -29,7 +28,6 @@ export default function RootLayout({
           >
             <AuthProvider>
               {children}
-              <SiteFooter />
               <Toaster />
             </AuthProvider>
           </ThemeProvider>
