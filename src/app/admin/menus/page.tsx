@@ -231,9 +231,6 @@ export default function MenusPage() {
     );
   }
 
-  // 过滤和搜索控件只在列表视图下显示
-  const showFilters = viewMode === 'list';
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -271,7 +268,7 @@ export default function MenusPage() {
         </div>
       </div>
 
-      {showFilters && (
+      {viewMode === 'list' && (
         <div className="flex gap-4 items-center">
           <div className="relative flex-1">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
