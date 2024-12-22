@@ -94,19 +94,17 @@ export default function EditAdvertisementPage({ params }: EditAdvertisementPageP
   }
 
   return (
-    <div className="container space-y-8 py-8">
+    <div className="space-y-8">
       <PageHeader
         title="编辑广告位"
         description="编辑广告位信息，支持修改图片、链接和其他设置。"
       />
-      <div className="mx-auto max-w-2xl">
-        <AdForm
-          initialData={formData}
-          onSubmit={handleSubmit}
-          onCancel={() => router.back()}
-          submitText="更新"
-        />
-      </div>
+      <AdForm
+        initialData={formData}
+        onSubmit={handleSubmit}
+        onCancel={() => router.back()}
+        submitText="更新"
+      />
     </div>
   )
 } 

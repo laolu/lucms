@@ -21,17 +21,15 @@ export default function CreateAdvertisementPage() {
   }
 
   return (
-    <div className="container space-y-8 py-8">
+    <div className="space-y-8">
       <PageHeader
         title="创建广告位"
         description="创建一个新的广告位，支持单图、多图和轮播图广告。"
       />
-      <div className="mx-auto max-w-2xl">
-        <AdForm
-          onSubmit={handleSubmit}
-          onCancel={() => router.back()}
-        />
-      </div>
+      <AdForm
+        onSubmit={handleSubmit}
+        onCancel={() => router.back()}
+      />
     </div>
   )
 } 
