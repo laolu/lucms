@@ -270,23 +270,37 @@ export default function AdvertisementsPage() {
                   <TableCell>{ad.order}</TableCell>
                   <TableCell className="font-medium">{ad.title}</TableCell>
                   <TableCell>
-                    {ad.imageUrl && (
-                      <img
-                        src={ad.imageUrl}
-                        alt={ad.title}
-                        className="w-20 h-12 object-cover rounded"
-                      />
+                    {ad.contents && ad.contents.length > 0 && (
+                      <div className="flex gap-2">
+                        {ad.contents.map((content, index) => (
+                          <img
+                            key={content.id || index}
+                            src={content.imageUrl}
+                            alt={content.title || ad.title}
+                            className="w-20 h-12 object-cover rounded"
+                          />
+                        ))}
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>
-                    <a
-                      href={ad.linkUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
-                    >
-                      {ad.linkUrl}
-                    </a>
+                    {ad.contents && ad.contents.length > 0 && (
+                      <div className="flex flex-col gap-1">
+                        {ad.contents.map((content, index) => (
+                          content.link && (
+                            <a
+                              key={content.id || index}
+                              href={content.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-500 hover:underline truncate max-w-[200px]"
+                            >
+                              {content.link}
+                            </a>
+                          )
+                        ))}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     {AD_POSITIONS.find(p => p.value === ad.position)?.label}
@@ -314,9 +328,11 @@ export default function AdvertisementsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>操作</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleEdit(ad)}>
-                          <Pencil className="w-4 h-4 mr-2" />
-                          编辑
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/advertisements/${ad.id}/edit`}>
+                            <Pencil className="w-4 h-4 mr-2" />
+                            编辑
+                          </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleToggleStatus(ad)}>
                           {ad.isActive ? (

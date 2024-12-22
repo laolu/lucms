@@ -2,12 +2,22 @@ import client from '@/lib/api-client'
 import { API_ENDPOINTS } from '@/lib/api-config'
 
 export type AdPosition = 'HOME_BANNER' | 'SIDEBAR' | 'CONTENT_TOP' | 'CONTENT_BOTTOM' | 'POPUP'
+export type AdType = 'single' | 'multiple' | 'carousel'
+
+export interface AdContent {
+  id?: number
+  imageUrl: string
+  title?: string
+  description?: string
+  link?: string
+  order?: number
+}
 
 export interface Advertisement {
   id: number
   title: string
-  imageUrl: string
-  linkUrl: string
+  type: AdType
+  contents: AdContent[]
   position: AdPosition
   isActive: boolean
   startDate?: string
@@ -19,8 +29,8 @@ export interface Advertisement {
 
 export interface AdCreateInput {
   title: string
-  imageUrl: string
-  linkUrl: string
+  type: AdType
+  contents: AdContent[]
   position: AdPosition
   isActive?: boolean
   startDate?: string
@@ -34,6 +44,7 @@ export interface AdUpdateInput extends Partial<AdCreateInput> {
 
 export interface AdQuery {
   position?: AdPosition
+  type?: AdType
   isActive?: boolean
   search?: string
   sortBy?: string
@@ -50,35 +61,36 @@ export interface AdListResponse {
   totalPages: number
 }
 
+interface ApiResponse<T> {
+  data: T
+  code: number
+  message: string
+  timestamp: string
+}
+
 export const advertisementService = {
   // 获取广告位列表
   getAll: async (query: AdQuery = {}): Promise<AdListResponse> => {
-    const response = await client.get<any>(API_ENDPOINTS.ADVERTISEMENTS, { params: query })
-    return {
-      items: response.data?.data || [],
-      total: response.data?.data?.length || 0,
-      page: 1,
-      pageSize: 10,
-      totalPages: Math.ceil((response.data?.data?.length || 0) / 10)
-    }
+    const response = await client.get<ApiResponse<AdListResponse>>(API_ENDPOINTS.ADVERTISEMENTS, { params: query })
+    return response.data.data
   },
 
   // 获取单个广告位
   getById: async (id: number): Promise<Advertisement> => {
-    const response = await client.get<any>(API_ENDPOINTS.ADVERTISEMENT_DETAIL(id))
-    return response.data?.data
+    const response = await client.get<ApiResponse<Advertisement>>(API_ENDPOINTS.ADVERTISEMENT_DETAIL(id))
+    return response.data.data
   },
 
   // 创建广告位
   create: async (input: AdCreateInput): Promise<Advertisement> => {
-    const response = await client.post<any>(API_ENDPOINTS.ADVERTISEMENTS, input)
-    return response.data?.data
+    const response = await client.post<ApiResponse<Advertisement>>(API_ENDPOINTS.ADVERTISEMENTS, input)
+    return response.data.data
   },
 
   // 更新广告位
   update: async (input: AdUpdateInput): Promise<Advertisement> => {
-    const response = await client.patch<any>(API_ENDPOINTS.ADVERTISEMENT_DETAIL(input.id), input)
-    return response.data?.data
+    const response = await client.put<ApiResponse<Advertisement>>(API_ENDPOINTS.ADVERTISEMENT_DETAIL(input.id), input)
+    return response.data.data
   },
 
   // 删除广告位
@@ -88,13 +100,13 @@ export const advertisementService = {
 
   // 更新广告位状态
   updateStatus: async (id: number, isActive: boolean): Promise<Advertisement> => {
-    const response = await client.patch<any>(API_ENDPOINTS.ADVERTISEMENT_STATUS(id), { isActive })
-    return response.data?.data
+    const response = await client.patch<ApiResponse<Advertisement>>(API_ENDPOINTS.ADVERTISEMENT_STATUS(id), { isActive })
+    return response.data.data
   },
 
   // 更新广告位排序
   updateOrder: async (id: number, order: number): Promise<Advertisement> => {
-    const response = await client.patch<any>(API_ENDPOINTS.ADVERTISEMENT_ORDER(id), { order })
-    return response.data?.data
+    const response = await client.patch<ApiResponse<Advertisement>>(API_ENDPOINTS.ADVERTISEMENT_ORDER(id), { order })
+    return response.data.data
   }
 } 

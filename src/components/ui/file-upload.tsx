@@ -1,10 +1,10 @@
 import * as React from "react"
-import { useDropzone, type DropzoneOptions } from "react-dropzone"
+import { useDropzone } from "react-dropzone"
 import { cn } from "@/lib/utils"
-import { Button } from "./button"
 import { Icons } from "@/components/icons"
+import { Button } from "@/components/ui/button"
 
-type FileUploadProps = {
+interface FileUploadProps {
   value?: string[]
   onChange?: (files: File[]) => void
   onRemove?: (index: number) => void
@@ -33,7 +33,7 @@ export function FileUpload({
     onDrop: (acceptedFiles) => {
       onChange?.(acceptedFiles)
     },
-  } as DropzoneOptions)
+  })
 
   return (
     <div className={cn("space-y-4", className)}>

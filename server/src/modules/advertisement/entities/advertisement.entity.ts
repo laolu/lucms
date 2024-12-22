@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { AdPosition } from '../../../common/enums/ad-position.enum';
+import { AdContent } from './ad-content.entity';
 
 @Entity('advertisements')
 export class Advertisement {
@@ -9,33 +10,33 @@ export class Advertisement {
   @Column()
   title: string;
 
-  @Column()
-  imageUrl: string;
+  @Column({ type: 'enum', enum: ['single', 'multiple', 'carousel'], default: 'single' })
+  type: string;
 
-  @Column()
-  linkUrl: string;
-
-  @Column({
-    type: 'enum',
-    enum: AdPosition
-  })
+  @Column({ type: 'enum', enum: AdPosition })
   position: AdPosition;
 
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ type: 'datetime', nullable: true })
-  startDate: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  startDate: string | null;
 
-  @Column({ type: 'datetime', nullable: true })
-  endDate: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  endDate: string | null;
 
   @Column({ default: 0 })
   order: number;
 
+  @OneToMany(() => AdContent, content => content.advertisement, {
+    cascade: true,
+    eager: true
+  })
+  contents: AdContent[];
+
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: string;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: string;
 } 

@@ -1,44 +1,37 @@
 'use client'
 
-import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
-import { advertisementService } from '@/services/advertisement'
 import { AdForm } from '../_components/ad-form'
+import { advertisementService, type AdCreateInput } from '@/services/advertisement'
+import { toast } from 'sonner'
+import { PageHeader } from '@/components/page-header'
 
 export default function CreateAdvertisementPage() {
   const router = useRouter()
-  const [saving, setSaving] = React.useState(false)
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (data: AdCreateInput) => {
     try {
-      setSaving(true)
-      await advertisementService.create(formData)
-      toast.success('广告位已创建')
+      await advertisementService.create(data)
+      toast.success('创建成功')
       router.push('/admin/advertisements')
-    } catch (error) {
-      toast.error('创建广告位失败')
-    } finally {
-      setSaving(false)
+      router.refresh()
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || '创建失败')
     }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">创建广告位</h1>
-        <Button variant="outline" onClick={() => router.push('/admin/advertisements')}>
-          返回列表
-        </Button>
-      </div>
-
-      <AdForm
-        onSubmit={handleSubmit}
-        submitText="创建"
-        saving={saving}
-        onCancel={() => router.push('/admin/advertisements')}
+    <div className="container space-y-8 py-8">
+      <PageHeader
+        title="创建广告位"
+        description="创建一个新的广告位，支持单图、多图和轮播图广告。"
       />
+      <div className="mx-auto max-w-2xl">
+        <AdForm
+          onSubmit={handleSubmit}
+          onCancel={() => router.back()}
+        />
+      </div>
     </div>
   )
 } 

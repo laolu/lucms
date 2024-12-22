@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Query, NotFoundException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from '../../guards/admin.guard';
-import { AdvertisementService } from './advertisement.service';
+import { AdvertisementService, AdListResponse } from './advertisement.service';
 import { CreateAdvertisementDto } from './dto/create-advertisement.dto';
 import { Advertisement } from './entities/advertisement.entity';
 import { AdPosition } from '../../common/enums/ad-position.enum';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('广告')
 @Controller('advertisements')
@@ -26,8 +26,31 @@ export class AdvertisementController {
   @Get()
   @ApiOperation({ summary: '获取所有广告' })
   @ApiResponse({ status: 200, description: '获取成功', type: [Advertisement] })
-  async findAll(): Promise<Advertisement[]> {
-    return await this.advertisementService.findAll();
+  @ApiQuery({ name: 'position', enum: AdPosition, required: false })
+  @ApiQuery({ name: 'isActive', type: Boolean, required: false })
+  @ApiQuery({ name: 'search', type: String, required: false })
+  @ApiQuery({ name: 'sortBy', type: String, required: false })
+  @ApiQuery({ name: 'sort', enum: ['ASC', 'DESC'], required: false })
+  @ApiQuery({ name: 'page', type: Number, required: false })
+  @ApiQuery({ name: 'pageSize', type: Number, required: false })
+  async findAll(
+    @Query('position') position?: AdPosition,
+    @Query('isActive') isActive?: boolean,
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sort') sort?: 'ASC' | 'DESC',
+    @Query('page') page?: number,
+    @Query('pageSize') pageSize?: number,
+  ): Promise<AdListResponse> {
+    return await this.advertisementService.findAll({
+      position,
+      isActive,
+      search,
+      sortBy,
+      sort,
+      page: page ? parseInt(page.toString()) : undefined,
+      pageSize: pageSize ? parseInt(pageSize.toString()) : undefined,
+    });
   }
 
   @Get('position/:position')
@@ -36,6 +59,18 @@ export class AdvertisementController {
   @ApiResponse({ status: 200, description: '获取成功', type: [Advertisement] })
   async findByPosition(@Param('position') position: AdPosition): Promise<Advertisement[]> {
     return await this.advertisementService.findByPosition(position);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: '获取单个广告' })
+  @ApiParam({ name: 'id', description: '广告ID' })
+  @ApiResponse({ status: 200, description: '获取成功', type: Advertisement })
+  async findOne(@Param('id') id: string): Promise<Advertisement> {
+    const advertisement = await this.advertisementService.findOne(parseInt(id));
+    if (!advertisement) {
+      throw new NotFoundException('广告不存在');
+    }
+    return advertisement;
   }
 
   @Put(':id')
