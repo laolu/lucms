@@ -1,8 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ContentAttributeValueService } from './content-attribute-value.service';
-import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags('内容属性值')
 @Controller('content-attribute-values')
 export class ContentAttributeValueController {
   constructor(private readonly service: ContentAttributeValueService) {}
