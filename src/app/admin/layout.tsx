@@ -14,11 +14,11 @@ export default function AdminLayout({
 }) {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="flex w-full min-h-screen">
         <AppSidebar variant="inset" />
         <SidebarInset className="flex-1 w-0">
           <div className="p-6">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex gap-2 items-center mb-4">
               <SidebarTrigger />
               <Separator orientation="vertical" className="h-4" />
               <Breadcrumb />

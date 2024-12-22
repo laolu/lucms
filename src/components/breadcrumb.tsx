@@ -168,7 +168,7 @@ export function Breadcrumb() {
       {breadcrumbs.map((item, index) => (
         <div key={index} className="flex items-center">
           {index > 0 && (
-            <ChevronRight className="h-4 w-4 mx-2 text-gray-500" />
+            <ChevronRight className="mx-2 w-4 h-4 text-gray-500" />
           )}
           <span className={`${index === breadcrumbs.length - 1 ? 'text-gray-900' : 'text-gray-500'}`}>
             {item.label}

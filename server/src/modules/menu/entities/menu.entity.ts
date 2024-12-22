@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 
 @Entity('menus')
 export class Menu {
@@ -22,6 +22,13 @@ export class Menu {
 
   @Column({ nullable: true })
   parentId?: number;
+
+  @ManyToOne(() => Menu, menu => menu.children, { nullable: true })
+  @JoinColumn({ name: 'parentId' })
+  parent: Menu;
+
+  @OneToMany(() => Menu, menu => menu.parent, { cascade: true })
+  children: Menu[];
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -4,27 +4,23 @@ export class CreateMenuDto {
   @IsString()
   name: string;
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   icon?: string;
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   path?: string;
 
-  @IsOptional()
   @IsBoolean()
+  @IsOptional()
   visible?: boolean;
 
-  @IsOptional()
-  @IsBoolean()
-  adminOnly?: boolean;
-
-  @IsOptional()
   @IsNumber()
+  @IsOptional()
   sort?: number;
 
-  @IsOptional()
   @IsNumber()
+  @IsOptional()
   parentId?: number;
 } 

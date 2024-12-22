@@ -22,6 +22,13 @@ export class MenuController {
     return this.menuService.findAll(query);
   }
 
+  @Get('tree')
+  async getTree() {
+    const tree = await this.menuService.getTree();
+    console.log('Menu Tree Structure:', JSON.stringify(tree, null, 2));
+    return tree;
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.menuService.findOne(+id);
@@ -37,5 +44,11 @@ export class MenuController {
   @Admin()
   remove(@Param('id') id: string) {
     return this.menuService.remove(+id);
+  }
+
+  @Post('import-categories')
+  @Admin()
+  async importCategories() {
+    return this.menuService.importCategories();
   }
 } 

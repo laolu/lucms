@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { menuService, type Menu } from '@/services/menu'
 
 interface MenuFormData {
+  id?: number
   name: string
   icon?: string
   path?: string
@@ -56,12 +57,12 @@ export function MenuForm({
     const loadParentMenus = async () => {
       try {
         setLoadingParentMenus(true)
-        const data = await menuService.getAll({
-          parentId: 0 // 只获取顶级菜单
-        })
-        setParentMenus(data.items)
+        const data = await menuService.getAll()
+        // 确保 data 是数组
+        setParentMenus(Array.isArray(data) ? data : [])
       } catch (error) {
         console.error('加载父级菜单失败:', error)
+        setParentMenus([]) // 确保在失败时设置为空数组
       } finally {
         setLoadingParentMenus(false)
       }
@@ -117,11 +118,19 @@ export function MenuForm({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="0">顶级菜单</SelectItem>
-              {parentMenus.map(menu => (
-                <SelectItem key={menu.id} value={menu.id.toString()}>
-                  {menu.name}
-                </SelectItem>
-              ))}
+              {Array.isArray(parentMenus) && parentMenus
+                .filter(menu => {
+                  // 如果是编辑模式，过滤掉自己和子菜单
+                  if (initialData?.id) {
+                    return menu.id !== initialData.id && menu.parentId !== initialData.id;
+                  }
+                  return true;
+                })
+                .map(menu => (
+                  <SelectItem key={menu.id} value={menu.id.toString()}>
+                    {menu.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>
@@ -137,8 +146,8 @@ export function MenuForm({
           />
         </div>
 
-        <div className="flex items-center gap-8">
-          <div className="flex items-center gap-2">
+        <div className="flex gap-8 items-center">
+          <div className="flex gap-2 items-center">
             <Switch
               id="visible"
               checked={formData.visible}
@@ -147,7 +156,7 @@ export function MenuForm({
             <Label htmlFor="visible">显示</Label>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2 items-center">
             <Switch
               id="adminOnly"
               checked={formData.adminOnly}
