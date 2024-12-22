@@ -193,7 +193,7 @@ export function AdForm({
             <div className="grid gap-2">
               <Label htmlFor="title">
                 标题
-                <span className="text-red-500 ml-1">*</span>
+                <span className="ml-1 text-red-500">*</span>
               </Label>
               <Input
                 id="title"
@@ -207,7 +207,7 @@ export function AdForm({
             <div className="grid gap-2">
               <Label>
                 广告类型
-                <span className="text-red-500 ml-1">*</span>
+                <span className="ml-1 text-red-500">*</span>
               </Label>
               <RadioGroup
                 value={formData.type}
@@ -219,7 +219,7 @@ export function AdForm({
                     <RadioGroupItem
                       value={type.value}
                       id={`type-${type.value}`}
-                      className="peer sr-only"
+                      className="sr-only peer"
                     />
                     <Label
                       htmlFor={`type-${type.value}`}
@@ -235,7 +235,7 @@ export function AdForm({
             <div className="grid gap-2">
               <Label htmlFor="position">
                 位置
-                <span className="text-red-500 ml-1">*</span>
+                <span className="ml-1 text-red-500">*</span>
               </Label>
               <Select
                 value={formData.position}
@@ -283,7 +283,7 @@ export function AdForm({
             <div className="grid gap-2">
               <Label>
                 上传图片
-                <span className="text-red-500 ml-1">*</span>
+                <span className="ml-1 text-red-500">*</span>
               </Label>
               <FileUpload
                 value={formData.contents.map(content => content.imageUrl)}
@@ -320,16 +320,16 @@ export function AdForm({
                           >
                             <div
                               {...provided.dragHandleProps}
-                              className="absolute top-2 right-2 p-1 cursor-move hover:bg-accent rounded"
+                              className="absolute top-2 right-2 p-1 rounded cursor-move hover:bg-accent"
                             >
-                              <Icons.move className="h-4 w-4" />
+                              <Icons.move className="w-4 h-4" />
                             </div>
                             <CardContent className="p-4 space-y-4">
                               <div className="flex gap-4">
                                 <img
                                   src={content.imageUrl}
                                   alt={content.title || '广告图片'}
-                                  className="w-32 h-20 object-cover rounded"
+                                  className="object-cover w-32 h-20 rounded"
                                 />
                                 <div className="flex-1 space-y-2">
                                   <Input
@@ -355,7 +355,7 @@ export function AdForm({
                                   size="icon"
                                   onClick={() => handleImageRemove(index)}
                                 >
-                                  <Icons.close className="h-4 w-4" />
+                                  <Icons.close className="w-4 h-4" />
                                 </Button>
                               </div>
                             </CardContent>
@@ -401,7 +401,7 @@ export function AdForm({
                         )}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="p-0 w-auto" align="start">
                       <Calendar
                         mode="single"
                         selected={formData.startDate ? new Date(formData.startDate) : undefined}
@@ -430,7 +430,7 @@ export function AdForm({
                         )}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="p-0 w-auto" align="start">
                       <Calendar
                         mode="single"
                         selected={formData.endDate ? new Date(formData.endDate) : undefined}
@@ -459,12 +459,12 @@ export function AdForm({
         </CardContent>
       </Card>
 
-      <div className="flex justify-end gap-4">
+      <div className="flex gap-4 justify-end">
         <Button type="button" variant="outline" onClick={onCancel}>
           取消
         </Button>
         <Button type="submit" disabled={saving}>
-          {saving && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+          {saving && <Icons.spinner className="mr-2 w-4 h-4 animate-spin" />}
           {submitText}
         </Button>
       </div>
