@@ -60,25 +60,23 @@ export default function MenusPage() {
   const [selectedMenu, setSelectedMenu] = React.useState<Menu | null>(null)
   const [importDialogOpen, setImportDialogOpen] = React.useState(false)
   const [importing, setImporting] = React.useState(false)
-  const [viewMode, setViewMode] = React.useState<ViewMode>('list')
+  const [viewMode, setViewMode] = React.useState<ViewMode>('tree')
 
   // 加载菜单列表
   const loadMenus = React.useCallback(async () => {
     try {
       setLoading(true)
-      let data;
-      if (viewMode === 'tree') {
-        data = await menuService.getTree()
-      } else {
-        data = await menuService.getAll({
-          search: searchQuery,
-          parentId: selectedParentId === 'all' ? undefined : parseInt(selectedParentId),
-          visible: selectedStatus === 'all' ? undefined : selectedStatus === 'visible',
-          sortBy,
-          sort: sortOrder
-        })
-      }
-      setMenus(Array.isArray(data) ? data : [])
+      const response = await (viewMode === 'tree' 
+        ? menuService.getTree()
+        : menuService.getAll({
+            search: searchQuery,
+            parentId: selectedParentId === 'all' ? undefined : parseInt(selectedParentId),
+            visible: selectedStatus === 'all' ? undefined : selectedStatus === 'visible',
+            sortBy,
+            sort: sortOrder
+          })
+      )
+      setMenus(response.data || [])
     } catch (error) {
       toast.error('加载菜单列表失败')
       setMenus([])
@@ -116,7 +114,7 @@ export default function MenusPage() {
       toast.success('菜单已删除')
       loadMenus()
     } catch (error) {
-      toast.error('删除菜单失���')
+      toast.error('删除菜单失败')
     } finally {
       setDeleteDialogOpen(false)
       setSelectedMenu(null)
@@ -160,26 +158,6 @@ export default function MenusPage() {
     }
   }
 
-  // 构建树形结构
-  const buildTree = (items: Menu[]): Menu[] => {
-    return items
-      .filter(item => !item.parentId)
-      .map(item => ({
-        ...item,
-        children: getChildren(items, item.id)
-      }));
-  }
-
-  // ���取子菜单
-  const getChildren = (items: Menu[], parentId: number): Menu[] => {
-    return items
-      .filter(item => item.parentId === parentId)
-      .map(item => ({
-        ...item,
-        children: getChildren(items, item.id)
-      }));
-  }
-
   // 渲染树形菜单项
   const renderTreeItem = (menu: Menu) => {
     const children = menu.children || [];
@@ -187,7 +165,7 @@ export default function MenusPage() {
     
     return (
       <div key={menu.id} className="border-b last:border-b-0">
-        <div className="flex justify-between items-center px-4 py-2">
+        <div className="flex justify-between items-center px-4 py-2 hover:bg-muted/50">
           <div className="flex gap-2 items-center">
             {hasChildren && (
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -253,6 +231,9 @@ export default function MenusPage() {
     );
   }
 
+  // 过滤和搜索控件只在列表视图下显示
+  const showFilters = viewMode === 'list';
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -290,49 +271,51 @@ export default function MenusPage() {
         </div>
       </div>
 
-      <div className="flex gap-4 items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="搜索菜单..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
+      {showFilters && (
+        <div className="flex gap-4 items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="搜索菜单..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8"
+            />
+          </div>
+          <Select
+            value={selectedParentId}
+            onValueChange={setSelectedParentId}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="选择父级" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部</SelectItem>
+              <SelectItem value="0">顶级菜单</SelectItem>
+              {Array.isArray(menus) && menus
+                .filter(menu => !menu.parentId)
+                .map(menu => (
+                  <SelectItem key={menu.id} value={menu.id.toString()}>
+                    {menu.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={selectedStatus}
+            onValueChange={setSelectedStatus}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="选择状态" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部状态</SelectItem>
+              <SelectItem value="visible">显示</SelectItem>
+              <SelectItem value="hidden">隐藏</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select
-          value={selectedParentId}
-          onValueChange={setSelectedParentId}
-        >
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="选择父级" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部</SelectItem>
-            <SelectItem value="0">顶级菜单</SelectItem>
-            {Array.isArray(menus) && menus
-              .filter(menu => !menu.parentId)
-              .map(menu => (
-                <SelectItem key={menu.id} value={menu.id.toString()}>
-                  {menu.name}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={selectedStatus}
-          onValueChange={setSelectedStatus}
-        >
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="选择状态" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部状态</SelectItem>
-            <SelectItem value="visible">显示</SelectItem>
-            <SelectItem value="hidden">隐藏</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      )}
 
       {viewMode === 'list' ? (
         <div className="rounded-lg border">
@@ -438,7 +421,7 @@ export default function MenusPage() {
           </Table>
         </div>
       ) : (
-        <div className="rounded-lg border">
+        <div className="p-4 rounded-lg border">
           {loading ? (
             <div className="flex justify-center items-center h-24">
               加载中...

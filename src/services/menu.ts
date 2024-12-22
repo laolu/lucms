@@ -44,31 +44,31 @@ interface ApiResponse<T> {
 
 export const menuService = {
   // 获取菜单列表
-  getAll: async (query: MenuQuery = {}): Promise<Menu[]> => {
+  getAll: async (query: MenuQuery = {}): Promise<ApiResponse<Menu[]>> => {
     const response = await client.get<ApiResponse<Menu[]>>(API_ENDPOINTS.MENUS, { params: query })
-    return response.data?.data || []
+    return response.data
   },
 
   // 获取菜单树
-  getTree: async (): Promise<Menu[]> => {
+  getTree: async (): Promise<ApiResponse<Menu[]>> => {
     const response = await client.get<ApiResponse<Menu[]>>(API_ENDPOINTS.MENUS_TREE)
-    return response.data?.data || []
+    return response.data
   },
 
   // 获取单个菜单
-  getById: async (id: number): Promise<Menu> => {
+  getById: async (id: number): Promise<Menu | undefined> => {
     const response = await client.get<ApiResponse<Menu>>(API_ENDPOINTS.MENU_DETAIL(id))
     return response.data?.data
   },
 
   // 创建菜单
-  create: async (input: MenuCreateInput): Promise<Menu> => {
+  create: async (input: MenuCreateInput): Promise<Menu | undefined> => {
     const response = await client.post<ApiResponse<Menu>>(API_ENDPOINTS.MENUS, input)
     return response.data?.data
   },
 
   // 更新菜单
-  update: async (input: MenuUpdateInput): Promise<Menu> => {
+  update: async (input: MenuUpdateInput): Promise<Menu | undefined> => {
     const response = await client.patch<ApiResponse<Menu>>(API_ENDPOINTS.MENU_DETAIL(input.id), input)
     return response.data?.data
   },
@@ -79,13 +79,13 @@ export const menuService = {
   },
 
   // 更新菜单状态
-  updateStatus: async (id: number, visible: boolean): Promise<Menu> => {
+  updateStatus: async (id: number, visible: boolean): Promise<Menu | undefined> => {
     const response = await client.patch<ApiResponse<Menu>>(API_ENDPOINTS.MENU_STATUS(id), { visible })
     return response.data?.data
   },
 
   // 更新菜单排序
-  updateSort: async (id: number, sort: number): Promise<Menu> => {
+  updateSort: async (id: number, sort: number): Promise<Menu | undefined> => {
     const response = await client.patch<ApiResponse<Menu>>(API_ENDPOINTS.MENU_SORT(id), { sort })
     return response.data?.data
   },
