@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CreateAdContents1704799217183 implements MigrationInterface {
-    name = 'CreateAdContents1704799217183'
+export class CreateAdContents1734370582726 implements MigrationInterface {
+    name = 'CreateAdContents1734370582726'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         // 创建广告内容表

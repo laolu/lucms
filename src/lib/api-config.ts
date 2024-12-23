@@ -98,7 +98,7 @@ export const API_ENDPOINTS = {
   CONFIGS_STORAGE: '/configs/storage',
   CONFIGS_SMS: '/configs/sms',
   CONFIGS_PAYMENT: '/configs/payment',
-  CONFIGS_OAUTH: '/api/admin/configs/oauth',
+  CONFIGS_OAUTH: '/configs/oauth',
   CONFIGS_SECURITY: '/configs/security',
   CONFIGS_CACHE: '/configs/cache',
   CONFIGS_REFRESH: '/configs/refresh',

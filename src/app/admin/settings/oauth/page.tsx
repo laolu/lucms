@@ -22,6 +22,7 @@ export default function OAuthSettingsPage() {
     try {
       setLoading(true)
       const oauthConfigs = await settingService.getOauthConfigs()
+      console.log('获取到的第三方登录配置:', oauthConfigs)
       setConfigs(oauthConfigs)
     } catch (error) {
       console.error('获取配置失败:', error)
@@ -111,7 +112,9 @@ export default function OAuthSettingsPage() {
 
   // 按登录方式分组配置
   const getConfigsByProvider = (provider: string) => {
-    return configs.filter(config => config.key.startsWith(`oauth.${provider}.`))
+    const filteredConfigs = configs.filter(config => config.key.startsWith(`oauth.${provider}.`))
+    console.log(`${provider}登录配置:`, filteredConfigs)
+    return filteredConfigs
   }
 
   React.useEffect(() => {

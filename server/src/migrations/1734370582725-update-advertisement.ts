@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class UpdateAdvertisement1704799217182 implements MigrationInterface {
-    name = 'UpdateAdvertisement1704799217182'
+export class UpdateAdvertisement1734370582725 implements MigrationInterface {
+    name = 'UpdateAdvertisement1734370582725'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         // 添加新字段

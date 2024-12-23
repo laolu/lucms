@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from '@/components/ui/checkbox'
 import { RotateCw } from 'lucide-react'
 import { settingService, type SystemConfig } from '@/services/setting'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 
 export default function BasicSettingsPage() {
   const { toast } = useToast()
@@ -454,17 +455,23 @@ export default function BasicSettingsPage() {
                 <div className="grid gap-2">
                   <Label>登录服务商</Label>
                   <div className={saving ? 'opacity-50 pointer-events-none' : ''}>
-                    {renderConfigField({
-                      id: 0,
-                      key: 'basic.oauth.providers',
-                      value: configs.find(c => c.key === 'basic.oauth.providers')?.value || '[]',
-                      type: 'json',
-                      description: '第三方登录服务商',
-                      sort: 0,
-                      isActive: true,
-                      createdAt: '',
-                      updatedAt: ''
-                    })}
+                    <Select
+                      value={configs.find(c => c.key === 'basic.oauth.providers')?.value || '[]'}
+                      onValueChange={(value) => saveConfig('basic.oauth.providers', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="请选择" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='["qq"]'>QQ登录</SelectItem>
+                        <SelectItem value='["wechat"]'>微信登录</SelectItem>
+                        <SelectItem value='["weibo"]'>微博登录</SelectItem>
+                        <SelectItem value='["qq","wechat"]'>QQ + 微信</SelectItem>
+                        <SelectItem value='["qq","weibo"]'>QQ + 微博</SelectItem>
+                        <SelectItem value='["wechat","weibo"]'>微信 + 微博</SelectItem>
+                        <SelectItem value='["qq","wechat","weibo"]'>全部启用</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
