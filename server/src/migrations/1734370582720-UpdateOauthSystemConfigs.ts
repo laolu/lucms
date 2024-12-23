@@ -11,6 +11,9 @@ export class UpdateOauthSystemConfigs1734370582720 implements MigrationInterface
         // 添加新的OAuth配置
         await queryRunner.query(`
             INSERT INTO system_configs (\`key\`, \`value\`, \`type\`, \`description\`, \`sort\`, \`isActive\`) VALUES
+            -- 基础配置
+            ('basic.oauth.providers', '[]', 'json', '第三方登录服务商', 1, true),
+            
             -- QQ登录配置
             ('oauth.qq.client_id', '', 'string', 'QQ应用ID', 11, true),
             ('oauth.qq.client_secret', '', 'string', 'QQ应用密钥', 12, true),
@@ -33,5 +36,6 @@ export class UpdateOauthSystemConfigs1734370582720 implements MigrationInterface
         await queryRunner.query(`DELETE FROM system_configs WHERE \`key\` LIKE 'oauth.qq.%'`)
         await queryRunner.query(`DELETE FROM system_configs WHERE \`key\` LIKE 'oauth.wechat.%'`)
         await queryRunner.query(`DELETE FROM system_configs WHERE \`key\` LIKE 'oauth.weibo.%'`)
+        await queryRunner.query(`DELETE FROM system_configs WHERE \`key\` = 'basic.oauth.providers'`)
     }
 } 

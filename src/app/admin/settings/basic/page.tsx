@@ -24,6 +24,7 @@ export default function BasicSettingsPage() {
     try {
       setLoading(true)
       const basicConfigs = await settingService.getBasicConfigs()
+      console.log('获取到的基础配置:', basicConfigs)
       setConfigs(basicConfigs)
     } catch (error) {
       console.error('获取配置失败:', error)
@@ -41,6 +42,7 @@ export default function BasicSettingsPage() {
   const saveConfig = async (key: string, value: string) => {
     try {
       setSaving(true)
+      console.log('保存配置:', { key, value })
       await settingService.updateConfig(key, value)
       
       // 如果是启用/禁用服务，给出特定提示
@@ -203,7 +205,13 @@ export default function BasicSettingsPage() {
         )
       case 'json':
         if (config.key === 'basic.payment.providers' || config.key === 'basic.oauth.providers') {
-          const value = JSON.parse(config.value || '[]')
+          let value: string[] = []
+          try {
+            value = JSON.parse(config.value || '[]')
+          } catch (error) {
+            console.error('解析JSON配置失败:', error)
+          }
+          
           const options = config.key === 'basic.payment.providers'
             ? [
                 { value: 'alipay', label: '支付宝' },
@@ -263,7 +271,11 @@ export default function BasicSettingsPage() {
 
   // 获取基础配置
   const getBasicConfigs = () => {
-    return configs.filter(config => !config.key.includes('.enabled') && !config.key.includes('.provider'))
+    return configs.filter(config => 
+      !config.key.includes('.enabled') && 
+      !config.key.includes('.provider') && 
+      !config.key.includes('.providers')
+    )
   }
 
   React.useEffect(() => {
@@ -455,23 +467,17 @@ export default function BasicSettingsPage() {
                 <div className="grid gap-2">
                   <Label>登录服务商</Label>
                   <div className={saving ? 'opacity-50 pointer-events-none' : ''}>
-                    <Select
-                      value={configs.find(c => c.key === 'basic.oauth.providers')?.value || '[]'}
-                      onValueChange={(value) => saveConfig('basic.oauth.providers', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="请选择" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value='["qq"]'>QQ登录</SelectItem>
-                        <SelectItem value='["wechat"]'>微信登录</SelectItem>
-                        <SelectItem value='["weibo"]'>微博登录</SelectItem>
-                        <SelectItem value='["qq","wechat"]'>QQ + 微信</SelectItem>
-                        <SelectItem value='["qq","weibo"]'>QQ + 微博</SelectItem>
-                        <SelectItem value='["wechat","weibo"]'>微信 + 微博</SelectItem>
-                        <SelectItem value='["qq","wechat","weibo"]'>全部启用</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {renderConfigField({
+                      id: 0,
+                      key: 'basic.oauth.providers',
+                      value: configs.find(c => c.key === 'basic.oauth.providers')?.value || '[]',
+                      type: 'json',
+                      description: '第三方登录服务商',
+                      sort: 0,
+                      isActive: true,
+                      createdAt: '',
+                      updatedAt: ''
+                    })}
                   </div>
                 </div>
               </div>
